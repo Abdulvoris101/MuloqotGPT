@@ -48,15 +48,19 @@ conn.commit()
 
 class Admin:
     def get_users(self):
-        users = cursor.execute(f"SELECT * FROM group_chat")
-
+        users_obj = cursor.execute(f"SELECT * FROM group_chat")
+        users = users_obj.fetchall()
         response = ""
-        if len(users.fetchall()) >= 1:
-            for user in users.fetchall():
-                response += f'<b>#{user[0]}</b>\nChatName - {user[1]}\nChatId - {user[3]}\nIsActive - {user[2]}\n\n'
-            return response
-            
-        return "No Users!"
+
+        
+        if len(users) == 0:
+            return "No Users!"
+
+        for user in users:
+            response += f'<b>#{user[0]}</b>\nChatName - {user[1]}\nChatId - {user[3]}\nIsActive - {user[2]}\n\n'
+        
+        return response
+
 
         
 
