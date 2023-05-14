@@ -6,6 +6,7 @@ load_dotenv()  # take environment variables from .env.
 
 openai.api_key = os.environ.get("API_KEY")
 
+
 def answer_ai(messages):
     try:
         response = openai.ChatCompletion.create(

@@ -6,7 +6,6 @@ from main import answer_ai
 
 @dp.message_handler(commands=['start'])
 async def send_welcome(message: types.Message):
-    print('start')
     await message.answer(""" 🤖 Salom! Men MuloqotAi, sizning shaxsiy AI yordamchingizman, sizga qiziqarli va ulashingizga imkon beradigan suhbat tajribasi taqdim etish uchun yaratilganman. Meni boshqa chatbotlardan farq qilishim - /me !.
 Batafsil ma'lumot uchun - /help""")
 
@@ -14,7 +13,6 @@ Batafsil ma'lumot uchun - /help""")
 
 @dp.message_handler(commands=['help'])
 async def help(message: types.Message):
-    print('help')
     await message.answer(""" Guruh suhbatlaringizda yordam beradigan foydali  yordamchi! Ushbu botning ishlash tartibi quyidagicha:
 
 1️⃣ Gruhga qo'shish: MuloqotAIdan foydalanish uchun, uningni Telegram gruhingizga qo'shing. Bu uchun "@MuloqotAibot" ni qidiring va uningni gruhga taklif qiling.
@@ -30,7 +28,6 @@ async def help(message: types.Message):
 
 @dp.message_handler(commands=['me'])
 async def me(message: types.Message):
-    print('me')
     await message.answer(""" 💡 Aqlli: Ko'plab mavzularni tushunish va javob berishga tayyorman. Umumiy bilimdan ma'lumotlarni qidirishga qadar, sizga aniqligi va maqbul javoblarni taklif etishim mumkin.
 
 🧠 Dono: Men doimiy o'rganish va rivojlanishda, yangi ma'lumotlarga va foydalanuvchi bilan bo'lishuvlarga moslashishim mumkin. Aqlli muloqotlarni taklif etishim mumkin.
@@ -41,7 +38,6 @@ async def me(message: types.Message):
 
 @dp.message_handler(commands=['startai'])
 async def activate(message: types.Message):
-    print('startai')
     group_chat = Group(message.chat.id, message.chat.full_name)
 
     group_chat.activate_group()
@@ -70,9 +66,10 @@ async def handle_reply(message: types.Message):
     message_obj = Message(message=ru_message, chat_id=message.chat.id)
     messages = message_obj.get_messages()
     
-
+    
     if not group_chat.is_active():
         return await message.answer("MuloqotAi toxtatilingan. Muloqotni qayta boshlash uchun - /startai")
+    
 
     messages.append({'role': 'user', 'content': ru_message})
 
