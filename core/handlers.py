@@ -67,13 +67,15 @@ class IsReplyFilter(BoundFilter):
 @dp.message_handler(IsReplyFilter())
 async def handle_reply(message: types.Message):
     group_chat = Group(message.chat.id, message.chat.full_name)
+
     ru_message = translate_message(message.text)
+
     message_obj = Message(message=ru_message, chat_id=message.chat.id)
     messages = message_obj.get_messages()
     
     
     if not group_chat.is_active():
-        return await message.answer("MuloqotAi toxtatilingan. Muloqotni qayta boshlash uchun - /startai")
+        return await message.answer("Muloqotni boshlash uchun - /startai")
 
     messages.append({'role': 'user', 'content': ru_message})
 
