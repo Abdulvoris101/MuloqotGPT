@@ -67,26 +67,30 @@ class IsReplyFilter(BoundFilter):
 @dp.message_handler(IsReplyFilter())
 async def handle_reply(message: types.Message):
     group_chat = Group(message.chat.id, message.chat.full_name)
+    print(message.reply_to_message)
 
-    ru_message = translate_message(message.text)
+    if message.reply_to_message["from"]["is_bot"]:
 
-    message_obj = Message(message=ru_message, chat_id=message.chat.id)
-    messages = message_obj.get_messages()
-    
-    
-    if not group_chat.is_active():
-        return await message.answer("Muloqotni boshlash uchun - /startai")
+        ru_message = translate_message(message.text)
 
-    messages.append({'role': 'user', 'content': ru_message})
+        message_obj = Message(message=ru_message, chat_id=message.chat.id)
+        messages = message_obj.get_messages()
+        
+        
+        
+        if not group_chat.is_active():
+            return await message.answer("Muloqotni boshlash uchun - /startai")
 
-    response = answer_ai(messages)
+        messages.append({'role': 'user', 'content': ru_message})
 
-    await message.reply(response)
+        response = answer_ai(messages)
 
-    message_obj.create_message(role='user', message=ru_message)
-    message_obj.create_message(role='assistant', message=response)
+        await message.reply(response)
 
-    messages.pop()
+        message_obj.create_message(role='user', message=ru_message)
+        message_obj.create_message(role='assistant', message=response)
+
+        messages.pop()
     
 
     
