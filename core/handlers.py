@@ -32,8 +32,7 @@ async def password_handler(message: types.Message, state=FSMContext):
     if message.text == str(os.environ.get('PASSWORD')):
         admin = Admin()
         
-        await state.finish()
-
+        await state.finish()    
         return await message.answer(admin.get_users())
 
     return await message.answer("""Notog'ri parol!""")
