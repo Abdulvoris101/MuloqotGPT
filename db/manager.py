@@ -54,11 +54,11 @@ class Admin:
         if len(users.fetchall()) >= 1:
             for user in users.fetchall():
                 response += f'<b>#{user[0]}</b>\nChatName - {user[1]}\nChatId - {user[3]}\nIsActive - {user[2]}\n\n'
-        else:
-            response = "No Users!"
+            return response
             
-        return response
+        return "No Users!"
 
+        
 
 class Message:
     def __init__(self, chat_id, message):
