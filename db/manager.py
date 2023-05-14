@@ -44,6 +44,19 @@ cursor.execute('''CREATE TABLE IF NOT EXISTS message (
                     chat_id BIGINTEGER
 )''')
 
+
+cursor.execute('''CREATE TABLE IF NOT EXISTS apierror (
+                    id INTEGER PRIMARY KEY,
+                    message TEXT
+)''')
+
+
+cursor.execute('''CREATE TABLE IF NOT EXISTS admin (
+                    id INTEGER PRIMARY KEY,
+                    user_id BIGINTEGER
+)''')
+
+
 conn.commit()
 
 class Admin:
@@ -61,7 +74,40 @@ class Admin:
         
         return response
 
+    def add_error(self, message):
+        cursor.execute(f"INSERT INTO apierror (message) VALUES ('{message}')")
 
+        conn.commit()
+
+    def register_admin(self, user_id):
+        if not self.is_admin(user_id):
+            cursor.execute(f"INSERT INTO admin (user_id) VALUES ({user_id})")
+
+            conn.commit()
+
+    def is_admin(self, user_id):
+        admin_obj = cursor.execute(f"SELECT user_id FROM admin WHERE user_id={user_id};")
+        is_admin = admin_obj.fetchone()
+
+        if is_admin is None:
+            return False
+
+        return True
+
+    def get_errors(self):
+        errors_obj = cursor.execute(f"SELECT * FROM apierror")
+        errors = errors_obj.fetchall()
+        response = ""
+
+        
+        if len(errors) == 0:
+            return "No Errors!"
+
+        for error in errors:
+            response += f'<b>#{error[0]}</b>\nMessage - {error[1]}\n\n'
+        
+
+        return response
         
 
 class Message:

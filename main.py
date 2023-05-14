@@ -1,6 +1,7 @@
 import os
 import openai
 from dotenv import load_dotenv
+from db.manager import Admin
 
 load_dotenv()  # take environment variables from .env.
 
@@ -15,9 +16,13 @@ def answer_ai(messages):
         )
 
         return response['choices'][0]['message']['content']
-    except openai.Error as e:
-        # Handle specific OpenAI API errors
-        return 'Кажется я времмено отключился от ИИ 🤒. Пожалуйста, отправьте запрос позже'
+
+    except openai.OpenAIError as e:
+        
+        admin = Admin()
+        admin.add_error(message=e)
+
+        return 'Кажется я времмено отключился от ИИ 🤒. Пожалуйста, отправьте запрос позже.'
 
     except Exception as e:
         # Handle other exceptions

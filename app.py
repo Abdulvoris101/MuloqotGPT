@@ -21,5 +21,7 @@ class AdminState(StatesGroup):
 
 if __name__ == '__main__':
     from core.handlers import dp
+    from admin.handlers import dp
+    from event.handlers import dp
     
     executor.start_polling(dp, skip_updates=True)
