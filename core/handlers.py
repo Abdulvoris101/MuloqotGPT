@@ -19,7 +19,7 @@ async def help(message: types.Message):
 
 2️⃣ Admin huquqlarini berish: MuloqotAItning samarali ishlashi uchun uningni admin sifatida qo'shish kerak. Uningga to'g'ri admin huquqlarini berishni unutmang, masalan, xabarlarni o'chirish (ixtiyoriy) va boshqa sozlamalarni boshqarish.
 
-3️⃣ Gruhda suhbatlashish: MuloqotAI gruhda /startai kommandasini kiritsangiz gruhingizning a'zolari bilan faol ravishda suhbatlashadi. Gruh a'zolari savollarni so'rash, ma'lumot so'ralish, yordam so'ralish yoki qiziqarli suhbatlar olib borishlari mumkin. Agarda vaqtinchalik to'xtatib turmoqchi bo'lsangiz /stopai kommandasini yuboring.
+3️⃣ Gruhda suhbatlashish: MuloqotAI gruhda /startai kommandasini kiritsangiz  bot faol bo'ladi va u bilan suhbat qurish uchun unga reply tarzida so'rov yuboring. Gruh a'zolari savollarni so'rash, ma'lumot so'ralish, yordam so'ralish yoki qiziqarli suhbatlar olib borishlari mumkin. Agarda vaqtinchalik to'xtatib turmoqchi bo'lsangiz /stopai kommandasini yuboring. 
 
 4️⃣ Aqlli javoblar: MuloqotAI g'oya muhandisligidan foydalanib gruh suhbatlarining mazmunini tushunadi. U foydali javoblar berish, manfaatli muloqotlarni olib borish, takliflarni taklif etish va latifalar bilan shug'ullanishga imkon beradi.
 
