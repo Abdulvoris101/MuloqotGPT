@@ -46,6 +46,17 @@ cursor.execute('''CREATE TABLE IF NOT EXISTS message (
 
 conn.commit()
 
+class Admin:
+    def get_users(self):
+        users = cursor.execute(f"SELECT * FROM group_chat")
+
+        response = ""
+        if len(users.fetchall()) >= 1:
+            for user in users.fetchall():
+                response += f'<b>#{user[0]}</b>\nChatName - {user[1]}\nChatId - {user[3]}\nIsActive - {user[2]}\n\n'
+        response = "No Users!"
+        return response
+
 
 class Message:
     def __init__(self, chat_id, message):

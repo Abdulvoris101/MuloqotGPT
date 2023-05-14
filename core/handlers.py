@@ -1,14 +1,42 @@
-from app import dp, bot, types
-from db.manager import Group, Message
+from app import dp, bot, types, AdminState
+from db.manager import Group, Message, Admin
 from aiogram.dispatcher.filters import BoundFilter
 from .utils import translate_message
 from main import answer_ai
+from aiogram.dispatcher import FSMContext
+import os
 
 @dp.message_handler(commands=['start'])
 async def send_welcome(message: types.Message):
 
     await message.answer(""" 🤖 Salom! Men MuloqotAi, sizning shaxsiy AI yordamchingizman, sizga qiziqarli va ulashingizga imkon beradigan suhbat tajribasi taqdim etish uchun yaratilganman. Afsuski xozirda faqatgina rus tilida javob beraman lekin siz xohlagan tilizda menga yoza olasiz 😉. Meni boshqa chatbotlardan farq qilishim - /me !.
 Batafsil ma'lumot uchun - /help""")
+
+
+
+@dp.message_handler(commands=['admin'])
+async def admin(message: types.Message, state=None):
+    
+    await AdminState.password.set()
+
+    await message.answer(""" Password kiriting!""")
+
+
+
+@dp.message_handler(state=AdminState.password)
+async def password_handler(message: types.Message, state=FSMContext):
+
+    async with state.proxy() as data:
+        data['password'] = message.text
+
+    if message.text == str(os.environ.get('PASSWORD')):
+        admin = Admin()
+        
+        await state.finish()
+
+        return await message.answer(admin.get_users())
+
+    return await message.answer("""Notog'ri parol!""")
 
 
 
