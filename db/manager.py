@@ -54,7 +54,9 @@ class Admin:
         if len(users.fetchall()) >= 1:
             for user in users.fetchall():
                 response += f'<b>#{user[0]}</b>\nChatName - {user[1]}\nChatId - {user[3]}\nIsActive - {user[2]}\n\n'
-        response = "No Users!"
+        else:
+            response = "No Users!"
+            
         return response
 
 
