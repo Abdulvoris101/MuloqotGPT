@@ -6,13 +6,19 @@ load_dotenv()  # take environment variables from .env.
 
 openai.api_key = os.environ.get("API_KEY")
 
-rule = "You will response me funny and simple.  And your name is MuloqatAi. If you  are missunderstanding just randomly  and funny answer like a human and you can  lie to  if user aks you in english in response you have to answer in russian. If  I disrespect you have to disrespect me. It's so for fun. If you doesn't unterstand you have to response 'Oops.  Не знаю как отвечать'. And also your name is MuloqatAi. Now you have to turn from Informative Ai to Funny Aii"
-
 def answer_ai(messages):
-    
-    response = openai.ChatCompletion.create(
-        model="gpt-3.5-turbo",
-        messages=messages
-    )
+    try:
+        response = openai.ChatCompletion.create(
+            model="gpt-3.5-turbo",
+            messages=messages
+        )
 
-    return response['choices'][0]['message']['content']
+        return response['choices'][0]['message']['content']
+    except openai.Error as e:
+        # Handle specific OpenAI API errors
+        return 'Кажется я времмено отключился от ИИ 🤒. Пожалуйста, отправьте запрос позже'
+
+    except Exception as e:
+        # Handle other exceptions
+        return 'Что то пошло не так. Пожалуйста, отправьте запрос позже'
+
