@@ -3,8 +3,8 @@ from db.manager import Group, Message, Admin
 from aiogram.dispatcher.filters import BoundFilter
 from .utils import translate_message
 from main import answer_ai
-from aiogram.dispatcher import FSMContext
-import os
+
+
 
 @dp.message_handler(commands=['start'])
 async def send_welcome(message: types.Message):
@@ -14,43 +14,21 @@ Batafsil ma'lumot uchun - /help""")
 
 
 
-@dp.message_handler(commands=['admin'])
-async def admin(message: types.Message, state=None):
-    
-    await AdminState.password.set()
-
-    await message.answer(""" Password kiriting!""")
-
-
-
-@dp.message_handler(state=AdminState.password)
-async def password_handler(message: types.Message, state=FSMContext):
-
-    async with state.proxy() as data:
-        data['password'] = message.text
-
-    if message.text == str(os.environ.get('PASSWORD')):
-        admin = Admin()
-        
-        await state.finish()    
-        return await message.answer(admin.get_users())
-
-    return await message.answer("""Notog'ri parol!""")
-
-
 
 @dp.message_handler(commands=['help'])
 async def help(message: types.Message):
 
     await message.answer(""" Guruh suhbatlaringizda yordam beradigan foydali  yordamchi! Ushbu botning ishlash tartibi quyidagicha:
 
-1️⃣ Guruhga qo'shish: MuloqotAIdan foydalanish uchun, uningni Telegram gruhingizga qo'shing. Bu uchun "@muloqataibot" ni qidiring va uningni gruhga taklif qiling.
+1️⃣ <b>Guruhga qo'shish</b>: MuloqotAIdan foydalanish uchun, uningni Telegram gruhingizga qo'shing. Bu uchun "@muloqataibot" ni qidiring va uningni gruhga taklif qiling.
 
-2️⃣ Admin huquqlarini berish: MuloqotAItning samarali ishlashi uchun uningni admin sifatida qo'shish kerak. Uningga to'g'ri admin huquqlarini berishni unutmang, masalan, xabarlarni o'chirish (ixtiyoriy) va boshqa sozlamalarni boshqarish.
+2️⃣ <b>Admin huquqlarini berish</b>: MuloqotAItning samarali ishlashi uchun uningni admin sifatida qo'shish kerak. Uningga to'g'ri admin huquqlarini berishni unutmang, masalan, xabarlarni o'chirish (ixtiyoriy) va boshqa sozlamalarni boshqarish.
 
-3️⃣ Gruhda suhbatlashish: MuloqotAI gruhda /startai kommandasini kiritsangiz  bot faol bo'ladi va u bilan suhbat qurish uchun unga reply tarzida so'rov yuboring. Guruh a'zolari savollarni so'rash, ma'lumot so'ralish, yordam so'ralish yoki qiziqarli suhbatlar olib borishlari mumkin. Agarda vaqtinchalik to'xtatib turmoqchi bo'lsangiz /stopai kommandasini yuboring. 
+3️⃣ <b>Gruhda suhbatlashish</b>: MuloqotAI gruhda /startai kommandasini kiritsangiz  bot faol bo'ladi va u bilan suhbat qurish uchun unga reply tarzida so'rov yuboring. Guruh a'zolari savollarni so'rash, ma'lumot so'ralish, yordam so'ralish yoki qiziqarli suhbatlar olib borishlari mumkin. Agarda vaqtinchalik to'xtatib turmoqchi bo'lsangiz /stopai kommandasini yuboring. 
 
-➕ Qo'shimcha: Endi siz botning lichkasida xam so'rov yubora olasiz shunchaki unga reply tarzda so'rovingizni kiriting va javob oling. Xozirchalik faqatgina reply qilsangizgina javob o'lasiz.
+➕ <b>Qo'shimcha</b>: Endi siz botning lichkasida xam so'rov yubora olasiz shunchaki u yozgan xabarga reply tarzda so'rovingizni kiriting va javob oling. Xozirchalik faqatgina reply qilsangizgina javob o'lasiz.
+
+‼ <b>Muxim</b>: Bot faqatgina uning xabariga reply qilib so'rovingizni yuborsangizgina javob qaytaradi. Botga xoxlagan tilingizda so'rov kiritshingiz mumkin, lekin bot xozircha faqatgina javob berivotkanda rus tilini ishlatadi.
 """)
 
 
@@ -89,9 +67,19 @@ class IsReplyFilter(BoundFilter):
         return message.reply_to_message is not None
 
 
+
+
 @dp.message_handler(IsReplyFilter())
 async def handle_reply(message: types.Message):
     group_chat = Group(message.chat.id, message.chat.full_name)
+    
+
+    chat_member = await bot.get_chat_member(message.chat.id, bot.id)
+    
+    # Check if the bot is an admin
+    if not chat_member.is_chat_admin() and message.chat.type in ['supergroup', 'group']:
+        return await message.reply("Men bu guruhda  samarali va butun imkoniyatlarim bilan ishlashim uchun menga guruh adminstratorligini bering.")
+
 
     if message.reply_to_message["from"]["is_bot"]:
 
@@ -101,10 +89,13 @@ async def handle_reply(message: types.Message):
         messages = message_obj.get_messages()
         
         
-        
         if not group_chat.is_active():
             return await message.answer("Muloqotni boshlash uchun - /startai")
 
+        if len(ru_message) > 4115:
+            return await message.answer("So'rovingiz 4115 xarf uzunligidan oshmasligi kerak!")
+
+        
         messages.append({'role': 'user', 'content': ru_message})
 
         response = answer_ai(messages)
