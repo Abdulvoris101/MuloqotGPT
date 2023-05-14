@@ -1,12 +1,23 @@
 from aiogram import Bot, Dispatcher, executor, types
 from dotenv import load_dotenv
 import os
-# from db.manager import 
+# from aiogram..co
+from aiogram.contrib.fsm_storage.memory import MemoryStorage
+from aiogram.dispatcher.filters.state import State, StatesGroup
 
 load_dotenv()  # take environment variables from .env.
 
-bot = Bot(token=os.environ.get('BOT_TOKEN'))
-dp = Dispatcher(bot)
+
+
+bot = Bot(token=os.environ.get('BOT_TOKEN'), parse_mode='HTML')
+storage = MemoryStorage()
+
+dp = Dispatcher(bot, storage=storage)
+
+
+class AdminState(StatesGroup):
+    password = State()
+    
 
 if __name__ == '__main__':
     from core.handlers import dp
