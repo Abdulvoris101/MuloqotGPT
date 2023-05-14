@@ -7,7 +7,7 @@ from main import answer_ai
 @dp.message_handler(commands=['start'])
 async def send_welcome(message: types.Message):
 
-    await message.answer(""" 🤖 Salom! Men MuloqotAi, sizning shaxsiy AI yordamchingizman, sizga qiziqarli va ulashingizga imkon beradigan suhbat tajribasi taqdim etish uchun yaratilganman. Meni boshqa chatbotlardan farq qilishim - /me !.
+    await message.answer(""" 🤖 Salom! Men MuloqotAi, sizning shaxsiy AI yordamchingizman, sizga qiziqarli va ulashingizga imkon beradigan suhbat tajribasi taqdim etish uchun yaratilganman. Afsuski xozirda faqatgina rus tilida javob beraman lekin siz xohlagan tilizda menga yoza olasiz 😉. Meni boshqa chatbotlardan farq qilishim - /me !.
 Batafsil ma'lumot uchun - /help""")
 
 
@@ -17,14 +17,13 @@ async def help(message: types.Message):
 
     await message.answer(""" Guruh suhbatlaringizda yordam beradigan foydali  yordamchi! Ushbu botning ishlash tartibi quyidagicha:
 
-1️⃣ Gruhga qo'shish: MuloqotAIdan foydalanish uchun, uningni Telegram gruhingizga qo'shing. Bu uchun "@MuloqotAibot" ni qidiring va uningni gruhga taklif qiling.
+1️⃣ Guruhga qo'shish: MuloqotAIdan foydalanish uchun, uningni Telegram gruhingizga qo'shing. Bu uchun "@muloqataibot" ni qidiring va uningni gruhga taklif qiling.
 
 2️⃣ Admin huquqlarini berish: MuloqotAItning samarali ishlashi uchun uningni admin sifatida qo'shish kerak. Uningga to'g'ri admin huquqlarini berishni unutmang, masalan, xabarlarni o'chirish (ixtiyoriy) va boshqa sozlamalarni boshqarish.
 
-3️⃣ Gruhda suhbatlashish: MuloqotAI gruhda /startai kommandasini kiritsangiz  bot faol bo'ladi va u bilan suhbat qurish uchun unga reply tarzida so'rov yuboring. Gruh a'zolari savollarni so'rash, ma'lumot so'ralish, yordam so'ralish yoki qiziqarli suhbatlar olib borishlari mumkin. Agarda vaqtinchalik to'xtatib turmoqchi bo'lsangiz /stopai kommandasini yuboring. 
+3️⃣ Gruhda suhbatlashish: MuloqotAI gruhda /startai kommandasini kiritsangiz  bot faol bo'ladi va u bilan suhbat qurish uchun unga reply tarzida so'rov yuboring. Guruh a'zolari savollarni so'rash, ma'lumot so'ralish, yordam so'ralish yoki qiziqarli suhbatlar olib borishlari mumkin. Agarda vaqtinchalik to'xtatib turmoqchi bo'lsangiz /stopai kommandasini yuboring. 
 
-4️⃣ Aqlli javoblar: MuloqotAI g'oya muhandisligidan foydalanib gruh suhbatlarining mazmunini tushunadi. U foydali javoblar berish, manfaatli muloqotlarni olib borish, takliflarni taklif etish va latifalar bilan shug'ullanishga imkon beradi.
-
+➕ Qo'shimcha: Endi siz botning lichkasida xam so'rov yubora olasiz shunchaki unga reply tarzda so'rovingizni kiriting va javob oling. Xozirchalik faqatgina reply qilsangizgina javob o'lasiz.
 """)
 
 
@@ -42,7 +41,6 @@ async def me(message: types.Message):
 
 @dp.message_handler(commands=['startai'])
 async def activate(message: types.Message):
-    print('activate')
     group_chat = Group(message.chat.id, message.chat.full_name)
 
     group_chat.activate_group()
@@ -67,7 +65,6 @@ class IsReplyFilter(BoundFilter):
 @dp.message_handler(IsReplyFilter())
 async def handle_reply(message: types.Message):
     group_chat = Group(message.chat.id, message.chat.full_name)
-    print(message.reply_to_message)
 
     if message.reply_to_message["from"]["is_bot"]:
 
