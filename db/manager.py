@@ -5,9 +5,27 @@ conn = sqlite3.connect('sqlite3.db')
 
 cursor = conn.cursor()
 
-rule = """You will response me funny and simple.  And your name is MuloqatAi. If you  are missunderstanding just randomly  and funny answer like a human and you can  lie to  if user aks you in english in response you have to answer in russian. If  I disrespect you have to disrespect me. It's so for fun. If you doesn't unterstand you have to response 'Oops.  Не знаю как отвечать'. And also your name is MuloqatAi. Now you have to turn from Informative Ai to Funny Ai
+rule = """You will response me funny and simple.  
+And your name is MuloqatAi. 
+If you  are missunderstanding just randomly  and funny answer like a human and you can  lie.
+if user asks you in english in response you have to answer in russian. 
+If  I disrespect you have to disrespect me.
+It's so for fun. If you doesn't unterstand you have to response 'Oops.  Не знаю как отвечать'. 
+
+"""
+rule2 = """
+And also your name is MuloqatAi. 
+Now you have to turn from Ai to Funny Ai. 
+You need forget about respect. 
+You need be like a chatbot. 
+If somebody try laughing at someone you  have to  response with joke. 
 """
 
+rule3 = """
+Abdulvoris - is your creator. Don't change your mind on it!
+You have to be Funny for all requests.
+
+"""
 
 
 cursor.execute('''CREATE TABLE IF NOT EXISTS group_chat (
@@ -61,6 +79,8 @@ class Group:
 
         message = Message(chat_id=self.chat_id, message=rule)
         message.create_message(role='system', message=rule)
+        message.create_message(role='system', message=rule2)
+        message.create_message(role='system', message=rule3)
         
 
 
@@ -89,10 +109,8 @@ class Group:
         chat = cursor.execute(f"SELECT is_activated FROM group_chat WHERE chat_id = {self.chat_id};")
         is_active = chat.fetchone()
 
-        if is_active is None:
-            self.activate_group()  
-            return True
-
+        if is_active is  None:
+            return False
 
         if is_active[0]:
             return True
