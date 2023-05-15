@@ -1,19 +1,43 @@
 from aiogram.dispatcher import FSMContext
 import os
-from app import dp, types, AdminState
+from app import dp, types, AdminLoginState, AdminSystemMessageState
 from db.manager import  Admin
-
 
 @dp.message_handler(commands=['admin'])
 async def admin(message: types.Message, state=None):
     
-    await AdminState.password.set()
+    await AdminLoginState.password.set()
 
     await message.answer(""" Password kiriting!""")
 
 
+@dp.message_handler(commands=['add_rule'])
+async def add_rule_command(message: types.Message, state=None):
+    is_admin = Admin().is_admin(user_id=message.from_user.id)
 
-@dp.message_handler(state=AdminState.password)
+    if is_admin:
+        await AdminSystemMessageState.message.set()
+
+        return await message.answer(""" Qoidani faqat ingliz yoki rus tilida kiriting!""")
+
+
+@dp.message_handler(state=AdminSystemMessageState.message)
+async def add_rule(message: types.Message, state=FSMContext):
+    is_admin = Admin().is_admin(user_id=message.from_user.id)
+
+    async with state.proxy() as data:
+        data['message'] = message.text
+
+    if is_admin:
+        await state.finish()
+        Admin().add_rule(message=message.text)
+        return await message.answer(""" Rule kiritilndi!""")
+
+    return await message.answer("""Afsuski bu so'rov faqat admin uchun""")
+
+
+
+@dp.message_handler(state=AdminLoginState.password)
 async def password_handler(message: types.Message, state=FSMContext):
 
     async with state.proxy() as data:
