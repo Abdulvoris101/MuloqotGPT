@@ -1,4 +1,4 @@
-from app import dp, bot, types, AdminState
+from app import dp, bot, types, AdminLoginState
 from db.manager import Group, Message, Admin
 from aiogram.dispatcher.filters import BoundFilter
 from .utils import translate_message
@@ -74,11 +74,12 @@ async def handle_reply(message: types.Message):
     group_chat = Group(message.chat.id, message.chat.full_name)
     
 
-    chat_member = await bot.get_chat_member(message.chat.id, bot.id)
+    # Request to promote admin
+
+    # chat_member = await bot.get_chat_member(message.chat.id, bot.id)
     
-    # Check if the bot is an admin
-    if not chat_member.is_chat_admin() and message.chat.type in ['supergroup', 'group']:
-        return await message.reply("Men bu guruhda  samarali va butun imkoniyatlarim bilan ishlashim uchun menga guruh adminstratorligini bering.")
+    # if not chat_member.is_chat_admin() and message.chat.type in ['supergroup', 'group']:
+    #     return await message.reply("Men bu guruhda  samarali va butun imkoniyatlarim bilan ishlashim uchun menga guruh adminstratorligini bering.")
 
 
     if message.reply_to_message["from"]["is_bot"]:
@@ -88,13 +89,11 @@ async def handle_reply(message: types.Message):
         message_obj = Message(message=ru_message, chat_id=message.chat.id)
         messages = message_obj.get_messages()
         
-        
         if not group_chat.is_active():
             return await message.answer("Muloqotni boshlash uchun - /startai")
 
         if len(ru_message) > 4115:
             return await message.answer("So'rovingiz 4115 xarf uzunligidan oshmasligi kerak!")
-
         
         messages.append({'role': 'user', 'content': ru_message})
 

@@ -15,9 +15,13 @@ storage = MemoryStorage()
 dp = Dispatcher(bot, storage=storage)
 
 
-class AdminState(StatesGroup):
+class AdminLoginState(StatesGroup):
     password = State()
     
+
+
+class AdminSystemMessageState(StatesGroup):
+    message = State()
 
 if __name__ == '__main__':
     from core.handlers import dp

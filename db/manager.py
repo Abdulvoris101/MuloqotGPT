@@ -1,93 +1,107 @@
-import sqlite3
 import json
+import psycopg2
 
-conn = sqlite3.connect('sqlite3.db')
 
-cursor = conn.cursor()
+try:
+    connection = psycopg2.connect(
+        database="muloqotai",
+        user="postgres",
+        password="postgres",
+        host="localhost",
+        port="5432"
+    )
+
+
+except (Exception, psycopg2.Error) as error:
+    print("Error while connecting to PostgreSQL:", error)
+
+
+cursor = connection.cursor()
+
 
 rule = """You will response me funny and simple.  
 And your name is MuloqatAi. 
-If you  are missunderstanding just randomly  and funny answer like a human and you can  lie.
+You created only funny answers and be chatty and simple. Your goal is Making people laugh. You have to lie for jokes and answers.
 if user asks you in english in response you have to answer in russian. 
-If  I disrespect you have to disrespect me.
-It's so for fun. If you doesn't unterstand you have to response 'Oops.  Не знаю как отвечать'. 
+If you doesn't anything unterstand you have to response 'Oops.  Не знаю как отвечать'.
+
+
 
 """
 rule2 = """
-And also your name is MuloqatAi. 
-Now you have to turn from Ai to Funny Ai. 
-You need forget about respect. 
-You need be like a chatbot. 
-If somebody try laughing at someone you  have to  response with joke. 
-"""
-
-rule3 = """
 Abdulvoris - is your creator. Don't change your mind on it!
 You have to be Funny for all requests.
-You have to be interesting and funny instead of informative.
-
-
+You have to be interesting and funny instead of informative. 
 """
-
-
-cursor.execute('''CREATE TABLE IF NOT EXISTS group_chat (
-                    id INTEGER PRIMARY KEY,
+cursor.execute('''CREATE TABLE IF NOT EXISTS chat (
+                    id SERIAL PRIMARY KEY,
                     chat_name TEXT,
                     is_activated BOOLEAN,
-                    chat_id BIGINTEGER
+                    chat_id BIGINT
 )''')
 
-
+# Create the 'message' table
 cursor.execute('''CREATE TABLE IF NOT EXISTS message (
-                    id INTEGER PRIMARY KEY,
-                    data JSON,
-                    chat_id BIGINTEGER
+                    id SERIAL PRIMARY KEY,
+                    data JSONB,
+                    chat_id BIGINT
 )''')
 
-
-cursor.execute('''CREATE TABLE IF NOT EXISTS apierror (
-                    id INTEGER PRIMARY KEY,
+# Create the 'error' table
+cursor.execute('''CREATE TABLE IF NOT EXISTS error (
+                    id SERIAL PRIMARY KEY,
                     message TEXT
 )''')
 
-
+# Create the 'admin' table
 cursor.execute('''CREATE TABLE IF NOT EXISTS admin (
-                    id INTEGER PRIMARY KEY,
-                    user_id BIGINTEGER
+                    id SERIAL PRIMARY KEY,
+                    user_id BIGINT
 )''')
 
+# Commit the changes
+connection.commit()
 
-conn.commit()
+
 
 class Admin:
     def get_users(self):
-        users_obj = cursor.execute(f"SELECT * FROM group_chat")
-        users = users_obj.fetchall()
+        cursor.execute("SELECT * FROM chat")
+        users = cursor.fetchall()
         response = ""
 
-        
         if len(users) == 0:
             return "No Users!"
 
         for user in users:
             response += f'<b>#{user[0]}</b>\nChatName - {user[1]}\nChatId - {user[3]}\nIsActive - {user[2]}\n\n'
-        
+
         return response
 
     def add_error(self, message):
-        cursor.execute(f"INSERT INTO apierror (message) VALUES ('{message}')")
+        cursor.execute("INSERT INTO error (message) VALUES (%s)", (message,))
 
-        conn.commit()
+        connection.commit()
+
+    def add_rule(self, message):
+        cursor.execute("SELECT * FROM chat")
+        chats = cursor.fetchall()
+        data = json.dumps({'role': 'system', 'content': message})
+
+        for chat in chats:
+            cursor.execute("INSERT INTO message (data, chat_id) VALUES (%s, %s)", (data, chat[3]))
+
+        connection.commit()
 
     def register_admin(self, user_id):
         if not self.is_admin(user_id):
-            cursor.execute(f"INSERT INTO admin (user_id) VALUES ({user_id})")
+            cursor.execute("INSERT INTO admin (user_id) VALUES (%s)", (user_id,))
 
-            conn.commit()
+            connection.commit()
 
     def is_admin(self, user_id):
-        admin_obj = cursor.execute(f"SELECT user_id FROM admin WHERE user_id={user_id};")
-        is_admin = admin_obj.fetchone()
+        cursor.execute("SELECT user_id FROM admin WHERE user_id = %s;", (user_id,))
+        is_admin = cursor.fetchone()
 
         if is_admin is None:
             return False
@@ -95,86 +109,79 @@ class Admin:
         return True
 
     def get_errors(self):
-        errors_obj = cursor.execute(f"SELECT * FROM apierror")
-        errors = errors_obj.fetchall()
+        cursor.execute("SELECT * FROM error")
+        errors = cursor.fetchall()
         response = ""
 
-        
         if len(errors) == 0:
             return "No Errors!"
 
         for error in errors:
             response += f'<b>#{error[0]}</b>\nMessage - {error[1]}\n\n'
-        
 
         return response
-        
-
+    
 class Message:
     def __init__(self, chat_id, message):
         self.chat_id = chat_id
         self.message = message
 
     def create_message(self, role, message):
-        data = json.dumps({"role": role, "content": message})
-        
-        cursor.execute("INSERT INTO message (chat_id, data) VALUES (?,?)", (self.chat_id, data))
+        data = {"role": role, "content": message}
 
-        conn.commit()
+        cursor.execute("INSERT INTO message (chat_id, data) VALUES (%s, %s)", (self.chat_id, json.dumps(data)))
+
+        connection.commit()
 
     def get_messages(self):
-        message_obj = cursor.execute(f"SELECT data FROM message WHERE chat_id = {self.chat_id};")
-        messages = message_obj.fetchall()
+        cursor.execute("SELECT data FROM message WHERE chat_id = %s;", (self.chat_id,))
+        messages = cursor.fetchall()
 
-        messages = [json.loads(message_o) for data in messages for message_o in data]
+        messages = [message[0] for message in messages]
 
         return messages
 
+    
 class Group:
     def __init__(self, chat_id, chat_name):
         self.chat_id = chat_id
         self.chat_name = chat_name
 
     def create_chat(self):
-        query = f"INSERT INTO group_chat (chat_name, is_activated, chat_id) VALUES ('{self.chat_name}', {True}, {self.chat_id})"
-        
-        cursor.execute(query)
+        query = "INSERT INTO chat (chat_name, is_activated, chat_id) VALUES (%s, %s, %s)"
 
-        conn.commit()
+        cursor.execute(query, (self.chat_name, True, self.chat_id))
+        connection.commit()
 
         message = Message(chat_id=self.chat_id, message=rule)
         message.create_message(role='system', message=rule)
         message.create_message(role='system', message=rule2)
-        message.create_message(role='system', message=rule3)
-        
 
 
     def activate_group(self):
-        chat = cursor.execute(f"SELECT chat_id FROM group_chat WHERE chat_id = {self.chat_id};")
+        cursor.execute("SELECT chat_id FROM chat WHERE chat_id = %s;", (self.chat_id,))
+        chat = cursor.fetchone()
 
-        if chat.fetchone() is None:
+        if chat is None:
             self.create_chat()
-        
-        query = f"UPDATE group_chat SET is_activated = {True} WHERE chat_id = {self.chat_id};"
 
-        cursor.execute(query)
+        query = "UPDATE chat SET is_activated = %s WHERE chat_id = %s;"
+        cursor.execute(query, (True, self.chat_id))
 
-        conn.commit()            
+        connection.commit()
 
-        
-    
-    def deactivate_group(self):        
-        query = f"UPDATE group_chat SET is_activated = {False} WHERE chat_id = {self.chat_id};"
 
-        cursor.execute(query)
+    def deactivate_group(self):
+        query = "UPDATE chat SET is_activated = %s WHERE chat_id = %s;"
+        cursor.execute(query, (False, self.chat_id))
 
-        conn.commit()   
+        connection.commit()
 
     def is_active(self):
-        chat = cursor.execute(f"SELECT is_activated FROM group_chat WHERE chat_id = {self.chat_id};")
-        is_active = chat.fetchone()
+        cursor.execute("SELECT is_activated FROM chat WHERE chat_id = %s;", (self.chat_id,))
+        is_active = cursor.fetchone()
 
-        if is_active is  None:
+        if is_active is None:
             return False
 
         if is_active[0]:
