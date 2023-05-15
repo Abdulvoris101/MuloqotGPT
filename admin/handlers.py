@@ -1,7 +1,8 @@
 from aiogram.dispatcher import FSMContext
 import os
-from app import dp, types, AdminLoginState, AdminSystemMessageState
-from db.manager import  Admin
+from app import dp, types, AdminLoginState, AdminSystemMessageState, AdminSendMessage, bot
+from db.manager import  Admin, Message, Group
+from aiogram.utils.exceptions import BotKicked
 
 @dp.message_handler(commands=['admin'])
 async def admin(message: types.Message, state=None):
@@ -22,6 +23,39 @@ async def add_rule_command(message: types.Message, state=None):
     
     return await message.answer(""" Afsuski bu so'rov faqat admin uchun""")
 
+
+
+@dp.message_handler(commands=['send_message'])
+async def send_message_command(message: types.Message, state=None):
+    is_admin = Admin().is_admin(user_id=message.from_user.id)
+
+    if is_admin:
+        await AdminSendMessage.message.set()
+        return await message.answer(""" Xabarni kiriting iloji boricha rus va o'zbek tilida!""")
+    
+    return await message.answer(""" Afsuski bu so'rov faqat admin uchun """)
+
+
+
+
+@dp.message_handler(state=AdminSendMessage.message)
+async def send_message(message: types.Message, state=FSMContext):
+
+    async with state.proxy() as data:
+        data['message'] = message.text
+
+    chats = Group().get_chats()
+
+    for chat in chats:
+        try:
+            await bot.send_message(chat_id=chat[3], text=message.text)
+        except BotKicked as e:
+            print(chat[3])
+            print("Error", e)
+
+    await state.finish()
+
+    return await message.answer(""" Xabar  yuborildi !""")
 
 
 @dp.message_handler(state=AdminSystemMessageState.message)
