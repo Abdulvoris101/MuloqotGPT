@@ -133,9 +133,13 @@ class Message:
 
     
 class Group:
-    def __init__(self, chat_id, chat_name):
+    def __init__(self, chat_id=None, chat_name=None):
         self.chat_id = chat_id
         self.chat_name = chat_name
+
+    def get_chats(self):
+        cursor.execute("SELECT * FROM chat")
+        return cursor.fetchall()
 
     def create_chat(self):
         query = "INSERT INTO chat (chat_name, is_activated, chat_id) VALUES (%s, %s, %s)"

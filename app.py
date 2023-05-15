@@ -17,10 +17,12 @@ dp = Dispatcher(bot, storage=storage)
 
 class AdminLoginState(StatesGroup):
     password = State()
-    
-
 
 class AdminSystemMessageState(StatesGroup):
+    message = State()
+
+
+class AdminSendMessage(StatesGroup):
     message = State()
 
 if __name__ == '__main__':
