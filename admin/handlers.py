@@ -19,6 +19,9 @@ async def add_rule_command(message: types.Message, state=None):
         await AdminSystemMessageState.message.set()
 
         return await message.answer(""" Qoidani faqat ingliz yoki rus tilida kiriting!""")
+    
+    return await message.answer(""" Afsuski bu so'rov faqat admin uchun""")
+
 
 
 @dp.message_handler(state=AdminSystemMessageState.message)
