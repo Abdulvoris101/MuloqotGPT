@@ -84,18 +84,25 @@ async def handle_reply(message: types.Message):
 
     if message.reply_to_message["from"]["is_bot"]:
 
-        ru_message = translate_message(message.text)
+        ru_message = translate_message(message.text, lang='ru')
+        en_message = translate_message(message.text, lang='en')
 
         message_obj = Message(message=ru_message, chat_id=message.chat.id)
         messages = message_obj.get_messages()
         
+        
+
         if not group_chat.is_active():
             return await message.answer("Muloqotni boshlash uchun - /startai")
 
         if len(ru_message) > 4115:
             return await message.answer("So'rovingiz 4115 xarf uzunligidan oshmasligi kerak!")
         
-        messages.append({'role': 'user', 'content': ru_message})
+        if len(messages) <= 2:
+            messages.append({'role': 'user', 'content': ru_message + '😂'})
+        else:
+            messages.append({'role': 'user', 'content': ru_message})
+
 
         response = answer_ai(messages)
 
