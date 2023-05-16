@@ -11,7 +11,6 @@ try:
         port="5432"
     )
 
-
 except (Exception, psycopg2.Error) as error:
     print("Error while connecting to PostgreSQL:", error)
 
