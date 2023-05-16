@@ -3,7 +3,41 @@ from db.manager import Group, Message, Admin
 from aiogram.dispatcher.filters import BoundFilter
 from .utils import translate_message, translate_response
 from main import answer_ai
+from aiogram.dispatcher.filters import Command
 
+@dp.message_handler(lambda message: not message.text.startswith('/') and message.chat.type == 'private')
+async def handle_messages(message: types.Message,):
+    group_chat = Group(message.chat.id, message.chat.full_name)
+
+    ru_message = translate_message(message.text, lang='ru')
+
+    message_obj = Message(message=ru_message, chat_id=message.chat.id)
+    messages = message_obj.get_messages()
+    
+    
+
+    if not group_chat.is_active():
+        return await message.answer("Muloqotni boshlash uchun - /startai")
+
+    if len(ru_message) > 4115:
+        return await message.answer("So'rovingiz 4115 xarf uzunligidan oshmasligi kerak!")
+    
+    if len(messages) <= 2:
+        messages.append({'role': 'user', 'content': ru_message + '😂'})
+    else:
+        messages.append({'role': 'user', 'content': ru_message})
+
+
+    response = answer_ai(messages)
+
+    response_uz = translate_response(response)
+
+    await message.reply(response_uz)
+
+    message_obj.create_message(role='user', message=ru_message)
+    message_obj.create_message(role='assistant', message=response)
+
+    messages.pop()
 
 
 @dp.message_handler(commands=['start'])
@@ -28,14 +62,13 @@ async def help(message: types.Message):
 
 ➕ <b>Qo'shimcha</b>: Endi siz botning lichkasida xam so'rov yubora olasiz.
 
-‼ <b>Muxim</b>: Bot faqatgina uning xabariga reply qilib so'rovingizni yuborsangizgina javob qaytaradi. Botga xoxlagan tilingizda so'rov kiritshingiz mumkin, lekin bot xozircha faqatgina javob uchun rus tilini ishlatadi.
+‼ <b>Muxim</b>: Guruhda bot faqatgina uning xabariga reply qilib so'rovingizni yuborsangizgina javob qaytaradi. Botga xoxlagan tilingizda so'rov kiritshingiz mumkin, lekin bot xozircha faqatgina javob uchun rus tilini ishlatadi.
 
 """)
 
 
 @dp.message_handler(commands=['me'])
 async def me(message: types.Message):
-
 
     await message.answer(""" 💡 Aqlli: Ko'plab mavzularni tushunish va javob berishga tayyorman. Umumiy bilimdan ma'lumotlarni qidirishga qadar, sizga aniqligi va maqbul javoblarni taklif etishim mumkin.
 
@@ -70,39 +103,6 @@ class IsReplyFilter(BoundFilter):
 
 
 
-@dp.message_handler()
-async def handle_messages(message: types.Message):
-    if message.chat.type == 'private':
-        group_chat = Group(message.chat.id, message.chat.full_name)
-
-        ru_message = translate_message(message.text, lang='ru')
-
-        message_obj = Message(message=ru_message, chat_id=message.chat.id)
-        messages = message_obj.get_messages()
-        
-        
-
-        if not group_chat.is_active():
-            return await message.answer("Muloqotni boshlash uchun - /startai")
-
-        if len(ru_message) > 4115:
-            return await message.answer("So'rovingiz 4115 xarf uzunligidan oshmasligi kerak!")
-        
-        if len(messages) == 2:
-            messages.append({'role': 'user', 'content': ru_message + '😂'})
-        else:
-            messages.append({'role': 'user', 'content': ru_message})
-
-        response = answer_ai(messages)
-
-        response_uz = translate_response(message=response)
-
-        await message.reply(response_uz)
-
-        message_obj.create_message(role='user', message=ru_message)
-        message_obj.create_message(role='assistant', message=response)
-
-        messages.pop()
 
 
 @dp.message_handler(IsReplyFilter())
