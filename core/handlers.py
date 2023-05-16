@@ -26,9 +26,10 @@ async def help(message: types.Message):
 
 3️⃣ <b>Gruhda suhbatlashish</b>: MuloqotAI gruhda /startai kommandasini kiritsangiz  bot faol bo'ladi va u bilan suhbat qurish uchun unga reply tarzida so'rov yuboring. Guruh a'zolari savollarni so'rash, ma'lumot so'ralish, yordam so'ralish yoki qiziqarli suhbatlar olib borishlari mumkin. Agarda vaqtinchalik to'xtatib turmoqchi bo'lsangiz /stopai kommandasini yuboring. 
 
-➕ <b>Qo'shimcha</b>: Endi siz botning lichkasida xam so'rov yubora olasiz shunchaki u yozgan xabarga reply tarzda so'rovingizni kiriting va javob oling. Xozirchalik faqatgina reply qilsangizgina javob o'lasiz.
+➕ <b>Qo'shimcha</b>: Endi siz botning lichkasida xam so'rov yubora olasiz.
 
-‼ <b>Muxim</b>: Bot faqatgina uning xabariga reply qilib so'rovingizni yuborsangizgina javob qaytaradi. Botga xoxlagan tilingizda so'rov kiritshingiz mumkin, lekin bot xozircha faqatgina javob berivotkanda rus tilini ishlatadi.
+‼ <b>Muxim</b>: Bot faqatgina uning xabariga reply qilib so'rovingizni yuborsangizgina javob qaytaradi. Botga xoxlagan tilingizda so'rov kiritshingiz mumkin, lekin bot xozircha faqatgina javob uchun rus tilini ishlatadi.
+
 """)
 
 
@@ -69,23 +70,12 @@ class IsReplyFilter(BoundFilter):
 
 
 
-@dp.message_handler(IsReplyFilter())
-async def handle_reply(message: types.Message):
-    group_chat = Group(message.chat.id, message.chat.full_name)
-    
-
-    # Request to promote admin
-
-    # chat_member = await bot.get_chat_member(message.chat.id, bot.id)
-    
-    # if not chat_member.is_chat_admin() and message.chat.type in ['supergroup', 'group']:
-    #     return await message.reply("Men bu guruhda  samarali va butun imkoniyatlarim bilan ishlashim uchun menga guruh adminstratorligini bering.")
-
-
-    if message.reply_to_message["from"]["is_bot"]:
+@dp.message_handler()
+async def handle_messages(message: types.Message):
+    if message.chat.type == 'private':
+        group_chat = Group(message.chat.id, message.chat.full_name)
 
         ru_message = translate_message(message.text, lang='ru')
-        en_message = translate_message(message.text, lang='en')
 
         message_obj = Message(message=ru_message, chat_id=message.chat.id)
         messages = message_obj.get_messages()
@@ -105,6 +95,53 @@ async def handle_reply(message: types.Message):
 
 
         response = answer_ai(messages)
+
+        # response_uz = translate_message(response, from_='ru', lang='uz')
+
+        await message.reply(response)
+
+        message_obj.create_message(role='user', message=ru_message)
+        message_obj.create_message(role='assistant', message=response)
+
+        messages.pop()
+
+
+@dp.message_handler(IsReplyFilter())
+async def handle_reply(message: types.Message):
+    group_chat = Group(message.chat.id, message.chat.full_name)
+    
+    # Request to promote admin
+
+    # chat_member = await bot.get_chat_member(message.chat.id, bot.id)
+    
+    # if not chat_member.is_chat_admin() and message.chat.type in ['supergroup', 'group']:
+    #     return await message.reply("Men bu guruhda  samarali va butun imkoniyatlarim bilan ishlashim uchun menga guruh adminstratorligini bering.")
+
+
+    if message.reply_to_message["from"]["is_bot"]:
+
+        ru_message = translate_message(message.text, lang='ru')
+
+        message_obj = Message(message=ru_message, chat_id=message.chat.id)
+        messages = message_obj.get_messages()
+        
+        
+
+        if not group_chat.is_active():
+            return await message.answer("Muloqotni boshlash uchun - /startai")
+
+        if len(ru_message) > 4115:
+            return await message.answer("So'rovingiz 4115 xarf uzunligidan oshmasligi kerak!")
+        
+        if len(messages) <= 2:
+            messages.append({'role': 'user', 'content': ru_message + '😂'})
+        else:
+            messages.append({'role': 'user', 'content': ru_message})
+
+
+        response = answer_ai(messages)
+
+        # response_uz = translate_message(response, from_='ru', lang='uz')
 
         await message.reply(response)
 
