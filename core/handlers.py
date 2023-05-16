@@ -62,7 +62,7 @@ async def help(message: types.Message):
 
 ➕ <b>Qo'shimcha</b>: Endi siz botning lichkasida xam so'rov yubora olasiz.
 
-‼ <b>Muxim</b>: Bot faqatgina uning xabariga reply qilib so'rovingizni yuborsangizgina javob qaytaradi. Botga xoxlagan tilingizda so'rov kiritshingiz mumkin, lekin bot xozircha faqatgina javob uchun rus tilini ishlatadi.
+‼ <b>Muxim</b>: Guruhda bot faqatgina uning xabariga reply qilib so'rovingizni yuborsangizgina javob qaytaradi. Botga xoxlagan tilingizda so'rov kiritshingiz mumkin, lekin bot xozircha faqatgina javob uchun rus tilini ishlatadi.
 
 """)
 
