@@ -1,7 +1,7 @@
 from app import dp, bot, types, AdminLoginState
 from db.manager import Group, Message, Admin
 from aiogram.dispatcher.filters import BoundFilter
-from .utils import translate_message
+from .utils import translate_message, translate_response
 from main import answer_ai
 
 
@@ -88,17 +88,16 @@ async def handle_messages(message: types.Message):
         if len(ru_message) > 4115:
             return await message.answer("So'rovingiz 4115 xarf uzunligidan oshmasligi kerak!")
         
-        if len(messages) <= 2:
+        if len(messages) == 2:
             messages.append({'role': 'user', 'content': ru_message + '😂'})
         else:
             messages.append({'role': 'user', 'content': ru_message})
 
-
         response = answer_ai(messages)
 
-        # response_uz = translate_message(response, from_='ru', lang='uz')
+        response_uz = translate_response(message=response)
 
-        await message.reply(response)
+        await message.reply(response_uz)
 
         message_obj.create_message(role='user', message=ru_message)
         message_obj.create_message(role='assistant', message=response)
@@ -141,9 +140,11 @@ async def handle_reply(message: types.Message):
 
         response = answer_ai(messages)
 
-        # response_uz = translate_message(response, from_='ru', lang='uz')
+        response_uz = translate_response(message=response)
+        
 
-        await message.reply(response)
+
+        await message.reply(response_uz)
 
         message_obj.create_message(role='user', message=ru_message)
         message_obj.create_message(role='assistant', message=response)
