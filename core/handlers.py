@@ -1,7 +1,7 @@
 from app import dp, bot, types, AdminLoginState
 from db.manager import Group, Message, Admin
 from aiogram.dispatcher.filters import BoundFilter
-from .utils import translate_message
+from .utils import translate_message, translate_response
 from main import answer_ai
 from aiogram.dispatcher.filters import Command
 
@@ -30,9 +30,9 @@ async def handle_messages(message: types.Message,):
 
     response = answer_ai(messages)
 
-    # response_uz = translate_message(response, from_='ru', lang='uz')
+    response_uz = translate_response(response)
 
-    await message.reply(response)
+    await message.reply(response_uz)
 
     message_obj.create_message(role='user', message=ru_message)
     message_obj.create_message(role='assistant', message=response)
@@ -140,9 +140,11 @@ async def handle_reply(message: types.Message):
 
         response = answer_ai(messages)
 
-        # response_uz = translate_message(response, from_='ru', lang='uz')
+        response_uz = translate_response(message=response)
+        
 
-        await message.reply(response)
+
+        await message.reply(response_uz)
 
         message_obj.create_message(role='user', message=ru_message)
         message_obj.create_message(role='assistant', message=response)

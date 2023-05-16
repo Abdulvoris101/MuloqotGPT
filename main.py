@@ -22,9 +22,9 @@ def answer_ai(messages):
         admin = Admin()
         admin.add_error(message=e)
 
-        return 'Кажется я времмено отключился от ИИ 🤒. Пожалуйста, отправьте запрос позже.'
+        return "Men AI dan vaqtincha uzilib qolganga o'xshayman 🤒. Iltimos, keyinroq so'rov yuboring."
 
     except Exception as e:
         # Handle other exceptions
-        return 'Что то пошло не так. Пожалуйста, отправьте запрос позже'
+        return "Biror narsa xatol ketdi. Iltimos, keyinroq so'rov yuboring"
 
