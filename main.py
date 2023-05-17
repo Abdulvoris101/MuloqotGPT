@@ -26,5 +26,9 @@ def answer_ai(messages):
 
     except Exception as e:
         # Handle other exceptions
+
+        admin = Admin()
+        admin.add_error(message=e)
+
         return "Biror narsa xatol ketdi. Iltimos, keyinroq so'rov yuboring"
 
