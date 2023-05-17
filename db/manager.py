@@ -68,6 +68,7 @@ class Admin:
 
         connection.commit()
 
+
     def get_sent_messages(self):
         cursor.execute("SELECT * FROM admin_message;")
         response = ""
@@ -144,6 +145,17 @@ class Admin:
             response += f'<b>#{error[0]}</b>\nMessage - {error[1]}\n\n'
 
         return response
+
+    def delete_limited_messages(self, chat_id):
+        cursor.execute(f"""DELETE FROM message WHERE id IN (
+                SELECT id
+                FROM message
+                WHERE chat_id = {chat_id}
+                ORDER BY id
+                LIMIT 10
+        );""")
+
+        connection.commit()
     
 class Message:
     def __init__(self, chat_id, message):
@@ -173,12 +185,16 @@ class Message:
 
         return msgs
 
+   
+
+
     
 class Group:
     def __init__(self, chat_id=None, chat_name=None):
         self.chat_id = chat_id
         self.chat_name = chat_name
 
+    
     def get_chats(self):
         cursor.execute("SELECT * FROM chat")
         return cursor.fetchall()

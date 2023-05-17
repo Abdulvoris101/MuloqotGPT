@@ -5,29 +5,22 @@ from .utils import translate_message, translate_response
 from main import answer_ai
 from aiogram.dispatcher.filters import Command
 
-@dp.message_handler(lambda message: not message.text.startswith('/') and message.chat.type == 'private')
-async def handle_messages(message: types.Message,):
-    group_chat = Group(message.chat.id, message.chat.full_name)
 
+async def handle_ai_message(message):
+    group_chat = Group(message.chat.id, message.chat.full_name)
     ru_message = translate_message(message.text, lang='ru')
 
     message_obj = Message(message=ru_message, chat_id=message.chat.id)
     messages = message_obj.get_messages()
     
-    
 
     if not group_chat.is_active():
         return await message.answer("Muloqotni boshlash uchun - /startai")
 
-    if len(ru_message) > 4115:
-        return await message.answer("So'rovingiz 4115 xarf uzunligidan oshmasligi kerak!")
-    
-    if len(messages) <= 2:
-        messages.append({'role': 'user', 'content': ru_message + '😂'})
     else:
         messages.append({'role': 'user', 'content': ru_message})
 
-    response = answer_ai(messages)
+    response = answer_ai(messages, chat_id=message.chat.id)
 
     response_uz = translate_response(response)
 
@@ -39,6 +32,11 @@ async def handle_messages(message: types.Message,):
 
     messages.pop()
 
+
+@dp.message_handler(lambda message: not message.text.startswith('/') and message.chat.type == 'private')
+async def handle_messages(message: types.Message,):
+    return await handle_ai_message(message)
+    
 
 @dp.message_handler(commands=['start'])
 async def send_welcome(message: types.Message):
@@ -101,13 +99,11 @@ class IsReplyFilter(BoundFilter):
         return message.reply_to_message is not None
 
 
-
-
-
-
 @dp.message_handler(IsReplyFilter())
 async def handle_reply(message: types.Message):
-    group_chat = Group(message.chat.id, message.chat.full_name)
+    return await handle_ai_message(message)
+
+    # group_chat = Group(message.chat.id, message.chat.full_name)
     
     # Request to promote admin
 
@@ -117,39 +113,34 @@ async def handle_reply(message: types.Message):
     #     return await message.reply("Men bu guruhda  samarali va butun imkoniyatlarim bilan ishlashim uchun menga guruh adminstratorligini bering.")
 
 
-    if message.reply_to_message["from"]["is_bot"]:
+    # if message.reply_to_message["from"]["is_bot"]:
 
-        ru_message = translate_message(message.text, lang='ru')
+    #     ru_message = translate_message(message.text, lang='ru')
 
-        message_obj = Message(message=ru_message, chat_id=message.chat.id)
-        messages = message_obj.get_messages()
+    #     message_obj = Message(message=ru_message, chat_id=message.chat.id)
+    #     messages = message_obj.get_messages()
         
         
 
-        if not group_chat.is_active():
-            return await message.answer("Muloqotni boshlash uchun - /startai")
-
-        if len(ru_message) > 4115:
-            return await message.answer("So'rovingiz 4115 xarf uzunligidan oshmasligi kerak!")
+    #     if not group_chat.is_active():
+    #         return await message.answer("Muloqotni boshlash uchun - /startai ")
         
-        if len(messages) <= 2:
-            messages.append({'role': 'user', 'content': ru_message + '😂'})
-        else:
-            messages.append({'role': 'user', 'content': ru_message})
+    #     if len(messages) <= 2:
+    #         messages.append({'role': 'user', 'content': ru_message + '😂'})
+    #     else:
+    #         messages.append({'role': 'user', 'content': ru_message})
 
 
-        response = answer_ai(messages)
+    #     response = answer_ai(messages)
 
-        response_uz = translate_response(message=response)
-        
+    #     response_uz = translate_response(message=response)
 
+    #     await message.reply(response_uz)
 
-        await message.reply(response_uz)
+    #     message_obj.create_message(role='user', message=ru_message, uz_message=message.text)
+    #     message_obj.create_message(role='assistant', message=response, uz_message=response_uz)
 
-        message_obj.create_message(role='user', message=ru_message, uz_message=message.text)
-        message_obj.create_message(role='assistant', message=response, uz_message=response_uz)
-
-        messages.pop()
+    #     messages.pop()
     
 
     
