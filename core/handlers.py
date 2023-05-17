@@ -32,6 +32,7 @@ async def handle_messages(message: types.Message,):
 
     response_uz = translate_response(response)
 
+
     await message.reply(response_uz)
 
     message_obj.create_message(role='user', message=ru_message)

@@ -48,12 +48,47 @@ cursor.execute('''CREATE TABLE IF NOT EXISTS admin (
                     user_id BIGINT
 )''')
 
+cursor.execute('''CREATE TABLE IF NOT EXISTS admin_message (
+                    id SERIAL PRIMARY KEY,
+                    message TEXT,
+                    perform_id TEXT,
+                    message_id BIGINT,
+                    chat_id BIGINT
+)''')
+
 # Commit the changes
 connection.commit()
 
 
 
 class Admin:
+
+    def add_admin_message(self, message, perform_id, message_id, chat_id):
+        cursor.execute("INSERT INTO admin_message (message, perform_id, message_id, chat_id) VALUES (%s, %s, %s, %s)", (message, perform_id, message_id, chat_id))
+
+        connection.commit()
+
+    def get_sent_messages(self):
+        cursor.execute("SELECT * FROM admin_message;")
+        response = ""
+
+        for message in cursor.fetchall():
+            response += f"<b>#{message[0]}</b>\n<b>Perform Id</b>: {message[2]}\n<b>Message</b>: {message[1]}"
+
+        return response
+
+
+    def delete_messages_by_perform(self, perform_id):
+        cursor.execute(f"DELETE FROM admin_message WHERE perform_id='{perform_id}'")
+
+        connection.commit()
+
+    def get_deleting_messageids(self, perform_id):
+        cursor.execute(f"SELECT * FROM admin_message WHERE perform_id='{perform_id}'")
+
+        return cursor.fetchall()
+
+
     def get_users(self):
         cursor.execute("SELECT * FROM chat")
         users = cursor.fetchall()

@@ -21,6 +21,8 @@ class AdminLoginState(StatesGroup):
 class AdminSystemMessageState(StatesGroup):
     message = State()
 
+class PerformIdState(StatesGroup):
+    performid = State()
 
 class AdminSendMessage(StatesGroup):
     message = State()
