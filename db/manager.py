@@ -146,13 +146,14 @@ class Admin:
 
         return response
 
+
     def delete_limited_messages(self, chat_id):
         cursor.execute(f"""DELETE FROM message WHERE id IN (
                 SELECT id
                 FROM message
                 WHERE chat_id = {chat_id}
                 ORDER BY id
-                LIMIT 50
+                LIMIT 10
         );""")
 
         connection.commit()
