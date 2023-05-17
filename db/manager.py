@@ -152,7 +152,7 @@ class Admin:
                 FROM message
                 WHERE chat_id = {chat_id}
                 ORDER BY id
-                LIMIT 10
+                LIMIT 50
         );""")
 
         connection.commit()
