@@ -27,7 +27,6 @@ async def handle_messages(message: types.Message,):
     else:
         messages.append({'role': 'user', 'content': ru_message})
 
-
     response = answer_ai(messages)
 
     response_uz = translate_response(response)
@@ -35,8 +34,8 @@ async def handle_messages(message: types.Message,):
 
     await message.reply(response_uz)
 
-    message_obj.create_message(role='user', message=ru_message)
-    message_obj.create_message(role='assistant', message=response)
+    message_obj.create_message(role='user', message=ru_message, uz_message=message.text)
+    message_obj.create_message(role='assistant', message=response, uz_message=response_uz)
 
     messages.pop()
 
@@ -134,9 +133,9 @@ async def handle_reply(message: types.Message):
             return await message.answer("So'rovingiz 4115 xarf uzunligidan oshmasligi kerak!")
         
         if len(messages) <= 2:
-            messages.append({'role': 'user', 'content': ru_message + '😂'})
+            messages.append({'role': 'user', 'content': ru_message + '😂', 'uz_message': message.text})
         else:
-            messages.append({'role': 'user', 'content': ru_message})
+            messages.append({'role': 'user', 'content': ru_message, 'uz_message': message.text})
 
 
         response = answer_ai(messages)
@@ -147,8 +146,8 @@ async def handle_reply(message: types.Message):
 
         await message.reply(response_uz)
 
-        message_obj.create_message(role='user', message=ru_message)
-        message_obj.create_message(role='assistant', message=response)
+        message_obj.create_message(role='user', message=ru_message, uz_message=message.text)
+        message_obj.create_message(role='assistant', message=response, uz_message=response_uz)
 
         messages.pop()
     

@@ -103,7 +103,7 @@ class Admin:
         return response
 
     def add_error(self, message):
-        cursor.execute("INSERT INTO error (message) VALUES (%s)", (message,))
+        cursor.execute("INSERT INTO error (message) VALUES (%s)", (str(message),))
 
         connection.commit()
 
@@ -150,8 +150,8 @@ class Message:
         self.chat_id = chat_id
         self.message = message
 
-    def create_message(self, role, message):
-        data = {"role": role, "content": message}
+    def create_message(self, role, message, uz_message="system"):
+        data = {"role": role, "content": message, "uz_message": uz_message}
 
         cursor.execute("INSERT INTO message (chat_id, data) VALUES (%s, %s)", (self.chat_id, json.dumps(data)))
 
@@ -160,10 +160,18 @@ class Message:
     def get_messages(self):
         cursor.execute("SELECT data FROM message WHERE chat_id = %s;", (self.chat_id,))
         messages = cursor.fetchall()
+        msgs = []
 
-        messages = [message[0] for message in messages]
+        for message in messages:
+            data = message[0]
 
-        return messages
+            if data.get("uz_message") is not None:
+                del data["uz_message"]
+
+            
+            msgs.append(data)
+
+        return msgs
 
     
 class Group:
