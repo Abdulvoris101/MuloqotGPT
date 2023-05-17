@@ -4,7 +4,7 @@ from aiogram.dispatcher.filters import BoundFilter
 from .utils import translate_message, translate_response
 from main import answer_ai
 from aiogram.dispatcher.filters import Command
-
+import sys
 
 async def handle_ai_message(message):
     group_chat = Group(message.chat.id, message.chat.full_name)
@@ -17,13 +17,15 @@ async def handle_ai_message(message):
     if not group_chat.is_active():
         return await message.answer("Muloqotni boshlash uchun - /startai")
 
+    elif len(messages) <= 2 and message.chat.type != 'private':
+        messages.append({'role': 'user', 'content': ru_message + '😂'})
     else:
         messages.append({'role': 'user', 'content': ru_message})
+    
 
     response = answer_ai(messages, chat_id=message.chat.id)
 
     response_uz = translate_response(response)
-
 
     await message.reply(response_uz)
 
@@ -125,10 +127,10 @@ async def handle_reply(message: types.Message):
     #     if not group_chat.is_active():
     #         return await message.answer("Muloqotni boshlash uchun - /startai ")
         
-    #     if len(messages) <= 2:
-    #         messages.append({'role': 'user', 'content': ru_message + '😂'})
-    #     else:
-    #         messages.append({'role': 'user', 'content': ru_message})
+        # if len(messages) <= 2:
+        #     messages.append({'role': 'user', 'content': ru_message + '😂'})
+        # else:
+        #     messages.append({'role': 'user', 'content': ru_message})
 
 
     #     response = answer_ai(messages)

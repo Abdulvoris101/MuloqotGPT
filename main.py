@@ -2,7 +2,7 @@ import os
 import openai
 from dotenv import load_dotenv
 from db.manager import Admin
-
+import sys
 load_dotenv()  # take environment variables from .env.
 
 openai.api_key = os.environ.get("API_KEY")
