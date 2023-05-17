@@ -133,9 +133,9 @@ async def handle_reply(message: types.Message):
             return await message.answer("So'rovingiz 4115 xarf uzunligidan oshmasligi kerak!")
         
         if len(messages) <= 2:
-            messages.append({'role': 'user', 'content': ru_message + '😂', 'uz_message': message.text})
+            messages.append({'role': 'user', 'content': ru_message + '😂'})
         else:
-            messages.append({'role': 'user', 'content': ru_message, 'uz_message': message.text})
+            messages.append({'role': 'user', 'content': ru_message})
 
 
         response = answer_ai(messages)
