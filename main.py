@@ -8,7 +8,7 @@ load_dotenv()  # take environment variables from .env.
 openai.api_key = os.environ.get("API_KEY")
 
 
-def answer_ai(messages):
+def answer_ai(messages, chat_id):
     try:
         response = openai.ChatCompletion.create(
             model="gpt-3.5-turbo",
@@ -18,10 +18,10 @@ def answer_ai(messages):
         return response['choices'][0]['message']['content']
 
     except openai.OpenAIError as e:
-        
         admin = Admin()
         admin.add_error(message=e)
-
+        admin.delete_limited_messages(chat_id=chat_id)
+        
         return "Men AI dan vaqtincha uzilib qolganga o'xshayman 🤒. Iltimos, keyinroq so'rov yuboring."
 
     except Exception as e:
