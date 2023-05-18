@@ -17,7 +17,7 @@ async def handle_ai_message(message):
     if not group_chat.is_active():
         return await message.answer("Muloqotni boshlash uchun - /startai")
 
-    elif len(messages) <= 2 and message.chat.type != 'private':
+    elif len(messages) <= 2:
         messages.append({'role': 'user', 'content': ru_message + '😂'})
     else:
         messages.append({'role': 'user', 'content': ru_message})
