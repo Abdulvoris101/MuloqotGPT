@@ -148,8 +148,7 @@ class Admin:
 
 
     def delete_limited_messages(self, chat_id):
-        cursor.execute(f"""DELETE FROM message WHERE id IN (SELECT id FROM message ORDER BY id OFFSET 4 LIMIT 10
-);""")
+        cursor.execute(f"""DELETE FROM message WHERE id IN (SELECT id FROM message WHERE chat_id = {chat_id} ORDER BY id OFFSET 4 LIMIT 10);""")
 
         connection.commit()
     
