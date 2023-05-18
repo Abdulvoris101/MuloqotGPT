@@ -175,8 +175,8 @@ class Message:
             if data.get("uz_message") is not None:
                 del data["uz_message"]
 
-            
             msgs.append(data)
+
 
         return msgs
 

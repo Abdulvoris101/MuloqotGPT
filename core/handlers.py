@@ -22,11 +22,14 @@ async def handle_ai_message(message):
     else:
         messages.append({'role': 'user', 'content': ru_message})
     
+
     response = answer_ai(messages, chat_id=message.chat.id)
+
 
     response_uz = translate_response(response)
 
     await message.reply(response_uz)
+
 
     message_obj.create_message(role='user', message=ru_message, uz_message=message.text)
     message_obj.create_message(role='assistant', message=response, uz_message=response_uz)

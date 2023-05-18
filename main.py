@@ -24,7 +24,7 @@ def answer_ai(messages, chat_id):
         admin.add_error(message=e)
         admin.delete_limited_messages(chat_id=chat_id)
         
-        return "Juda xam ko'p so'rovlar uchun birozga ishdan chiqdim 🤒. Iltimos, keyinroq so'rov yuboring."
+        return "Я  отключился от ИИ из-за большого количества запросов 🤒. Пожалуйста, отправьте запрос позже."
 
 
     except Exception as e:
@@ -33,5 +33,5 @@ def answer_ai(messages, chat_id):
         admin = Admin()
         admin.add_error(message=e)
 
-        return "Biror narsa xatol ketdi. Iltimos, keyinroq so'rov yuboring"
+        return "Что-то пошло не так. Пожалуйста, отправьте запрос позже"
 
