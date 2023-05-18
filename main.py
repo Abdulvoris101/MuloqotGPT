@@ -2,8 +2,9 @@ import os
 import openai
 from dotenv import load_dotenv
 from db.manager import Admin
-from openai.error import RateLimitError
+
 import sys
+
 load_dotenv()  # take environment variables from .env.
 
 openai.api_key = os.environ.get("API_KEY")
@@ -18,7 +19,7 @@ def answer_ai(messages, chat_id):
 
         return response['choices'][0]['message']['content']
 
-    except RateLimitError as e:
+    except openai.OpenAIError as e:
         admin = Admin()
         admin.add_error(message=e)
         admin.delete_limited_messages(chat_id=chat_id)

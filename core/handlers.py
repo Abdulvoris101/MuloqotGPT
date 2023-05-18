@@ -22,7 +22,6 @@ async def handle_ai_message(message):
     else:
         messages.append({'role': 'user', 'content': ru_message})
     
-
     response = answer_ai(messages, chat_id=message.chat.id)
 
     response_uz = translate_response(response)
