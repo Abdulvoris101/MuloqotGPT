@@ -153,6 +153,7 @@ class Admin:
                 FROM message
                 WHERE chat_id = {chat_id}
                 ORDER BY id
+                OFFSET 4
                 LIMIT 10
         );""")
 
