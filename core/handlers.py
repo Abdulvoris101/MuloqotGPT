@@ -13,11 +13,10 @@ async def handle_ai_message(message):
     message_obj = Message(message=ru_message, chat_id=message.chat.id)
     messages = message_obj.get_messages()
     
-
     if not group_chat.is_active():
         return await message.answer("Muloqotni boshlash uchun - /startai")
-
-    elif len(messages) <= 2:
+    
+    elif len(messages) <= 2 and message.chat.type != 'private':
         messages.append({'role': 'user', 'content': ru_message + '😂'})
     else:
         messages.append({'role': 'user', 'content': ru_message})
@@ -45,11 +44,17 @@ async def handle_messages(message: types.Message,):
 @dp.message_handler(commands=['start'])
 async def send_welcome(message: types.Message):
 
-    await message.answer(""" 🤖 Salom! Men MuloqotAi, sizning shaxsiy AI yordamchingizman, sizga qiziqarli va ulashingizga imkon beradigan suhbat tajribasi taqdim etish uchun yaratilganman. Afsuski xozirda faqatgina rus tilida javob beraman lekin siz xohlagan tilizda menga yoza olasiz 😉. Meni boshqa chatbotlardan farq qilishim - /me !.
+    await message.answer(""" 🤖 Salom! Men MuloqotAi, sizning shaxsiy AI yordamchingizman, sizga qiziqarli va ulashingizga imkon beradigan suhbat tajribasi taqdim etish uchun yaratilganman 😉. Endi muloqotai guruhda xam ishlaydi - /groupinfo Meni boshqa chatbotlardan farq qilishim - /me !.
 Batafsil ma'lumot uchun - /help""")
 
+    await message.answer(""" Suhbatni boshlash uchun shunchaki menga yozing. Men sizning so'rovingizni qabul qilishga va eng to'g'ri va foydali javob berishga harakat qilaman 😊""")
 
 
+
+@dp.message_handler(commands=['groupinfo'])
+async def group_info(message: types.Message):
+    await message.answer("""Men endi guruhlar bilan ham ishlash imkoniyatiga egaman. Bu sizning guruhingizdagi a'zolar bilan birga muloqot qilishim va ularning savollari va talablari bo'yicha yordam berish imkonini beradi.
+Shuningdek, Men guruh bilan hazil va latifalar bilan gaplashish imkoniyatiga egaman. Bu latifalar guruh a'zolaringizga tabasum olib kerishi va ularga qiziqishlarni oshirish uchun qulaydir""")
 
 @dp.message_handler(commands=['help'])
 async def help(message: types.Message):
@@ -105,46 +110,6 @@ class IsReplyFilter(BoundFilter):
 
 @dp.message_handler(IsReplyFilter())
 async def handle_reply(message: types.Message):
+
     return await handle_ai_message(message)
-
-    # group_chat = Group(message.chat.id, message.chat.full_name)
-    
-    # Request to promote admin
-
-    # chat_member = await bot.get_chat_member(message.chat.id, bot.id)
-    
-    # if not chat_member.is_chat_admin() and message.chat.type in ['supergroup', 'group']:
-    #     return await message.reply("Men bu guruhda  samarali va butun imkoniyatlarim bilan ishlashim uchun menga guruh adminstratorligini bering.")
-
-
-    # if message.reply_to_message["from"]["is_bot"]:
-
-    #     ru_message = translate_message(message.text, lang='ru')
-
-    #     message_obj = Message(message=ru_message, chat_id=message.chat.id)
-    #     messages = message_obj.get_messages()
-        
-        
-
-    #     if not group_chat.is_active():
-    #         return await message.answer("Muloqotni boshlash uchun - /startai ")
-        
-        # if len(messages) <= 2:
-        #     messages.append({'role': 'user', 'content': ru_message + '😂'})
-        # else:
-        #     messages.append({'role': 'user', 'content': ru_message})
-
-
-    #     response = answer_ai(messages)
-
-    #     response_uz = translate_response(message=response)
-
-    #     await message.reply(response_uz)
-
-    #     message_obj.create_message(role='user', message=ru_message, uz_message=message.text)
-    #     message_obj.create_message(role='assistant', message=response, uz_message=response_uz)
-
-    #     messages.pop()
-    
-
     
