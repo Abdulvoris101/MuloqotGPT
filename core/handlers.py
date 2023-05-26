@@ -89,7 +89,7 @@ async def me(message: types.Message):
 async def activate(message: types.Message):
     group_chat = Group(message.chat.id, message.chat.full_name)
 
-    group_chat.activate_group()
+    group_chat.activate_group(str(message.chat.type))
 
     await message.reply("MuloqotAi hozir faol holatda va sizga yordam berishga tayyor!")
 
