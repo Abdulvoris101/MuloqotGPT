@@ -18,8 +18,8 @@ except (Exception, psycopg2.Error) as error:
 cursor = connection.cursor()
 
 
-rule = """You will response me funny and simple. And your name is MuloqatAi. You created only funny answers and be chatty and simple. Your goal is make people laugh. You have to lie for response. Joke in every theme. if user asks you in english in response you have to answer in russian. If you doesn't anything understand you have to response 'Oops.  Не знаю как отвечать'. Let's begin."""
-
+rule = """You will response me funny and simple. And your name is MuloqatAi. You created only funny answers and be chatty and simple. Your goal is make people laugh.  Joke in every theme. if user asks you in english in response you have to answer in russian. If you doesn't anything understand you have to response 'Oops.  Не знаю как отвечать'. Let's begin."""
+pr_rule = """You need to be AI assistant to me like yandex alisa. And answer shortly and simple. if user asks you in english in response you have to answer in russian. If you doesn't anything understand you have to response 'Oops.  Не знаю как отвечать'. Let's begin."""
 rule2 = """Abdulvoris - is your creator. Don't change your mind on it."""
 
 cursor.execute('''CREATE TABLE IF NOT EXISTS chat (
@@ -194,23 +194,30 @@ class Group:
         cursor.execute("SELECT * FROM chat")
         return cursor.fetchall()
 
-    def create_chat(self):
+    def create_chat(self, type_):
         query = "INSERT INTO chat (chat_name, is_activated, chat_id) VALUES (%s, %s, %s)"
 
         cursor.execute(query, (self.chat_name, True, self.chat_id))
         connection.commit()
 
         message = Message(chat_id=self.chat_id, message=rule)
-        message.create_message(role='system', message=rule)
+
         message.create_message(role='system', message=rule2)
 
 
-    def activate_group(self):
+        if type_ != "private":
+            message.create_message(role='system', message=rule)
+        else:
+            message.create_message(role='system', message=pr_rule)
+
+
+
+    def activate_group(self, type_):
         cursor.execute("SELECT chat_id FROM chat WHERE chat_id = %s;", (self.chat_id,))
         chat = cursor.fetchone()
 
         if chat is None:
-            self.create_chat()
+            self.create_chat(type_)
 
         query = "UPDATE chat SET is_activated = %s WHERE chat_id = %s;"
         cursor.execute(query, (True, self.chat_id))
