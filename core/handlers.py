@@ -1,8 +1,7 @@
 from app import dp, bot, types
 from .utils import translate_message, IsReplyFilter
 from main import answer_ai
-from db.models import Message, Chat
-
+from db.models import Message, Chat, session
 
 
 class AIChatHandler:
@@ -13,8 +12,12 @@ class AIChatHandler:
         self.text = message.text
 
     async def is_active(self):
-        chat = Chat(self.chat_id, self.full_name)
-        return chat.is_active()
+        chat = session.query(Chat.is_activated).filter_by(chat_id=self.chat_id).first()
+
+        if chat is None:
+            return False
+
+        return chat.is_activated
     
     def is_group(self, messages):
         return len(messages) <= 2 and self.message.chat.type != 'private'
@@ -40,6 +43,7 @@ class AIChatHandler:
 @dp.message_handler(lambda message: not message.text.startswith('/') and not message.text.startswith('.') and message.chat.type == 'private')
 async def handle_private_messages(message: types.Message):
     chat = AIChatHandler(message=message)
+
     return await chat.process_ai_message()
 
 
@@ -79,6 +83,11 @@ async def activate(message: types.Message):
 
 @dp.message_handler(commands=['stopai'])
 async def deactivate(message: types.Message):
-    chat = Chat(message.chat.id, message.chat.full_name)
-    chat.deactivate()
+
+    chat = session.query(Chat).filter_by(chat_id=message.chat.id).first()
+
+    if chat is not None:
+        chat.is_activated = False
+        session.commit()
+
     await message.reply("MuloqotAi toxtatilindi. Muloqotni boshlash uchun - /startai")

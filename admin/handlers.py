@@ -1,8 +1,6 @@
 from aiogram.dispatcher import FSMContext
 import os
 from app import dp, types, AdminLoginState, AdminSystemMessageState, AdminSendMessage, bot, PerformIdState
-from aiogram.utils.exceptions import BotKicked
-import uuid
 from db.models import Chat, Admin, Message, Error, AdminMessage
 from .utils import admin_keyboards
 from aiogram.dispatcher.filters import Text
@@ -45,7 +43,7 @@ async def add_rule_command(message: types.Message, state=None):
 @dp.message_handler(Text(equals=".📊 Statistika"))
 async def get_statistics(message: types.Message):
     if Admin.is_admin(user_id=message.from_user.id):
-        return await message.answer(f"👥 Users - {Chat.count()}.\n📥Messages - {Message.count()}")
+        return await message.answer(f"👥 Foydalanuvchilar - {Chat.count()}.\n📥Xabarlar - {Message.count()}")
     
     return await message.answer("Afsuski bu so'rov faqat admin uchun")
 
