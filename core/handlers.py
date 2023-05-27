@@ -60,7 +60,7 @@ Shuningdek, Men guruh bilan hazil va latifalar bilan gaplashish imkoniyatiga ega
 @dp.message_handler(commands=['help'])
 async def help(message: types.Message):
 
-    await message.answer(""" Guruh suhbatlaringizda yordam beradigan foydali  yordamchi! Ushbu botning ishlash tartibi quyidagicha:
+    await message.answer("""Shaxsiy va guruh suhbatlaringizda yordam beradigan foydali  yordamchi! Ushbu botning guruhda ishlash tartibi quyidagicha:
 
 1️⃣ <b>Guruhga qo'shish</b>: MuloqotAIdan foydalanish uchun, uningni Telegram gruhingizga qo'shing. Bu uchun "@muloqataibot" ni qidiring va uningni gruhga taklif qiling.
 
@@ -68,9 +68,7 @@ async def help(message: types.Message):
 
 3️⃣ <b>Gruhda suhbatlashish</b>: MuloqotAI gruhda /startai kommandasini kiritsangiz  bot faol bo'ladi va u bilan suhbat qurish uchun unga reply tarzida so'rov yuboring. Guruh a'zolari savollarni so'rash, ma'lumot so'ralish, yordam so'ralish yoki qiziqarli suhbatlar olib borishlari mumkin. Agarda vaqtinchalik to'xtatib turmoqchi bo'lsangiz /stopai kommandasini yuboring. 
 
-➕ <b>Qo'shimcha</b>: Endi siz botning lichkasida xam so'rov yubora olasiz.
-
-‼ <b>Muxim</b>: Guruhda bot faqatgina uning xabariga reply qilib so'rovingizni yuborsangizgina javob qaytaradi. Botga xoxlagan tilingizda so'rov kiritshingiz mumkin, lekin bot xozircha faqatgina javob uchun rus tilini ishlatadi.
+➕ <b>Qo'shimcha</b>: Xabarlarni botning lichkasida xam yubora olasiz
 
 """)
 
