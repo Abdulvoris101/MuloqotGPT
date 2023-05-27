@@ -5,6 +5,7 @@ from db.manager import  Admin, Message, Group
 from aiogram.utils.exceptions import BotKicked
 import uuid
 
+
 @dp.message_handler(commands=['admin'])
 async def admin(message: types.Message, state=None):
     
@@ -35,7 +36,7 @@ async def password_handler(message: types.Message, state=FSMContext):
 /send_message - xabar yuborish.
 /delete_message - perform id bo'yicha o'chirish.
 /add_rule - system xabar qo'shish.
-/add_rule - system xabar qo'shish.""")
+/statistics - statistika.""")
 
         return ""
 
@@ -54,6 +55,18 @@ async def add_rule_command(message: types.Message, state=None):
         return await message.answer(""" Qoidani faqat ingliz yoki rus tilida kiriting!""")
     
     return await message.answer(""" Afsuski bu so'rov faqat admin uchun""")
+
+
+
+@dp.message_handler(commands=['statistics'])
+async def get_statistics(message: types.Message):
+    
+    is_admin = Admin().is_admin(user_id=message.from_user.id)
+
+    if is_admin:
+        return await message.answer(f"👥 Users - {Admin().get_users_count()}.\n📥Messages - {Admin().get_messages_count()}")
+    
+    return await message.answer("Afsuski bu so'rov faqat admin uchun")
 
 
 
