@@ -44,10 +44,11 @@ async def handle_messages(message: types.Message,):
 @dp.message_handler(commands=['start'])
 async def send_welcome(message: types.Message):
 
-    await message.answer(""" 🤖 Salom! Men MuloqotAi, sizning shaxsiy AI yordamchingizman, sizga qiziqarli va ulashingizga imkon beradigan suhbat tajribasi taqdim etish uchun yaratilganman 😉. Endi muloqotai guruhda xam ishlaydi - /groupinfo. Ochiq guruh - @muloqataigr.  Meni boshqa chatbotlardan farq qilishim - /me !.
-Batafsil ma'lumot uchun - /help""")
+    await message.answer(""" 🤖 Salom! Men MuloqotAi, sizning shaxsiy AI yordamchingizman, sizga qiziqarli va ulashingizga imkon beradigan suhbat tajribasi taqdim etish uchun yaratilganman 😉. Ochiq guruh - @muloqataigr""")
 
-    await message.answer(""" Suhbatni boshlash uchun shunchaki menga yozing. Men sizning so'rovingizni qabul qilishga va eng to'g'ri va foydali javob berishga harakat qilaman 😊""")
+    await message.answer("""Endi muloqotai guruhda xam ishlaydi - /groupinfo.
+Meni boshqa chatbotlardan farq qilishim - /me !    
+Batafsil ma'lumot uchun - /help""")
 
 
 
