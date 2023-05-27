@@ -189,20 +189,8 @@ async def add_rule(message: types.Message, state=FSMContext):
 async def geterrors_handler(message: types.Message):
     is_admin = Admin().is_admin(user_id=message.from_user.id)
 
-    if is_admin:
-        return await message.answer(Admin().get_errors())
-    
-    return await message.answer("Afsuski bu so'rov faqat admin uchun")
+    if not is_admin:
+        return await message.answer("Afsuski bu so'rov faqat admin uchun")
 
-
-
-@dp.message_handler(commands=['users'])
-async def getusers_handler(message: types.Message):
-    is_admin = Admin().is_admin(user_id=message.from_user.id)
-
-    if is_admin:
-        return await message.answer(Admin().get_users())
-    
-    return await message.answer("Afsuski bu so'rov faqat admin uchun")
-
-
+    for msg in Admin().get_errors():
+        await message.answer(msg)

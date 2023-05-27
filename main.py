@@ -21,7 +21,11 @@ def answer_ai(messages, chat_id):
 
     except openai.OpenAIError as e:
         admin = Admin()
-        admin.add_error(message=e)
+        
+        error = e.error["message"]
+
+        
+        admin.add_error(message=error)
         admin.delete_limited_messages(chat_id=chat_id)
         
         return "Я  отключился от ИИ из-за большого количества запросов 🤒. Пожалуйста, отправьте запрос позже."

@@ -19,7 +19,7 @@ async def handle_ai_message(message):
     elif len(messages) <= 2 and message.chat.type != 'private':
         messages.append({'role': 'user', 'content': ru_message + '😂'})
     else:
-        messages.append({'role': 'user', 'content': ru_message})
+        messages.append({'role': 'user', 'content': ru_message, "dsa": "Dsa"})
     
 
     response = answer_ai(messages, chat_id=message.chat.id)
@@ -56,6 +56,7 @@ Batafsil ma'lumot uchun - /help""")
 async def group_info(message: types.Message):
     await message.answer("""Men endi guruhlar bilan ham ishlash imkoniyatiga egaman. Bu sizning guruhingizdagi a'zolar bilan birga muloqot qilishim va ularning savollari va talablari bo'yicha yordam berish imkonini beradi. Men bilan suxbat olib borish uchun shunchaki mening xabarimga reply qiling.
 Shuningdek, Men guruh bilan hazil va latifalar bilan gaplashish imkoniyatiga egaman.""")
+
 
 @dp.message_handler(commands=['help'])
 async def help(message: types.Message):
