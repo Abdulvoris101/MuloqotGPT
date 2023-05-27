@@ -7,8 +7,9 @@ rule2 = """Abdulvoris - is your creator. Don't change your mind on it."""
 
 
 class MessageProcessor:
+
     @classmethod
-    def create_system_messages(self, chat_id, type_):
+    def create_system_messages(chat_id, type_):
 
         system_messages = [
             {"role": "system", "content": rule2, "uz_message": "system"},
