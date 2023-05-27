@@ -53,8 +53,8 @@ Batafsil ma'lumot uchun - /help""")
 
 @dp.message_handler(commands=['groupinfo'])
 async def group_info(message: types.Message):
-    await message.answer("""Men endi guruhlar bilan ham ishlash imkoniyatiga egaman. Bu sizning guruhingizdagi a'zolar bilan birga muloqot qilishim va ularning savollari va talablari bo'yicha yordam berish imkonini beradi.
-Shuningdek, Men guruh bilan hazil va latifalar bilan gaplashish imkoniyatiga egaman. Bu latifalar guruh a'zolaringizga tabasum olib kerishi va ularga qiziqishlarni oshirish uchun qulaydir""")
+    await message.answer("""Men endi guruhlar bilan ham ishlash imkoniyatiga egaman. Bu sizning guruhingizdagi a'zolar bilan birga muloqot qilishim va ularning savollari va talablari bo'yicha yordam berish imkonini beradi. Men bilan suxbat olib borish uchun shunchaki mening xabarimga reply qiling.
+Shuningdek, Men guruh bilan hazil va latifalar bilan gaplashish imkoniyatiga egaman.""")
 
 @dp.message_handler(commands=['help'])
 async def help(message: types.Message):
