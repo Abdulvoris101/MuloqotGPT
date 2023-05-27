@@ -149,16 +149,32 @@ class Admin:
 
 
     def get_errors(self):
-        cursor.execute("SELECT * FROM error")
-        errors = cursor.fetchall()
-        response = ""
+        query = "SELECT * FROM error LIMIT 10 OFFSET %s"
+        response = []
 
-        if len(errors) == 0:
-            return "No Errors!"
+        offset = 0
 
-        for error in errors:
-            response += f'<b>#{error[0]}</b>\nMessage - {error[1]}\n\n'
+        while True:
+            cursor.execute(query, (offset,))
+            rows = cursor.fetchall()
 
+            erorr_text = ""
+            
+
+            if len(rows) == 0:
+                break
+
+            for row in rows:
+                erorr_text += f'<b>#{row[0]}</b>\nMessage - {row[1]}\n\n'
+            
+            response.append(erorr_text)
+
+            offset += 10
+
+        if len(response) > 3:
+            cursor.execute("""DELETE FROM error WHERE id IN (SELECT id FROM error ORDER BY id LIMIT 10);""")
+            connection.commit()
+        
         return response
 
 
