@@ -88,10 +88,15 @@ class Admin:
         cursor.execute(f"SELECT * FROM admin_message WHERE perform_id='{perform_id}'")
 
         return cursor.fetchall()
+    
+    def get_users_count(self):
+        cursor.execute("SELECT * FROM chat;")
+        users = cursor.fetchall()
 
+        return len(users)
 
     def get_users(self):
-        cursor.execute("SELECT * FROM chat")
+        cursor.execute("SELECT * FROM chat;")
         users = cursor.fetchall()
         response = ""
 
@@ -102,6 +107,12 @@ class Admin:
             response += f'<b>#{user[0]}</b>\nChatName - {user[1]}\nChatId - {user[3]}\nIsActive - {user[2]}\n\n'
 
         return response
+
+    def get_messages_count(self):
+        cursor.execute("SELECT * FROM message;")
+        users = cursor.fetchall()
+
+        return len(users)
 
     def add_error(self, message):
         cursor.execute("INSERT INTO error (message) VALUES (%s)", (str(message),))
@@ -132,6 +143,7 @@ class Admin:
             return False
 
         return True
+
 
     def get_errors(self):
         cursor.execute("SELECT * FROM error")
