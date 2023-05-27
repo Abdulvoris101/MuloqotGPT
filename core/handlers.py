@@ -19,7 +19,7 @@ async def handle_ai_message(message):
     elif len(messages) <= 2 and message.chat.type != 'private':
         messages.append({'role': 'user', 'content': ru_message + '😂'})
     else:
-        messages.append({'role': 'user', 'content': ru_message, "dsa": "Dsa"})
+        messages.append({'role': 'user', 'content': ru_message})
     
 
     response = answer_ai(messages, chat_id=message.chat.id)
