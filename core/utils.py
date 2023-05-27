@@ -2,8 +2,16 @@ from deep_translator import GoogleTranslator, YandexTranslator
 import os
 import requests
 import json
+from aiogram.dispatcher.filters import BoundFilter
+from app import types
+
 
 token = os.environ.get("YANDEX_TOKEN")
+
+
+class IsReplyFilter(BoundFilter):
+    async def check(self, message: types.Message) -> bool:
+        return message.reply_to_message is not None
 
 
 def translate_message(message, from_='uz', lang='ru'):
