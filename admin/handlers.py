@@ -5,13 +5,27 @@ from db.manager import  Admin, Message, Group
 from aiogram.utils.exceptions import BotKicked
 import uuid
 
+admin_text = """"Xush kelibsiz Admin!
+/users - chatlar
+/errors - xatoliklar
+/sent_messages - admin tomonidan yuborilgan xabarlar!
+/send_message - xabar yuborish.
+/delete_message - perform id bo'yicha o'chirish.
+/add_rule - system xabar qo'shish.
+/statistics - statistika."""
+
 
 @dp.message_handler(commands=['admin'])
 async def admin(message: types.Message, state=None):
     
+    if Admin().is_admin(message.from_user.id):
+        await message.answer(admin_text)
+        return ""
+ 
+    
     await AdminLoginState.password.set()
 
-    await message.answer(""" Password kiriting!""")
+    return await message.answer(""" Password kiriting!""")
 
 
 
@@ -29,14 +43,7 @@ async def password_handler(message: types.Message, state=FSMContext):
         
         admin.register_admin(message.from_user.id)
 
-        await message.answer("""Xush kelibsiz Admin!
-/users - chatlar
-/errors - xatoliklar
-/sent_messages - admin tomonidan yuborilgan xabarlar!
-/send_message - xabar yuborish.
-/delete_message - perform id bo'yicha o'chirish.
-/add_rule - system xabar qo'shish.
-/statistics - statistika.""")
+        await message.answer(admin_text)
 
         return ""
 
