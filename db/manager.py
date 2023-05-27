@@ -69,12 +69,16 @@ class Admin:
         connection.commit()
 
 
+
     def get_sent_messages(self):
         cursor.execute("SELECT * FROM admin_message;")
         response = ""
 
         for message in cursor.fetchall():
             response += f"<b>#{message[0]}</b>\n<b>Perform Id</b>: {message[2]}\n<b>Message</b>: {message[1]}"
+
+        if len(response) == 0:
+            response = "No Messages"
 
         return response
 
