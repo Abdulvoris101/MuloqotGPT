@@ -36,24 +36,17 @@ class Chat(Base):
     def count(cls):
         return session.query(Chat.id, Chat.chat_name, Chat.is_activated, Chat.chat_id).count()
 
-    def create_system_messages(self, chat_id, type_):
-        from .manager import rule, rule2, pr_rule
-
-        system_messages = [
-            {"role": "system", "content": rule2, "uz_message": "system"},
-            {"role": "system", "content": rule, "uz_message": "system"} if type_ != "private" else {"role": "system", "content": pr_rule, "uz_message": "system"}
-        ]
-
-        for message in system_messages:
-            Message(chat_id=chat_id, data=message).save()
 
     @classmethod
     def create(cls, chat_id, chat_name, type_):
+        from .proccessors import MessageProcessor
+
         obj = cls(chat_name=chat_name, chat_id=chat_id)
+
         session.add(obj)
         session.commit()
 
-        obj.create_system_messages(chat_id, type_)
+        MessageProcessor.create_system_messages(chat_id, type_)
 
         return obj
 
@@ -64,24 +57,10 @@ class Chat(Base):
             chat = Chat.create(self.chat_id, self.chat_name, type_)
 
         chat.is_activated = True
+        session.add(chat)
         session.commit()
 
 
-    def deactivate(self):
-        chat = session.query(Chat).filter_by(chat_id=self.chat_id).first()
-
-        if chat is not None:
-            chat.is_activated = False
-            session.commit()
-
-
-    def is_active(self):
-        chat = session.query(Chat).filter_by(chat_id=self.chat_id).first()
-
-        if chat is not None:
-            return chat.is_activated
-
-        return False
 
 
     
