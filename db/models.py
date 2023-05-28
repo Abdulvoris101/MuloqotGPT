@@ -74,6 +74,7 @@ class Message(Base):
     @classmethod
     def all(cls, chat_id):
         messages = session.query(Message.data).filter_by(chat_id=chat_id).all()
+
         msgs = [{k: v for k, v in data.items() if k != "uz_message"} for (data,) in messages]
         return msgs
 
@@ -84,8 +85,11 @@ class Message(Base):
     @classmethod
     def user_role(cls, content, instance):
         chat_id = instance.chat.id
+        
         data = {"role": "user", "content": content, "uz_message": instance.text}
+
         obj = cls(data=data, chat_id=chat_id)
+
         obj.save()
         del data["uz_message"]
         return data
@@ -96,10 +100,17 @@ class Message(Base):
 
         chat_id = instance.chat.id
 
+
+        if len(content) > 4095:
+            non_charachters = len(content) - 4050
+            content = content[:-non_charachters]
+
         uz_message = translate_response(content)
 
         data = {"role": "assistant", "content": content, "uz_message": uz_message}
+
         obj = cls(data=data, chat_id=chat_id)
+
         obj.save()
 
         return uz_message
