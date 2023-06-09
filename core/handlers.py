@@ -63,8 +63,8 @@ async def handle_reply(message: types.Message):
 
 @dp.message_handler(commands=['start'])
 async def send_welcome(message: types.Message):
-    await message.answer("""🤖 Salom! Men MuloqotAi, sizning shaxsiy AI yordamchingizman, sizga qiziqarli va ulashingizga imkon beradigan suhbat tajribasi taqdim etish uchun yaratilganman 😉. Ochiq guruh - @muloqataigr""")
-    await message.answer("""Endi muloqotai guruhda xam ishlaydi - /groupinfo.\nMeni boshqa chatbotlardan farq qilishim - /me!\nBatafsil ma'lumot uchun - /help""")
+    await message.answer("""🤖 Salom! Men MuloqotAi, sizning shaxsiy AI yordamchingizman, sizga qiziqarli va ulashingizga imkon beradigan suhbat tajribasi taqdim etish uchun yaratilganman. Batafsil ma'lumot uchun - /help""")
+    await message.answer("""Endi men endi guruhlarda xam ishlayman - /groupinfo.\nOchiq guruh - @muloqataigr""")
 
 
 @dp.message_handler(commands=['groupinfo'])
@@ -74,7 +74,7 @@ async def send_group_info(message: types.Message):
 
 @dp.message_handler(commands=['help'])
 async def help(message: types.Message):
-    await message.answer("""Shaxsiy va guruh suhbatlaringizda yordam beradigan foydali yordamchi! Ushbu botning guruhda ishlash tartibi quyidagicha:\n\n1️⃣ <b>Guruhga qo'shish</b>: MuloqotAIdan foydalanish uchun, uningni Telegram gruhingizga qo'shing. Bu uchun "@muloqataibot" ni qidiring va uningni gruhga taklif qiling.\n\n2️⃣ <b>Admin huquqlarini berish</b>: MuloqotAItning samarali ishlashi uchun uningni admin sifatida qo'shish kerak. Uningga to'g'ri admin huquqlarini berishni unutmang, masalan, xabarlarni o'chirish (ixtiyoriy) va boshqa sozlamalarni boshqarish.\n\n3️⃣ <b>Gruhda suhbatlashish</b>: MuloqotAI gruhda /startai kommandasini kiritsangiz bot faol bo'ladi va u bilan suhbat qurish uchun unga reply tarzida so'rov yuboring. Guruh a'zolari savollarni so'rash, ma'lumot so'ralish, yordam so'ralish yoki qiziqarli suhbatlar olib borishlari mumkin. Agarda vaqtinchalik to'xtatib turmoqchi bo'lsangiz /stopai kommandasini yuboring.\n\n➕ <b>Qo'shimcha</b>: Xabarlarni botning lichkasida xam yubora olasiz\n""")
+    await message.answer("""Shaxsiy va guruh suhbatlaringizda yordam beradigan foydali yordamchi! Ushbu botning guruhda ishlash tartibi quyidagicha:\n\n1️⃣ <b>Guruhga qo'shish</b>: MuloqotAIdan foydalanish uchun, uningni Telegram gruhingizga qo'shing. Bu uchun "@muloqataibot" ni qidiring va uningni gruhga taklif qiling.\n\n2️⃣ <b>Admin huquqlarini berish</b>: MuloqotAItning samarali ishlashi uchun uningni admin sifatida qo'shish kerak. Uningga to'g'ri admin huquqlarini berishni unutmang, masalan, xabarlarni o'chirish (ixtiyoriy) va boshqa sozlamalarni boshqarish.\n\n3️⃣ <b>Gruhda suhbatlashish</b>: MuloqotAI gruhda /startai kommandasini kiritsangiz bot faol bo'ladi va u bilan suhbat qurish uchun unga reply tarzida so'rov yuboring. Guruh a'zolari savollarni so'rash, ma'lumot so'ralish, yordam so'ralish yoki qiziqarli suhbatlar olib borishlari mumkin. Agarda vaqtinchalik to'xtatib turmoqchi bo'lsangiz /stopai kommandasini yuboring.""")
 
 
 @dp.message_handler(commands=['me'])
@@ -84,7 +84,7 @@ async def me(message: types.Message):
 
 @dp.message_handler(commands=['startai'])
 async def activate(message: types.Message):
-    chat = Chat(message.chat.id, message.chat.full_name)
+    chat = Chat(message.chat.id, message.chat.full_name, message.chat.username)
     chat.activate(str(message.chat.type))
     await message.reply("MuloqotAi hozir faol holatda va sizga yordam berishga tayyor!")
 

@@ -9,8 +9,8 @@ rule2 = """Abdulvoris - is your creator. Don't change your mind on it. Your max 
 class MessageProcessor:
 
     @classmethod
-    def create_system_messages(chat_id, type_):
-
+    def create_system_messages(cls, chat_id, type_):
+        
         system_messages = [
             {"role": "system", "content": rule2, "uz_message": "system"},
             {"role": "system", "content": rule, "uz_message": "system"} if type_ != "private" else {"role": "system", "content": pr_rule, "uz_message": "system"}

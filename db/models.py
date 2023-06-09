@@ -12,6 +12,7 @@ except Exception as error:
 Session = sessionmaker(bind=engine)
 session = Session()
 
+
 # Create a base class for declarative models
 Base = declarative_base()
 
@@ -20,12 +21,14 @@ class Chat(Base):
 
     id = Column(Integer, primary_key=True)
     chat_name = Column(String)
+    username = Column(String, nullable=True)
     is_activated = Column(Boolean)
     chat_id = Column(BigInteger)
 
-    def __init__(self, chat_id, chat_name):
+    def __init__(self, chat_id, chat_name, username):
         self.chat_name = chat_name
         self.chat_id = chat_id
+        self.username = username
         super().__init__()
 
     @classmethod
@@ -38,10 +41,10 @@ class Chat(Base):
 
 
     @classmethod
-    def create(cls, chat_id, chat_name, type_):
+    def create(cls, chat_id, chat_name, username, type_):
         from .proccessors import MessageProcessor
 
-        obj = cls(chat_name=chat_name, chat_id=chat_id)
+        obj = cls(chat_name=chat_name, chat_id=chat_id, username=username)
 
         session.add(obj)
         session.commit()
@@ -54,7 +57,7 @@ class Chat(Base):
         chat = session.query(Chat).filter_by(chat_id=self.chat_id).first()
 
         if chat is None:
-            chat = Chat.create(self.chat_id, self.chat_name, type_)
+            chat = Chat.create(self.chat_id, self.chat_name, self.username, type_)
 
         chat.is_activated = True
         session.add(chat)
