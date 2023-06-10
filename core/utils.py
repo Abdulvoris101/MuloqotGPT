@@ -20,6 +20,7 @@ def translate_message(message, from_='uz', lang='ru'):
     return translated_message
 
 
+
 def translate_response(message, from_='auto', lang='uz'):
     url = "https://translate.api.cloud.yandex.net/translate/v2/translate"
     
