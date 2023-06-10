@@ -26,7 +26,7 @@ def answer_ai(messages, chat_id):
 
         Message.delete_by_limit(chat_id=chat_id)
         
-        return "Я отключился от ИИ. 🤒 Попробуйте еще раз."
+        return "О извините я вас не понял можете повторить?"
 
 
     except Exception as e:
