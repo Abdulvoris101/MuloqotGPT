@@ -1,7 +1,8 @@
 from aiogram.dispatcher import FSMContext
 import os
 from app import dp, types, AdminLoginState, AdminSystemMessageState, AdminSendMessage, bot, PerformIdState
-from db.models import Chat, Admin, Message, Error, AdminMessage
+from .models import Admin, Error, AdminMessage
+from core.models import Message, Chat
 from .utils import admin_keyboards
 from aiogram.dispatcher.filters import Text
 

@@ -1,7 +1,8 @@
 import os
 import openai
 from dotenv import load_dotenv
-from db.models import Error, Message
+from core.models import  Message
+from admin.models import Error
 import sys
 
 load_dotenv()  # take environment variables from .env.
