@@ -1,7 +1,7 @@
 from app import dp, bot, types
 from .utils import translate_message, IsReplyFilter
 from main import answer_ai
-from db.models import Message, Chat, session
+from .models import Message, Chat, session
 
 
 class AIChatHandler:
