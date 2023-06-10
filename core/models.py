@@ -85,7 +85,7 @@ class Message(Base):
 
     @classmethod
     def assistant_role(cls, content, instance):
-        from core.utils import translate_response
+        from core.utils import translate_message
 
         chat_id = instance.chat.id
 
@@ -94,7 +94,7 @@ class Message(Base):
             non_charachters = len(content) - 4050
             content = content[:-non_charachters]
 
-        uz_message = translate_response(content)
+        uz_message = translate_message(content, from_='ru', lang='uz')
 
         data = {"role": "assistant", "content": content, "uz_message": uz_message}
 
