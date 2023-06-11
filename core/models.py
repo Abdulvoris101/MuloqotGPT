@@ -54,8 +54,9 @@ class Chat(Base):
         chat = session.query(Chat).filter_by(chat_id=self.chat_id).first()
         
         if chat is None:
-            await send_event(f"#new\nid: {self.chat_id}\nusername: @{self.username}\nname: {self.chat_name}")
             chat = Chat.create(self.chat_id, self.chat_name, self.username, type_)
+            await send_event(f"#new\nid: {chat.id}\ntelegramId: {self.chat_id}\nusername: @{self.username}\nname: {self.chat_name}")
+
 
         chat.is_activated = True
         session.add(chat)
