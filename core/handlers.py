@@ -23,6 +23,13 @@ class AIChatHandler:
         return len(messages) <= 2 and self.message.chat.type != 'private'
 
     async def process_ai_message(self):
+        
+
+        if not await self.is_active():
+            return await self.message.answer("Muloqotni boshlash uchun - /startai")
+
+
+        sent_message = await self.message.reply("✍️..")
 
         if len(self.text) > 4050:
             non_charachters = len(self.text) - 4050
@@ -31,21 +38,19 @@ class AIChatHandler:
         message_ru = translate_message(self.text, lang='ru')
         messages = Message.all(self.chat_id)
 
-        if not await self.is_active():
-            return await self.message.answer("Muloqotni boshlash uchun - /startai")
-
         content = message_ru + '😂' if self.is_group(messages) else message_ru
 
         msg = Message.user_role(content=content, instance=self.message)
         
         messages.append(msg)
 
-
+        print(messages)
+        
         response = await answer_ai(messages, chat_id=self.chat_id)
 
         response_uz = Message.assistant_role(content=response, instance=self.message)
 
-        await self.message.reply(response_uz)
+        await bot.edit_message_text(chat_id=self.chat_id, message_id=sent_message.message_id, text=response_uz)
 
 
 @dp.message_handler(lambda message: not message.text.startswith('/') and not message.text.startswith('.') and message.chat.type == 'private')
