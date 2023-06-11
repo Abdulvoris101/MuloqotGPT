@@ -43,8 +43,6 @@ class AIChatHandler:
         msg = Message.user_role(content=content, instance=self.message)
         
         messages.append(msg)
-
-        print(messages)
         
         response = await answer_ai(messages, chat_id=self.chat_id)
 
