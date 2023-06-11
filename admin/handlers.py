@@ -97,7 +97,7 @@ async def add_rule(message: types.Message, state=FSMContext):
 
     if is_admin:
         await state.finish()
-        Message.system_role(instance=message)
+        Message.system_to_all(text=message.text)
         return await message.answer("System xabar kiritildi!")
 
     return await message.answer("Afsuski bu so'rov faqat admin uchun")
