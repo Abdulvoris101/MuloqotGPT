@@ -6,7 +6,7 @@ from sqlalchemy.orm import sessionmaker
 import os
 
 try:
-   engine = create_engine(os.environ.get("POSTGRES_URL"))
+   engine = create_engine("postgresql://postgres:postgres@localhost:5432/muloqotai?client_encoding=utf8")
 except Exception as error:
     print("Error while connecting to PostgreSQL:", error)
 
