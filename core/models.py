@@ -130,7 +130,6 @@ class Message(Base):
         chat_id = instance.chat.id
         created_at = datetime.now()
 
-
         data = {"role": "assistant", "content": instance.text, "uz_message": "system"}
         obj = cls(data=json.dumps(data, ensure_ascii=False), chat_id=chat_id, created_at=created_at)
 
@@ -138,6 +137,18 @@ class Message(Base):
 
         return obj
 
+    @classmethod
+    def system_to_all(cls, text):
+        chats = Chat.all()
+        created_at = datetime.now()
+
+        for chat in chats:
+            data = {"role": "assistant", "content": text, "uz_message": "system"}
+            obj = cls(data=json.dumps(data, ensure_ascii=False), chat_id=chat[3], created_at=created_at)
+
+            obj.save()
+
+        return 
 
     @classmethod
     def count(cls):
