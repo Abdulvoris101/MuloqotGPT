@@ -75,13 +75,17 @@ class Message(Base):
     @classmethod
     def all(cls, chat_id):
         messages = session.query(Message.data).filter_by(chat_id=chat_id).all()
-
-        msgs = [{k: v for k, v in json.loads(data).items() if k != "uz_message"} for (data,) in messages]
-        return msgs
+        msgs = []
+        
+        for (data,) in messages:
+            data_dict = json.loads(data)
+            msg = {k: v for k, v in data_dict.items() if k != "uz_message"}
+            msgs.append(msg)        
+            return msgs
 
     def save(self):
         self.created_at = datetime.now()
-        self.data = json.dumps(self.data)
+        self.data = json.dumps(self.data, ensure_ascii=False)
         session.add(self)
         session.commit()
 
@@ -89,12 +93,10 @@ class Message(Base):
     def user_role(cls, content, instance):
         chat_id = instance.chat.id
         created_at = datetime.now()
-
         
         data = {"role": "user", "content": content, "uz_message": instance.text}
 
         obj = cls(data=json.dumps(data, ensure_ascii=False), chat_id=chat_id, created_at=created_at)
-
         obj.save()
         del data["uz_message"]
         return data
