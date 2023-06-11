@@ -1,7 +1,7 @@
 from app import dp, bot, types
-from .utils import translate_message, IsReplyFilter
+from .utils import translate_message, IsReplyFilter, send_event
 from main import answer_ai
-from .models import Message, Chat, session
+from .models import Message, session, Chat
 
 
 class AIChatHandler:
@@ -38,10 +38,9 @@ class AIChatHandler:
 
         msg = Message.user_role(content=content, instance=self.message)
         
-
         messages.append(msg)
 
-        response = answer_ai(messages, chat_id=self.chat_id)
+        response = await answer_ai(messages, chat_id=self.chat_id)
 
         response_uz = Message.assistant_role(content=response, instance=self.message)
 
@@ -50,6 +49,7 @@ class AIChatHandler:
 
 @dp.message_handler(lambda message: not message.text.startswith('/') and not message.text.startswith('.') and message.chat.type == 'private')
 async def handle_private_messages(message: types.Message):
+
     chat = AIChatHandler(message=message)
 
     return await chat.process_ai_message()
@@ -57,7 +57,9 @@ async def handle_private_messages(message: types.Message):
 
 @dp.message_handler(IsReplyFilter())
 async def handle_reply(message: types.Message):
+    
     chat = AIChatHandler(message=message)
+
     return await chat.process_ai_message()
 
 
@@ -85,7 +87,8 @@ async def me(message: types.Message):
 @dp.message_handler(commands=['startai'])
 async def activate(message: types.Message):
     chat = Chat(message.chat.id, message.chat.full_name, message.chat.username)
-    chat.activate(str(message.chat.type))
+    await chat.activate(str(message.chat.type))
+
     await message.reply("MuloqotAi hozir faol holatda va sizga yordam berishga tayyor!")
 
 
@@ -99,3 +102,4 @@ async def deactivate(message: types.Message):
         session.commit()
 
     await message.reply("MuloqotAi toxtatilindi. Muloqotni boshlash uchun - /startai")
+

@@ -3,15 +3,20 @@ import os
 import requests
 import json
 from aiogram.dispatcher.filters import BoundFilter
-from app import types
+from app import types, bot
 
 
 token = os.environ.get("YANDEX_TOKEN")
 
 
+async def send_event(text):
+    await bot.send_message("-840987349", text)
+
+
 class IsReplyFilter(BoundFilter):
     async def check(self, message: types.Message) -> bool:
         return message.reply_to_message is not None
+
 
 
 def translate_message(message, from_='uz', lang='ru'):

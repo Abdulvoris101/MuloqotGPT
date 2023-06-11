@@ -1,5 +1,8 @@
 from sqlalchemy import create_engine, Column, Integer, String, Boolean, BigInteger, JSON
-from db.setup import Base, session
+from db.setup import session, Base, engine
+
+
+
 
 class Error(Base):
     __tablename__ = 'error'
@@ -63,6 +66,7 @@ class AdminMessage(Base):
     message_id = Column(BigInteger)
     chat_id = Column(BigInteger)
 
+
     def __init__(self, message, message_id, chat_id):
         self.message = message
         self.message_id = message_id
@@ -85,3 +89,9 @@ class AdminMessage(Base):
     def save(self):
         session.add(self)
         session.commit()
+
+
+Base.metadata.create_all(engine)
+
+# Commit the changes and close the session
+session.commit()
