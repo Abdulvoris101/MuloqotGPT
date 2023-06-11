@@ -23,7 +23,7 @@ async def password_handler(message: types.Message, state=FSMContext):
 
     if message.text == str(os.environ.get('PASSWORD')):
         await state.finish()
-        Admin().register(message.from_user.id)
+        Admin(message.from_user.id).register(message.from_user.id)
         
         return await bot.send_message(message.from_user.id, "Xush kelibsiz admin!", reply_markup=admin_keyboards)
     
