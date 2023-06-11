@@ -3,9 +3,10 @@ from datetime import datetime
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 # Create the engine and session
+import os
 
 try:
-   engine = create_engine('postgresql://postgres:postgres@localhost:5432/muloqotai?client_encoding=utf8')
+   engine = create_engine(os.environ.get("POSTGRES_URL"))
 except Exception as error:
     print("Error while connecting to PostgreSQL:", error)
 
