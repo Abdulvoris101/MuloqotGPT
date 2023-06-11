@@ -1,5 +1,13 @@
-from sqlalchemy import create_engine, Column, Integer, String, Boolean, BigInteger, JSON
-from db.setup import Base, session
+from sqlalchemy import create_engine, Column, Integer, String, UnicodeText, Boolean, BigInteger, JSON, DateTime
+from db.setup import session, engine, Base
+from .utils import send_event
+
+
+
+from datetime import datetime
+    
+
+# Create a base class for declarative models
 
 
 class Chat(Base):
@@ -10,11 +18,14 @@ class Chat(Base):
     username = Column(String, nullable=True)
     is_activated = Column(Boolean)
     chat_id = Column(BigInteger)
+    created_at = Column(DateTime, nullable=True)
+
 
     def __init__(self, chat_id, chat_name, username):
         self.chat_name = chat_name
         self.chat_id = chat_id
         self.username = username
+        self.created_at = datetime.now()
         super().__init__()
 
     @classmethod
@@ -39,55 +50,62 @@ class Chat(Base):
 
         return obj
 
-    def activate(self, type_):
+    async def activate(self, type_):
         chat = session.query(Chat).filter_by(chat_id=self.chat_id).first()
-
+        
         if chat is None:
+            await send_event(f"#new\nid: {self.chat_id}\nusername: @{self.username}\nname: {self.chat_name}")
             chat = Chat.create(self.chat_id, self.chat_name, self.username, type_)
 
         chat.is_activated = True
         session.add(chat)
         session.commit()
 
+import json
 
-
-
-    
 class Message(Base):
     __tablename__ = 'message'
 
     id = Column(Integer, primary_key=True)
-    data = Column(JSON)
+    data = Column(UnicodeText)
     chat_id = Column(BigInteger)
+    created_at = Column(DateTime, nullable=True)
 
     @classmethod
     def all(cls, chat_id):
         messages = session.query(Message.data).filter_by(chat_id=chat_id).all()
 
-        msgs = [{k: v for k, v in data.items() if k != "uz_message"} for (data,) in messages]
+        msgs = [{k: v for k, v in json.loads(data).items() if k != "uz_message"} for (data,) in messages]
         return msgs
 
     def save(self):
+        self.created_at = datetime.now()
+        self.data = json.dumps(self.data)
         session.add(self)
         session.commit()
 
     @classmethod
     def user_role(cls, content, instance):
         chat_id = instance.chat.id
+        created_at = datetime.now()
+
         
         data = {"role": "user", "content": content, "uz_message": instance.text}
 
-        obj = cls(data=data, chat_id=chat_id)
+        obj = cls(data=json.dumps(data, ensure_ascii=False), chat_id=chat_id, created_at=created_at)
 
         obj.save()
         del data["uz_message"]
         return data
+
 
     @classmethod
     def assistant_role(cls, content, instance):
         from core.utils import translate_message
 
         chat_id = instance.chat.id
+        created_at = datetime.now()
+
 
 
         if len(content) > 4095:
@@ -98,7 +116,7 @@ class Message(Base):
 
         data = {"role": "assistant", "content": content, "uz_message": uz_message}
 
-        obj = cls(data=data, chat_id=chat_id)
+        obj = cls(data=json.dumps(data, ensure_ascii=False), chat_id=chat_id, created_at=created_at)
 
         obj.save()
 
@@ -107,13 +125,16 @@ class Message(Base):
     @classmethod
     def system_role(cls, instance):
         chat_id = instance.chat.id
+        created_at = datetime.now()
+
 
         data = {"role": "assistant", "content": instance.text, "uz_message": "system"}
-        obj = cls(data=data, chat_id=chat_id)
+        obj = cls(data=json.dumps(data, ensure_ascii=False), chat_id=chat_id, created_at=created_at)
 
         obj.save()
 
         return obj
+
 
     @classmethod
     def count(cls):
@@ -126,3 +147,9 @@ class Message(Base):
         for message in messages:
             session.delete(message)
 
+
+
+Base.metadata.create_all(engine)
+
+# Commit the changes and close the session
+session.commit()

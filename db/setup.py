@@ -1,10 +1,11 @@
-from sqlalchemy import create_engine, Column, Integer, String, Boolean, BigInteger, JSON
+from sqlalchemy import create_engine, Column, Integer, String, Boolean, BigInteger, JSON, DateTime
+from datetime import datetime
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 # Create the engine and session
 
 try:
-   engine = create_engine('postgresql://postgres:postgres@localhost:5432/muloqotai')
+   engine = create_engine('postgresql://postgres:postgres@localhost:5432/muloqotai?client_encoding=utf8')
 except Exception as error:
     print("Error while connecting to PostgreSQL:", error)
 
@@ -18,8 +19,3 @@ Base = declarative_base()
 
 
 
-# Create all the tables
-Base.metadata.create_all(engine)
-
-# Commit the changes and close the session
-session.commit()
