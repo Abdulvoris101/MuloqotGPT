@@ -40,6 +40,7 @@ class AIChatHandler:
         
         messages.append(msg)
 
+
         response = await answer_ai(messages, chat_id=self.chat_id)
 
         response_uz = Message.assistant_role(content=response, instance=self.message)
