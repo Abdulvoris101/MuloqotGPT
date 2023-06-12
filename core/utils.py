@@ -26,14 +26,14 @@ def translate_message(message, from_='uz', lang='ru'):
 
 
 
-def translate_response(message, from_='auto', lang='uz'):
+def ya_translate(message, lang='ru'):
     url = "https://translate.api.cloud.yandex.net/translate/v2/translate"
     
 
     data = {
         "folderId": os.environ.get("FOLDER_ID"),
         "texts": [message],
-        "targetLanguageCode": 'uz',
+        "targetLanguageCode": lang,
     }
 
     response = requests.post(url=url, data=json.dumps(data), headers={
