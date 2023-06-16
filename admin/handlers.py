@@ -1,10 +1,11 @@
 from aiogram.dispatcher import FSMContext
 import os
-from app import dp, types, AdminLoginState, AdminSystemMessageState, AdminSendMessage, bot, PerformIdState
+from app import dp, types, AdminLoginState, AdminSystemMessageState, AdminUserAddState,  AdminSendMessage, bot, PerformIdState
 from .models import Admin, Error, AdminMessage
 from core.models import Message, Chat
 from .utils import admin_keyboards
 from aiogram.dispatcher.filters import Text
+
 
 
 @dp.message_handler(commands=['admin'])
@@ -37,6 +38,73 @@ async def add_rule_command(message: types.Message, state=None):
         await AdminSystemMessageState.message.set()
 
         return await message.answer("Qoidani faqat ingliz yoki rus tilida kiriting!")
+    
+    return await message.answer("Afsuski bu so'rov faqat admin uchun")
+
+
+@dp.message_handler(Text(equals=".👥 Foydalanuvchi qo'shish"))
+async def add_user_command(message: types.Message, state=None):
+    if Admin.is_admin(user_id=message.from_user.id):
+        
+        await AdminUserAddState.telegramId.set()
+
+        return await message.answer("Telegram Id kiriting")
+    
+    return await message.answer("Afsuski bu so'rov faqat admin uchun")
+
+
+
+
+@dp.message_handler(state=AdminUserAddState.telegramId)
+async def telegramId_set(message: types.Message, state:FSMContext):
+    if Admin.is_admin(user_id=message.from_user.id):
+
+        async with state.proxy() as data:
+            data["telegramId"] = message.text
+                
+        await AdminUserAddState.next()
+
+        return await message.answer("UserName kiriting")
+    
+    return await message.answer("Afsuski bu so'rov faqat admin uchun")
+
+
+
+@dp.message_handler(state=AdminUserAddState.username)
+async def name_set(message: types.Message, state:FSMContext):
+    if Admin.is_admin(user_id=message.from_user.id):
+
+
+        async with state.proxy() as data:
+            data["username"] = message.text
+        
+        await AdminUserAddState.next()
+
+        return await message.answer("Name kiriting")
+    
+    return await message.answer("Afsuski bu so'rov faqat admin uchun")
+
+
+
+
+@dp.message_handler(state=AdminUserAddState.name)
+async def username_set(message: types.Message, state:FSMContext):
+    if Admin.is_admin(user_id=message.from_user.id):
+
+
+        async with state.proxy() as data:
+            data["name"] = message.text
+
+            chat = Chat(chat_id=data["telegramId"], chat_name=data["name"], username=data["username"])
+
+            chat.save()
+
+        await AdminUserAddState.next()
+
+        await state.finish()
+
+        return await message.answer("Foydalanuvchi kiritilindi!")
+
     
     return await message.answer("Afsuski bu so'rov faqat admin uchun")
 

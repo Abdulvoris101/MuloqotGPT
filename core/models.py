@@ -26,6 +26,8 @@ class Chat(Base):
         self.chat_id = chat_id
         self.username = username
         self.created_at = datetime.now()
+        self.is_activated = True
+        
         super().__init__()
 
     @classmethod
@@ -50,6 +52,11 @@ class Chat(Base):
 
         return obj
 
+    
+    def save(self):
+        session.add(self)
+        session.commit()
+
     async def activate(self, type_):
         chat = session.query(Chat).filter_by(chat_id=self.chat_id).first()
         
@@ -57,12 +64,12 @@ class Chat(Base):
             chat = Chat.create(self.chat_id, self.chat_name, self.username, type_)
             await send_event(f"#new\nid: {chat.id}\ntelegramId: {self.chat_id}\nusername: @{self.username}\nname: {self.chat_name}")
 
-
         chat.is_activated = True
         session.add(chat)
         session.commit()
 
 import json
+
 
 class Message(Base):
     __tablename__ = 'message'
