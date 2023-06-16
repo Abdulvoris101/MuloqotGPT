@@ -15,7 +15,11 @@ async def send_event(text):
 
 class IsReplyFilter(BoundFilter):
     async def check(self, message: types.Message) -> bool:
-        return message.reply_to_message is not None or str(message.text).lower().startswith("muloqotai") or str(message.text).lower().startswith("@muloqataibot")
+        if message.reply_to_message is not None:
+            if message.reply_to_message.from_user.is_bot:
+                return True
+
+        return  str(message.text).lower().startswith("muloqotai") or str(message.text).lower().startswith("@muloqataibot")
 
 
 
