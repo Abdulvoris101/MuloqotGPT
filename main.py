@@ -14,7 +14,7 @@ openai.api_key = os.environ.get("API_KEY")
 async def answer_ai(messages, chat_id):
     try:
         response = openai.ChatCompletion.create(
-            model="gpt-3.5-turbo-16k",
+            model="gpt-3.5-turbo-0613",
             messages=messages
         )
 
