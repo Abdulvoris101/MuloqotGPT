@@ -61,7 +61,6 @@ async def handle_private_messages(message: types.Message):
 
 @dp.message_handler(IsReplyFilter())
 async def handle_reply(message: types.Message):
-    
     chat = AIChatHandler(message=message)
 
     return await chat.process_ai_message()
