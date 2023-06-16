@@ -21,6 +21,12 @@ class AdminLoginState(StatesGroup):
 class AdminSystemMessageState(StatesGroup):
     message = State()
 
+class AdminUserAddState(StatesGroup):
+    telegramId = State()
+    username = State()
+    name = State()
+
+
 class PerformIdState(StatesGroup):
     performid = State()
 
