@@ -42,6 +42,7 @@ class Admin(Base):
     @classmethod
     def is_admin(self, user_id):
         admin = session.query(Admin).filter_by(user_id=user_id).first()
+        
         return admin is not None
 
     def register(self, user_id):
