@@ -1,7 +1,7 @@
 from sqlalchemy import create_engine, Column, Integer, String, UnicodeText, Boolean, BigInteger, JSON, DateTime
 from db.setup import session, engine, Base
 from .utils import send_event, translate_out_of_code
-
+from sqlalchemy import not_, cast
 
 
 from datetime import datetime
@@ -19,7 +19,7 @@ class Chat(Base):
     is_activated = Column(Boolean)
     chat_id = Column(BigInteger)
     created_at = Column(DateTime, nullable=True)
-    
+
 
     def __init__(self, chat_id, chat_name, username):
         self.chat_name = chat_name
@@ -37,6 +37,15 @@ class Chat(Base):
     @classmethod
     def count(cls):
         return session.query(Chat.id, Chat.chat_name, Chat.is_activated, Chat.chat_id).count()
+    
+    @classmethod
+    def groups(cls):
+        return session.query(Chat).filter(cast(Chat.chat_id, String).startswith('-')).count()
+
+
+    @classmethod
+    def users(cls):
+        return session.query(Chat).filter(not_(cast(Chat.chat_id, String).startswith('-'))).count()
 
 
     @classmethod
