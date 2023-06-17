@@ -1,6 +1,6 @@
 from sqlalchemy import create_engine, Column, Integer, String, UnicodeText, Boolean, BigInteger, JSON, DateTime
 from db.setup import session, engine, Base
-from .utils import send_event
+from .utils import send_event, translate_out_of_code
 
 
 
@@ -68,6 +68,13 @@ class Chat(Base):
         session.add(chat)
         session.commit()
 
+    
+    @classmethod
+    def delete(self, chat_id):
+        chat = session.query(Chat).filter_by(chat_id=chat_id).first()
+
+        session.delete(chat)
+
 import json
 
 
@@ -86,7 +93,12 @@ class Message(Base):
         
         for (data,) in messages:
             data_dict = json.loads(data)
-            msg = {k: v for k, v in data_dict.items() if k != "uz_message"}
+
+            if not isinstance(data_dict, dict):
+                msg = {k: v for k, v in eval(data_dict).items() if k != "uz_message"}
+            else:
+                msg = {k: v for k, v in data_dict.items() if k != "uz_message"}
+
             msgs.append(msg)        
             return msgs
 
@@ -122,9 +134,11 @@ class Message(Base):
             non_charachters = len(content) - 4050
             content = content[:-non_charachters]
 
-        uz_message = translate_message(content, from_='ru', lang='uz')
 
-        data = {"role": "assistant", "content": content, "uz_message": uz_message}
+        uz_message = translate_out_of_code(content)
+        
+
+        data = {"role": "assistant", "content": str(content), "uz_message": str(uz_message)}
 
         obj = cls(data=json.dumps(data, ensure_ascii=False), chat_id=chat_id, created_at=created_at)
 
@@ -167,6 +181,10 @@ class Message(Base):
         
         for message in messages:
             session.delete(message)
+
+    @classmethod
+    def delete(self, chat_id):
+        session.query(Message).filter_by(chat_id=chat_id).delete()
 
 
 

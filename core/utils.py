@@ -4,7 +4,7 @@ import requests
 import json
 from aiogram.dispatcher.filters import BoundFilter
 from app import types, bot
-
+import re
 
 # token = os.environ.get("YANDEX_TOKEN")
 
@@ -28,6 +28,44 @@ def translate_message(message, from_='uz', lang='ru'):
 
     return translated_message
 
+
+def translate_out_of_code(text):
+    # Define the pattern for identifying code blocks
+
+
+    if text.find("`") == -1:
+        return translate_message(text, from_='ru', lang='uz')
+
+
+    print(True)
+
+    code_pattern = r'```.*?```'
+
+    # Find all code blocks in the text
+    code_blocks = re.findall(code_pattern, text, re.DOTALL)
+
+    # Replace code blocks with placeholders
+    for i, code_block in enumerate(code_blocks):
+        text = text.replace(code_block, f'{{{{code_placeholder_{i}}}}}')
+
+    # Translate the text outside of code blocks
+    translation = translate_message(text, 'ru', 'uz')
+    translated_text = translation
+
+    # Replace placeholders with the original code blocks
+    for i, code_block in enumerate(code_blocks):
+        translated_text = translated_text.replace(f'{{{{code_placeholder_{i}}}}}', code_block)
+
+    # Return the translated text
+    return translated_text
+
+
+
+
+
+
+
+    
 
 
 # def ya_translate(message, lang='ru'):

@@ -35,5 +35,8 @@ async def answer_ai(messages, chat_id):
 
     except Exception as e:
         # Handle other exceptions
+
+        await send_event(f"<b>#error</b>\n{e}")
+
         return "Что-то пошло не так. Пожалуйста, отправьте запрос позже"
 

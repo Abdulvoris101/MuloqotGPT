@@ -2,7 +2,7 @@ from app import dp, bot, types
 from .utils import translate_message, IsReplyFilter, send_event
 from main import answer_ai
 from .models import Message, session, Chat
-
+from .keyboards import restoreMenu
 
 class AIChatHandler:
     def __init__(self, message):
@@ -47,8 +47,8 @@ class AIChatHandler:
         response = await answer_ai(messages, chat_id=self.chat_id)
 
         response_uz = Message.assistant_role(content=response, instance=self.message)
-
-        await bot.edit_message_text(chat_id=self.chat_id, message_id=sent_message.message_id, text=response_uz)
+        
+        await bot.edit_message_text(chat_id=self.chat_id, message_id=sent_message.message_id, text=str(response_uz), disable_web_page_preview=True, parse_mode=types.ParseMode.MARKDOWN)
 
 
 @dp.message_handler(lambda message: not message.text.startswith('/') and not message.text.startswith('.') and message.chat.type == 'private')
@@ -106,3 +106,23 @@ async def deactivate(message: types.Message):
 
     await message.reply("MuloqotAi toxtatilindi. Muloqotni boshlash uchun - /startai")
 
+
+@dp.message_handler(commands=['restore'])
+async def restore_command(message: types.Message):
+    await bot.send_message(message.chat.id, """Botni qaytadan boshlamoqchimisiz 🔄""", reply_markup=restoreMenu)
+
+
+@dp.callback_query_handler(text="yes_restore")
+async def restore(message: types.Message):
+
+    chat = session.query(Chat).filter_by(chat_id=message.message.chat.id).first()
+
+    if chat is None:
+        return await bot.send_message(message.message.chat.id, "Siz xali muloqotni boshlamadingiz 😔")
+
+    Chat.delete(message.message.chat.id)
+    Message.delete(message.message.chat.id)
+
+    await activate(message.message)
+
+    await bot.send_message(message.message.chat.id, "Bot qayta ishga tushirildi.")
