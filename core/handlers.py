@@ -2,8 +2,9 @@ from app import dp, bot, types
 from .utils import translate_message, IsReplyFilter, send_event
 from main import answer_ai
 from .models import Message, session, Chat
-from .keyboards import restoreMenu
+from .keyboards import restoreMenu, joinChannelMenu
 from aiogram.utils.exceptions import CantParseEntities
+import os
 
 class AIChatHandler:
     def __init__(self, message):
@@ -20,15 +21,31 @@ class AIChatHandler:
 
         return chat.is_activated
     
+
+    @classmethod
+    async def is_subscribed(cls, chat_type, user_id):
+        if chat_type == 'private':
+            channel_id = os.environ.get("CHANNEL_ID")
+
+            chat_member = await bot.get_chat_member(channel_id, user_id)
+
+            if chat_member.is_chat_member():
+                return True
+
+            return False
+
+        return True
+    
     def is_group(self, messages):
         return len(messages) <= 2 and self.message.chat.type != 'private'
 
     async def process_ai_message(self):
-        
 
         if not await self.is_active():
             return await self.message.answer("Muloqotni boshlash uchun - /startai")
 
+        elif not await self.is_subscribed(self.message.chat.type, self.chat_id):
+            return await self.message.answer("Botdan foydalanish uchun quyidagi kannalarga obuna bo'ling", reply_markup=joinChannelMenu)
 
         sent_message = await self.message.reply("✍️..")
 
@@ -73,8 +90,8 @@ async def handle_reply(message: types.Message):
 
 @dp.message_handler(commands=['start'])
 async def send_welcome(message: types.Message):
-    await message.answer("""🤖 Salom! Men MuloqotAi, sizning shaxsiy AI yordamchingizman, sizga qiziqarli va ulashingizga imkon beradigan suhbat tajribasi taqdim etish uchun yaratilganman. Batafsil ma'lumot uchun - /help""")
-    await message.answer("""Endi men endi guruhlarda xam ishlayman - /groupinfo.\nOchiq guruh - @muloqataigr. Kanal - @muloqotainews""")
+    await message.answer("""🤖 Salom! Men MuloqotAi, sizning shaxsiy AI yordamchingizman,\n\nKanal - @muloqotainews\nOchiq guruh - @muloqataigr.\nBatafsil ma'lumot uchun - /help""")
+    await activate(message)
 
 
 @dp.message_handler(commands=['groupinfo'])
@@ -94,8 +111,9 @@ async def me(message: types.Message):
 
 @dp.message_handler(commands=['startai'])
 async def activate(message: types.Message):
+
     chat = Chat(message.chat.id, message.chat.full_name, message.chat.username)
-    
+
     await chat.activate(str(message.chat.type))
 
     await message.reply("MuloqotAi hozir faol holatda va sizga yordam berishga tayyor!")
@@ -132,3 +150,12 @@ async def restore(message: types.Message):
     await activate(message.message)
 
     await bot.send_message(message.message.chat.id, "Bot qayta ishga tushirildi.")
+
+
+@dp.callback_query_handler(text="check_subscription")
+async def check_issubscripted(message: types.Message):
+    if await AIChatHandler.is_subscribed(message.message.chat.type, message.message.chat.id):
+        return await bot.send_message(message.message.chat.id, "Siz muvaffaqiyatli obuna bo'lgansiz 😊\n\nMuloqotAi hozir faol holatda va sizga yordam berishga tayyor!")
+    
+    return await bot.send_message(message.message.chat.id, "Afsuski siz kanallarga obuna bo'lmagansiz 😔\n\nBotdan foydalanish uchun kannalarga obuna bo'ling ‼️")
+
