@@ -19,7 +19,7 @@ class Chat(Base):
     is_activated = Column(Boolean)
     chat_id = Column(BigInteger)
     created_at = Column(DateTime, nullable=True)
-
+    
 
     def __init__(self, chat_id, chat_name, username):
         self.chat_name = chat_name
@@ -62,7 +62,7 @@ class Chat(Base):
         
         if chat is None:
             chat = Chat.create(self.chat_id, self.chat_name, self.username, type_)
-            await send_event(f"#new\nid: {chat.id}\ntelegramId: {self.chat_id}\nusername: @{self.username}\nname: {self.chat_name}")
+            await send_event(f"#new\nid: {chat.id}\ntelegramId: {self.chat_id}\nusername: @{self.username}\nname: {self.chat_name}\ntype: {type_}")
 
         chat.is_activated = True
         session.add(chat)
