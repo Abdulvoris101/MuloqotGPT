@@ -39,7 +39,7 @@ class AIChatHandler:
         message_ru = translate_message(self.text, lang='ru')
         messages = Message.all(self.chat_id)
 
-        content = message_ru + '😂' if self.is_group(messages) else message_ru
+        content = f'{message_ru} 😂' if self.is_group(messages) else message_ru
 
         msg = Message.user_role(content=content, instance=self.message)
         
@@ -48,7 +48,7 @@ class AIChatHandler:
         response = await answer_ai(messages, chat_id=self.chat_id)
 
         response_uz = Message.assistant_role(content=response, instance=self.message)
-        
+
         try:
             await bot.edit_message_text(chat_id=self.chat_id, message_id=sent_message.message_id, text=str(response_uz), disable_web_page_preview=True, parse_mode=types.ParseMode.MARKDOWN)
         except CantParseEntities:
