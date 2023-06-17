@@ -69,7 +69,7 @@ async def handle_reply(message: types.Message):
 @dp.message_handler(commands=['start'])
 async def send_welcome(message: types.Message):
     await message.answer("""🤖 Salom! Men MuloqotAi, sizning shaxsiy AI yordamchingizman, sizga qiziqarli va ulashingizga imkon beradigan suhbat tajribasi taqdim etish uchun yaratilganman. Batafsil ma'lumot uchun - /help""")
-    await message.answer("""Endi men endi guruhlarda xam ishlayman - /groupinfo.\nOchiq guruh - @muloqataigr""")
+    await message.answer("""Endi men endi guruhlarda xam ishlayman - /groupinfo.\nOchiq guruh - @muloqataigr. Kanal - @muloqotainews""")
 
 
 @dp.message_handler(commands=['groupinfo'])
