@@ -28,7 +28,7 @@ async def answer_ai(messages, chat_id):
 
         Message.delete_by_limit(chat_id=chat_id)
         
-        await send_event(f"<b>#error</b>\n{error}")
+        await send_event(f"<b>#error</b>\n{error}\n\n#user-{chat_id}")
 
         return "О извините я вас не понял можете повторить?"
 

@@ -95,6 +95,7 @@ async def me(message: types.Message):
 @dp.message_handler(commands=['startai'])
 async def activate(message: types.Message):
     chat = Chat(message.chat.id, message.chat.full_name, message.chat.username)
+    
     await chat.activate(str(message.chat.type))
 
     await message.reply("MuloqotAi hozir faol holatda va sizga yordam berishga tayyor!")
