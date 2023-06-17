@@ -3,6 +3,7 @@ from .utils import translate_message, IsReplyFilter, send_event
 from main import answer_ai
 from .models import Message, session, Chat
 from .keyboards import restoreMenu
+from aiogram.utils.exceptions import CantParseEntities
 
 class AIChatHandler:
     def __init__(self, message):
@@ -48,8 +49,12 @@ class AIChatHandler:
 
         response_uz = Message.assistant_role(content=response, instance=self.message)
         
-        await bot.edit_message_text(chat_id=self.chat_id, message_id=sent_message.message_id, text=str(response_uz), disable_web_page_preview=True, parse_mode=types.ParseMode.MARKDOWN)
+        try:
+            await bot.edit_message_text(chat_id=self.chat_id, message_id=sent_message.message_id, text=str(response_uz), disable_web_page_preview=True, parse_mode=types.ParseMode.MARKDOWN)
+        except CantParseEntities:
+            await bot.edit_message_text(chat_id=self.chat_id, message_id=sent_message.message_id, text="Iltimos boshqatan so'rov yuboring", disable_web_page_preview=True, parse_mode=types.ParseMode.MARKDOWN)
 
+            
 
 @dp.message_handler(lambda message: not message.text.startswith('/') and not message.text.startswith('.') and message.chat.type == 'private')
 async def handle_private_messages(message: types.Message):
