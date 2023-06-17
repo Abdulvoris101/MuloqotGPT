@@ -30,6 +30,7 @@ class Chat(Base):
         
         super().__init__()
 
+
     @classmethod
     def all(cls):
         return session.query(Chat.id, Chat.chat_name, Chat.is_activated, Chat.chat_id).all()
