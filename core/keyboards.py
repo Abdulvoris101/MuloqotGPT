@@ -8,7 +8,7 @@ restoreMenu.insert(btnYes)
 
 
 joinChannelMenu = InlineKeyboardMarkup(row_width=2)
-btnJoin = InlineKeyboardButton(text="Texno Masters 📊", url="https://t.me/texno_masters")
+btnJoin = InlineKeyboardButton(text="Texno Masters 📊", url="https://t.me/texnomasters")
 btnCheck = InlineKeyboardButton(text="Tekshirish ✅", callback_data="check_subscription")
 
 joinChannelMenu.add(btnJoin)
