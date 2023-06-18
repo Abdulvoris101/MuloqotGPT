@@ -33,6 +33,9 @@ class PerformIdState(StatesGroup):
 class AdminSendMessage(StatesGroup):
     message = State()
 
+class AdminAdsMessage(StatesGroup):
+    message_photo = State()
+
 if __name__ == '__main__':
     from core.handlers import dp
     from admin.handlers import dp
