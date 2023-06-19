@@ -116,7 +116,7 @@ async def activate(message: types.Message):
 
     await chat.activate(str(message.chat.type))
 
-    await message.reply("MuloqotAi hozir faol holatda va sizga yordam berishga tayyor!")
+    await message.reply("Assalomu aleykum Men Muloqot AI man sizga qanday yordam bera olaman ?")
 
 
 @dp.message_handler(commands=['stopai'])
@@ -155,7 +155,7 @@ async def restore(message: types.Message):
 @dp.callback_query_handler(text="check_subscription")
 async def check_issubscripted(message: types.Message):
     if await AIChatHandler.is_subscribed(message.message.chat.type, message.message.chat.id):
-        return await bot.send_message(message.message.chat.id, "Siz muvaffaqiyatli obuna bo'lgansiz 😊\n\nMuloqotAi hozir faol holatda va sizga yordam berishga tayyor!")
+        return await bot.send_message(message.message.chat.id, "Assalomu aleykum Men Muloqot AI man sizga qanday yordam bera olaman?")
     
     return await bot.send_message(message.message.chat.id, "Afsuski siz kanallarga obuna bo'lmagansiz 😔\n\nBotdan foydalanish uchun kannalarga obuna bo'ling ‼️")
 
