@@ -123,7 +123,7 @@ class Message(Base):
         chat_id = instance.chat.id
         created_at = datetime.now()
         
-        data = {"role": "user", "content": content, "uz_message": instance.text}
+        data = {"role": "user", "content": str(content), "uz_message": instance.text}
 
         obj = cls(data=json.dumps(data, ensure_ascii=False), chat_id=chat_id, created_at=created_at)
         obj.save()
@@ -161,7 +161,7 @@ class Message(Base):
         chat_id = instance.chat.id
         created_at = datetime.now()
 
-        data = {"role": "assistant", "content": instance.text, "uz_message": "system"}
+        data = {"role": "assistant", "content": str(instance.text), "uz_message": "system"}
         obj = cls(data=json.dumps(data, ensure_ascii=False), chat_id=chat_id, created_at=created_at)
 
         obj.save()

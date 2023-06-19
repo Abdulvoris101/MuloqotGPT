@@ -11,7 +11,7 @@ class AIChatHandler:
         self.message = message
         self.chat_id = message.chat.id
         self.full_name = message.chat.full_name
-        self.text = message.text
+        self.text = str(message.text)
 
     async def is_active(self):
         chat = session.query(Chat.is_activated).filter_by(chat_id=self.chat_id).first()
@@ -56,7 +56,9 @@ class AIChatHandler:
         message_ru = translate_message(self.text, lang='ru')
         messages = Message.all(self.chat_id)
 
+
         content = f'{message_ru} 😂' if self.is_group(messages) else message_ru
+        content = self.text if content is None else content
 
         msg = Message.user_role(content=content, instance=self.message)
         
