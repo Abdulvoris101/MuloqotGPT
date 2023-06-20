@@ -1,6 +1,6 @@
 import os
 import openai
-from openai.error  import InvalidRequestError
+from openai.error import RateLimitError, ServiceUnavailableError
 from dotenv import load_dotenv
 from core.models import  Message
 from admin.models import Error
@@ -21,9 +21,8 @@ async def answer_ai(messages, chat_id):
 
         return response['choices'][0]['message']['content']
 
-    except openai.OpenAIError as e:        
+    except RateLimitError as e:
         error = e.error["message"]
-        print(e)
         
         Error(error).save()
 
@@ -32,6 +31,25 @@ async def answer_ai(messages, chat_id):
         await send_event(f"<b>#error</b>\n{error}\n\n#openai error\n\n#user {chat_id}")
 
         return "О извините я вас не понял можете повторить?"
+    
+    except ServiceUnavailableError as e:
+        error = e.error["message"]
+        
+        Error(error).save()
+    
+        await send_event(f"<b>#error</b>\n{error}\n\n#openai error\n\n#user {chat_id}")
+
+        return "Chatgptda uzilish kuzatilinmoqda, Iltimos, keyinroq qayta urinib ko'ring."
+    
+    except openai.OpenAIError as e:        
+        error = e.error["message"]
+        print(e)
+        
+        Error(error).save()
+
+        await send_event(f"<b>#error</b>\n{error}\n\n#openai error\n\n#user {chat_id}")
+
+        return "Chatgptda uzilish kuzatilinmoqda, Iltimos, keyinroq qayta urinib ko'ring"
     
 
     except Exception as e:
