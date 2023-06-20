@@ -24,7 +24,10 @@ class IsReplyFilter(BoundFilter):
 
 
 def translate_message(message, from_='uz', lang='ru'):
-    translated_message = GoogleTranslator(source=from_, target=lang).translate(message)
+    try:
+        translated_message = GoogleTranslator(source=from_, target=lang).translate(message)
+    except:
+        translated_message = "Chatgpt javob bermadi. Yana bir bor urinib ko'ring"
 
     return translated_message
 
