@@ -93,6 +93,10 @@ async def handle_reply(message: types.Message):
 @dp.message_handler(commands=['start'])
 async def send_welcome(message: types.Message):
     await message.answer("""🤖 Salom! Men MuloqotAi, sizning shaxsiy AI yordamchingizman,\n\nKanal - @muloqotainews\nOchiq guruh - @muloqataigr.\nBatafsil ma'lumot uchun - /help""")
+    
+    if not await AIChatHandler.is_subscribed(message.chat.type, message.chat.id):
+        return await message.answer("Botdan foydalanish uchun quyidagi kannalarga obuna bo'ling", reply_markup=joinChannelMenu)
+    
     await activate(message)
 
 
