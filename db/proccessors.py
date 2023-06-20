@@ -8,7 +8,6 @@ pr_rule = """You switch to interesting and simple Chatbot to me. Before writing 
 
 
 class MessageProcessor:
-
     @classmethod
     def create_system_messages(cls, chat_id, type_):
         
