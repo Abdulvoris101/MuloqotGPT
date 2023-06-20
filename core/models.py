@@ -128,6 +128,7 @@ class Message(Base):
         obj = cls(data=json.dumps(data, ensure_ascii=False), chat_id=chat_id, created_at=created_at)
         obj.save()
         del data["uz_message"]
+        
         return data
 
 

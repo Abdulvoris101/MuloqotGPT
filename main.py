@@ -1,5 +1,6 @@
 import os
 import openai
+from openai.error  import InvalidRequestError
 from dotenv import load_dotenv
 from core.models import  Message
 from admin.models import Error
@@ -22,7 +23,8 @@ async def answer_ai(messages, chat_id):
 
     except openai.OpenAIError as e:        
         error = e.error["message"]
-
+        print(e)
+        
         Error(error).save()
 
         Message.delete_by_limit(chat_id=chat_id)
@@ -30,7 +32,7 @@ async def answer_ai(messages, chat_id):
         await send_event(f"<b>#error</b>\n{error}\n\n#openai error\n\n#user {chat_id}")
 
         return "О извините я вас не понял можете повторить?"
-
+    
 
     except Exception as e:
         # Handle other exceptions
