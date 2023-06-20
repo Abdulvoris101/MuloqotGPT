@@ -163,5 +163,5 @@ async def check_issubscripted(message: types.Message):
     if await AIChatHandler.is_subscribed(message.message.chat.type, message.message.chat.id):
         return await bot.send_message(message.message.chat.id, "Assalomu aleykum Men Muloqot AI man sizga qanday yordam bera olaman?")
     
-    return await bot.send_message(message.message.chat.id, "Afsuski siz kanallarga obuna bo'lmagansiz 😔\n\nBotdan foydalanish uchun kannalarga obuna bo'ling ‼️")
+    return await message.answer("Afsuski siz kanallarga obuna bo'lmagansiz 😔")
 
