@@ -31,7 +31,7 @@ async def answer_ai(messages, chat_id):
 
         Chat.offset_add(chat_id=chat_id)
         
-        await send_event(f"<b>#error</b>\n{error}\n\n#openai error\n\n#user {chat_id}")
+        await send_event(f"<b>#ratelimiterror</b>\n{error}\n\n#openai error\n\n#user {chat_id}")
 
         return "О извините я вас не понял можете повторить?"
     
@@ -43,7 +43,7 @@ async def answer_ai(messages, chat_id):
 
         Error(error).save()
     
-        await send_event(f"<b>#error</b>\n{error}\n\n#openai error\n\n#user {chat_id}")
+        await send_event(f"<b>#serviceunvavailable</b>\n{error}\n\n#openai error\n\n#user {chat_id}")
 
         return "Chatgptda uzilish kuzatilinmoqda, Iltimos, keyinroq qayta urinib ko'ring."
     
@@ -53,7 +53,7 @@ async def answer_ai(messages, chat_id):
         
         Error(error).save()
 
-        await send_event(f"<b>#error</b>\n{error}\n\n#openai error\n\n#user {chat_id}")
+        await send_event(f"<b>#all error</b>\n{error}\n\n#openai error\n\n#user {chat_id}")
 
         return "Chatgptda uzilish kuzatilinmoqda, Iltimos, keyinroq qayta urinib ko'ring"
     
