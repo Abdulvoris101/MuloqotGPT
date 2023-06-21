@@ -115,7 +115,7 @@ class Message(Base):
         chat = session.query(Chat).filter_by(chat_id=chat_id).first()
         offset_limit = chat.offset_limit
         query = session.query(Message.data).filter_by(chat_id=chat_id).order_by(Message.id)
-
+        
         if offset_limit is not None:
             firstRows = query.limit(5).all()
             nextRows = query.offset(offset_limit).all()
@@ -155,7 +155,7 @@ class Message(Base):
         obj = cls(data=json.dumps(data, ensure_ascii=False), chat_id=chat_id, created_at=created_at)
         obj.save()
 
-        del data["uz_message"]
+        # del data["uz_message"]
         
         return data
 
