@@ -52,7 +52,6 @@ async def answer_ai(messages, chat_id):
         print(e)
         
         Error(error).save()
-        Chat.offset_add(chat_id=chat_id)
 
         await send_event(f"<b>#error</b>\n{error}\n\n#openai error\n\n#user {chat_id}")
 
