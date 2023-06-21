@@ -73,10 +73,9 @@ class AIChatHandler:
 
         try:
             await bot.edit_message_text(chat_id=self.chat_id, message_id=sent_message.message_id, text=str(response_uz), disable_web_page_preview=True, parse_mode=types.ParseMode.MARKDOWN)
-        except CantParseEntities:
+        except:
             await bot.edit_message_text(chat_id=self.chat_id, message_id=sent_message.message_id, text="Iltimos boshqatan so'rov yuboring", disable_web_page_preview=True, parse_mode=types.ParseMode.MARKDOWN)
 
-            
 
 @dp.message_handler(lambda message: not message.text.startswith('/') and not message.text.startswith('.') and message.chat.type == 'private')
 async def handle_private_messages(message: types.Message):
@@ -101,6 +100,7 @@ async def send_welcome(message: types.Message):
         return await message.answer("Botdan foydalanish uchun quyidagi kannalarga obuna bo'ling", reply_markup=joinChannelMenu)
     
     await activate(message)
+
 
 
 @dp.message_handler(commands=['groupinfo'])
