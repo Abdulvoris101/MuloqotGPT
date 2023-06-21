@@ -114,17 +114,14 @@ class Message(Base):
     def all(cls, chat_id):
         chat = session.query(Chat).filter_by(chat_id=chat_id).first()
         offset_limit = chat.offset_limit
-        
-        if offset_limit is not None:
-            first_10_rows = session.query(Message.data).filter_by(chat_id=chat_id).order_by(Message.id).limit(5).subquery()
-            offset_messages = session.query(Message.data).filter_by(chat_id=chat_id).order_by(Message.id).offset(offset_limit).subquery()
-            
-            print(offset_messages)
+        query = session.query(Message.data).filter_by(chat_id=chat_id).order_by(Message.id)
 
-            messages = session.query(first_10_rows.c.data).union_all(session.query(offset_messages.c.data)).all()
+        if offset_limit is not None:
+            firstRows = query.limit(5).all()
+            nextRows = query.offset(offset_limit).all()
+            messages = firstRows + nextRows          
         else:
             messages = session.query(Message.data).filter_by(chat_id=chat_id).all()
-
 
         msgs = []
 
@@ -158,7 +155,7 @@ class Message(Base):
         obj = cls(data=json.dumps(data, ensure_ascii=False), chat_id=chat_id, created_at=created_at)
         obj.save()
 
-        del data["uz_message"]
+        # del data["uz_message"]
         
         return data
 
