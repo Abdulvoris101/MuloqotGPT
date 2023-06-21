@@ -5,6 +5,7 @@ from .models import Message, session, Chat
 from .keyboards import restoreMenu, joinChannelMenu
 from aiogram.utils.exceptions import CantParseEntities
 import os
+from db.proccessors import MessageProcessor
 
 class AIChatHandler:
     def __init__(self, message):
@@ -37,6 +38,9 @@ class AIChatHandler:
         return True
     
     def is_group(self, messages):
+        if messages is None:
+            MessageProcessor.create_system_messages(self.chat_id, self.message.chat.type)
+
         return len(messages) <= 2 and self.message.chat.type != 'private'
 
     async def process_ai_message(self):
@@ -56,14 +60,13 @@ class AIChatHandler:
         message_ru = translate_message(self.text, lang='ru')
         messages = Message.all(self.chat_id)
 
-
         content = f'{message_ru} 😂' if self.is_group(messages) else message_ru
         content = self.text if content is None else content
 
         msg = Message.user_role(content=content, instance=self.message)
         
         messages.append(msg)
-        
+
         response = await answer_ai(messages, chat_id=self.chat_id)
 
         response_uz = Message.assistant_role(content=response, instance=self.message)
@@ -137,25 +140,25 @@ async def deactivate(message: types.Message):
     await message.reply("MuloqotAi toxtatilindi. Muloqotni boshlash uchun - /startai")
 
 
-@dp.message_handler(commands=['restore'])
-async def restore_command(message: types.Message):
-    await bot.send_message(message.chat.id, """Botni qaytadan boshlamoqchimisiz 🔄""", reply_markup=restoreMenu)
+# @dp.message_handler(commands=['restore'])
+# async def restore_command(message: types.Message):
+#     await bot.send_message(message.chat.id, """Botni qaytadan boshlamoqchimisiz 🔄""", reply_markup=restoreMenu)
 
 
-@dp.callback_query_handler(text="yes_restore")
-async def restore(message: types.Message):
+# @dp.callback_query_handler(text="yes_restore")
+# async def restore(message: types.Message):
 
-    chat = session.query(Chat).filter_by(chat_id=message.message.chat.id).first()
+#     chat = session.query(Chat).filter_by(chat_id=message.message.chat.id).first()
 
-    if chat is None:
-        return await bot.send_message(message.message.chat.id, "Siz xali muloqotni boshlamadingiz 😔")
+#     if chat is None:
+#         return await bot.send_message(message.message.chat.id, "Siz xali muloqotni boshlamadingiz 😔")
 
-    Chat.delete(message.message.chat.id)
-    Message.delete(message.message.chat.id)
+#     Chat.delete(message.message.chat.id)
+#     Message.delete(message.message.chat.id)
 
-    await activate(message.message)
+#     await activate(message.message)
 
-    await bot.send_message(message.message.chat.id, "Bot qayta ishga tushirildi.")
+#     await bot.send_message(message.message.chat.id, "Bot qayta ishga tushirildi.")
 
 
 @dp.callback_query_handler(text="check_subscription")
