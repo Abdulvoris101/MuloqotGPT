@@ -5,6 +5,7 @@ from .models import Message, session, Chat
 from .keyboards import restoreMenu, joinChannelMenu
 from aiogram.utils.exceptions import CantParseEntities
 import os
+from db.proccessors import MessageProcessor
 
 class AIChatHandler:
     def __init__(self, message):
@@ -37,7 +38,10 @@ class AIChatHandler:
         return True
     
     def is_group(self, messages):
-        return len(messages) <= 2 if messages is not None else True and self.message.chat.type != 'private'
+        if messages is None:
+            MessageProcessor.create_system_messages(self.chat_id, self.message.chat.type)
+
+        return len(messages) <= 2 and self.message.chat.type != 'private'
 
     async def process_ai_message(self):
 
@@ -56,22 +60,24 @@ class AIChatHandler:
         message_ru = translate_message(self.text, lang='ru')
         messages = Message.all(self.chat_id)
 
+        content = f'{message_ru} 😂' if self.is_group(messages) else message_ru
+        content = self.text if content is None else content
+
+        msg = Message.user_role(content=content, instance=self.message)
+        
+        messages.append(msg)
+
+        print(len(messages))
         print(messages)
-        # content = f'{message_ru} 😂' if self.is_group(messages) else message_ru
-        # content = self.text if content is None else content
-
-        # msg = Message.user_role(content=content, instance=self.message)
         
-        # messages.append(msg)
-        
-        # response = await answer_ai(messages, chat_id=self.chat_id)
+        response = await answer_ai(messages, chat_id=self.chat_id)
 
-        # response_uz = Message.assistant_role(content=response, instance=self.message)
+        response_uz = Message.assistant_role(content=response, instance=self.message)
 
-        # try:
-        #     await bot.edit_message_text(chat_id=self.chat_id, message_id=sent_message.message_id, text=str(response_uz), disable_web_page_preview=True, parse_mode=types.ParseMode.MARKDOWN)
-        # except CantParseEntities:
-        #     await bot.edit_message_text(chat_id=self.chat_id, message_id=sent_message.message_id, text="Iltimos boshqatan so'rov yuboring", disable_web_page_preview=True, parse_mode=types.ParseMode.MARKDOWN)
+        try:
+            await bot.edit_message_text(chat_id=self.chat_id, message_id=sent_message.message_id, text=str(response_uz), disable_web_page_preview=True, parse_mode=types.ParseMode.MARKDOWN)
+        except CantParseEntities:
+            await bot.edit_message_text(chat_id=self.chat_id, message_id=sent_message.message_id, text="Iltimos boshqatan so'rov yuboring", disable_web_page_preview=True, parse_mode=types.ParseMode.MARKDOWN)
 
             
 

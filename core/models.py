@@ -91,8 +91,12 @@ class Chat(Base):
         chat = session.query(Chat).filter_by(chat_id=chat_id).first()
 
         if chat is not None:
-            chat.offset_limit += 10
-            session.commit()
+            if chat.offset_limit is not None:
+                chat.offset_limit += 5
+                session.commit()
+            else:
+                chat.offset_limit = 5
+                session.commit()
 
 
 import json
@@ -109,14 +113,21 @@ class Message(Base):
     @classmethod
     def all(cls, chat_id):
         chat = session.query(Chat).filter_by(chat_id=chat_id).first()
-        offset_limit = chat.offset_limit if chat.offset_limit is not None else 1
+        offset_limit = chat.offset_limit
         
-        first_10_rows = session.query(Message.data).filter_by(chat_id=chat_id).limit(5).subquery()
-        offset_messages = session.query(Message.data).filter_by(chat_id=chat_id).offset(offset_limit).subquery()
-        # messages = session.query(Message.data).filter_by(chat_id=chat_id).slice(1, offset_limit).all()
-        messages = session.query(first_10_rows.c.data).union_all(session.query(offset_messages.c.data)).all()
+        if offset_limit is not None:
+            first_10_rows = session.query(Message.data).filter_by(chat_id=chat_id).order_by(Message.id).limit(5).subquery()
+            offset_messages = session.query(Message.data).filter_by(chat_id=chat_id).order_by(Message.id).offset(offset_limit).subquery()
+            
+            print(offset_messages)
+
+            messages = session.query(first_10_rows.c.data).union_all(session.query(offset_messages.c.data)).all()
+        else:
+            messages = session.query(Message.data).filter_by(chat_id=chat_id).all()
+
 
         msgs = []
+
         
         for (data,) in messages:
             data_dict = json.loads(data)
@@ -146,6 +157,7 @@ class Message(Base):
 
         obj = cls(data=json.dumps(data, ensure_ascii=False), chat_id=chat_id, created_at=created_at)
         obj.save()
+
         del data["uz_message"]
         
         return data
@@ -167,7 +179,6 @@ class Message(Base):
 
         uz_message = translate_out_of_code(content)
         
-
         data = {"role": "assistant", "content": str(content), "uz_message": str(uz_message)}
 
         obj = cls(data=json.dumps(data, ensure_ascii=False), chat_id=chat_id, created_at=created_at)
