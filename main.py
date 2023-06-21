@@ -2,7 +2,7 @@ import os
 import openai
 from openai.error import RateLimitError, ServiceUnavailableError
 from dotenv import load_dotenv
-from core.models import  Message
+from core.models import  Chat
 from admin.models import Error
 import sys
 from core.utils import send_event
@@ -15,7 +15,7 @@ openai.api_key = os.environ.get("API_KEY")
 async def answer_ai(messages, chat_id):
     try:
         response = openai.ChatCompletion.create(
-            model="gpt-3.5-turbo-0613",
+            model="gpt-3.5-turbo-16k-0613",
             messages=messages
         )
 
@@ -29,7 +29,7 @@ async def answer_ai(messages, chat_id):
         
         Error(error).save()
 
-        Message.delete_by_limit(chat_id=chat_id)
+        Chat.offset_add(chat_id=chat_id)
         
         await send_event(f"<b>#error</b>\n{error}\n\n#openai error\n\n#user {chat_id}")
 
@@ -52,6 +52,7 @@ async def answer_ai(messages, chat_id):
         print(e)
         
         Error(error).save()
+        Chat.offset_add(chat_id=chat_id)
 
         await send_event(f"<b>#error</b>\n{error}\n\n#openai error\n\n#user {chat_id}")
 

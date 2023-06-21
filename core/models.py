@@ -19,6 +19,7 @@ class Chat(Base):
     is_activated = Column(Boolean)
     chat_id = Column(BigInteger)
     created_at = Column(DateTime, nullable=True)
+    offset_limit = Column(BigInteger, nullable=True)
 
 
     def __init__(self, chat_id, chat_name, username):
@@ -29,7 +30,6 @@ class Chat(Base):
         self.is_activated = True
         
         super().__init__()
-
 
     @classmethod
     def all(cls):
@@ -85,6 +85,16 @@ class Chat(Base):
 
         session.delete(chat)
 
+
+    @classmethod
+    def offset_add(self, chat_id):
+        chat = session.query(Chat).filter_by(chat_id=chat_id).first()
+
+        if chat is not None:
+            chat.offset_limit += 10
+            session.commit()
+
+
 import json
 
 
@@ -98,7 +108,14 @@ class Message(Base):
 
     @classmethod
     def all(cls, chat_id):
-        messages = session.query(Message.data).filter_by(chat_id=chat_id).all()
+        chat = session.query(Chat).filter_by(chat_id=chat_id).first()
+        offset_limit = chat.offset_limit if chat.offset_limit is not None else 1
+        
+        first_10_rows = session.query(Message.data).filter_by(chat_id=chat_id).limit(5).subquery()
+        offset_messages = session.query(Message.data).filter_by(chat_id=chat_id).offset(offset_limit).subquery()
+        # messages = session.query(Message.data).filter_by(chat_id=chat_id).slice(1, offset_limit).all()
+        messages = session.query(first_10_rows.c.data).union_all(session.query(offset_messages.c.data)).all()
+
         msgs = []
         
         for (data,) in messages:
@@ -109,14 +126,16 @@ class Message(Base):
             else:
                 msg = {k: v for k, v in data_dict.items() if k != "uz_message"}
 
-            msgs.append(msg)        
-            return msgs
+            msgs.append(msg)    
+
+        return msgs
 
     def save(self):
         self.created_at = datetime.now()
         self.data = json.dumps(self.data, ensure_ascii=False)
         session.add(self)
         session.commit()
+
 
     @classmethod
     def user_role(cls, content, instance):
@@ -186,12 +205,7 @@ class Message(Base):
     def count(cls):
         return session.query(Message).count()
 
-    @classmethod
-    def delete_by_limit(self, chat_id):
-        messages = session.query(Message).filter_by(chat_id=chat_id).order_by(Message.id).offset(4).limit(10).all()
-        
-        for message in messages:
-            session.delete(message)
+    
 
     @classmethod
     def delete(self, chat_id):
