@@ -53,26 +53,19 @@ class Chat(Base):
 
     @classmethod
     def active_users(cls):
+        created_at = three_months_ago.strftime('%Y-%m-%d')
 
-        subquery = (
-            session.query(Message.chat_id, func.count(Message.id).label("message_count"))
+        users_with_weekly_messages = (
+            session.query(Chat.username)
+            .join(Message, Chat.chat_id == Message.chat_id)
             .filter(Message.created_at >= three_months_ago)
-            .group_by(Message.chat_id)
-            .having(func.count(Message.id) >= 12)  # Assumes 4 weeks in a month, so 12 messages in 3 months
-            .subquery()
-        )
-
-        # Query users who have sent messages every week
-        users_query = (
-            session.query(Chat.chat_name)
-            .join(subquery, Chat.id == subquery.c.chat_id)
+            .group_by(Chat.username)
+            .having(func.count(Message.id) >= 12)  # Assuming there are approximately 4 weeks in a month
             .all()
         )
 
-        users = [user[0] for user in users_query]
 
-
-        return len(users)
+        return len(users_with_weekly_messages)
     
 
     @classmethod
