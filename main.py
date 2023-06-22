@@ -47,9 +47,9 @@ async def answer_ai(messages, chat_id):
 
         await send_event(f"<b>#ratelimiterror</b>\n{error}\n#type {e.error.get('type')}\n\n#openai error\n\n#user {chat_id}")
         
-        time.sleep(8)
+        time.sleep(5)
         
-        return "О извините я вас не понял можете повторить?"
+        return "Iltimos 20s dan keyin qayta urinib ko'ring!"
     
     except ServiceUnavailableError as e:
         error = e.error["message"]

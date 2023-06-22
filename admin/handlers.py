@@ -60,7 +60,7 @@ async def add_rule(message: types.Message, state=FSMContext):
 @dp.message_handler(Text(equals=".📊 Statistika"))
 async def get_statistics(message: types.Message):
     if Admin.is_admin(user_id=message.from_user.id):
-        return await message.answer(f"👤 Foydalanuvchilar - {Chat.users()}.\n👥 Guruhlar - {Chat.groups()}\n📥Xabarlar - {Message.count()}")
+        return await message.answer(f"👤 Foydalanuvchilar - {Chat.users()}.\n💥 Aktiv Foydalanuvchilar - {Chat.active_users()}\n👥 Guruhlar - {Chat.groups()}\n📥Xabarlar - {Message.count()}")
     
     return await message.answer("Afsuski bu so'rov faqat admin uchun")
 
@@ -122,7 +122,6 @@ async def send_adsmessage(message: types.Message, state=FSMContext):
 
     if Admin.is_admin(user_id=message.from_user.id):
         
-
         async with state.proxy() as data:
             data['message_photo'] = message.photo[-1].file_id
 
