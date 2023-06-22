@@ -96,7 +96,7 @@ class Chat(Base):
                 session.commit()
 
             else:
-                chat.offset_limit = 5
+                chat.offset_limit = 15
                 session.commit()
 
 
