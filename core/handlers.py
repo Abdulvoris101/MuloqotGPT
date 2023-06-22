@@ -59,7 +59,7 @@ class AIChatHandler:
         
         message_ru = translate_message(self.text, lang='ru')
         messages = Message.all(self.chat_id)
-
+        
         content = f'{message_ru} 😂' if self.is_group(messages) else message_ru
 
         content = self.text if content is None else content
@@ -74,9 +74,7 @@ class AIChatHandler:
 
         try:
             await bot.edit_message_text(chat_id=self.chat_id, message_id=sent_message.message_id, text=str(response_uz), disable_web_page_preview=True, parse_mode=types.ParseMode.MARKDOWN)
-        except CantParseEntities as e:
-            await bot.edit_message_text(chat_id=self.chat_id, message_id=sent_message.message_id, text="Iltimos boshqatan so'rov yuboring", disable_web_page_preview=True, parse_mode=types.ParseMode.MARKDOWN)
-        except:
+        except Exception as e:
             await bot.edit_message_text(chat_id=self.chat_id, message_id=sent_message.message_id, text="Iltimos boshqatan so'rov yuboring", disable_web_page_preview=True, parse_mode=types.ParseMode.MARKDOWN)
 
 

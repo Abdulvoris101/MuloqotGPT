@@ -94,6 +94,7 @@ class Chat(Base):
             if chat.offset_limit is not None:
                 chat.offset_limit += 5
                 session.commit()
+
             else:
                 chat.offset_limit = 5
                 session.commit()
@@ -125,7 +126,7 @@ class Message(Base):
 
         msgs = []
 
-        
+
         for (data,) in messages:
             data_dict = json.loads(data)
 
@@ -155,7 +156,7 @@ class Message(Base):
         obj = cls(data=json.dumps(data, ensure_ascii=False), chat_id=chat_id, created_at=created_at)
         obj.save()
 
-        # del data["uz_message"]
+        del data["uz_message"]
         
         return data
 
