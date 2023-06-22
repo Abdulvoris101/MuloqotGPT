@@ -94,6 +94,7 @@ class Chat(Base):
             if chat.offset_limit is not None:
                 chat.offset_limit += 5
                 session.commit()
+
             else:
                 chat.offset_limit = 5
                 session.commit()
@@ -115,7 +116,7 @@ class Message(Base):
         chat = session.query(Chat).filter_by(chat_id=chat_id).first()
         offset_limit = chat.offset_limit
         query = session.query(Message.data).filter_by(chat_id=chat_id).order_by(Message.id)
-
+        
         if offset_limit is not None:
             firstRows = query.limit(5).all()
             nextRows = query.offset(offset_limit).all()
@@ -125,7 +126,7 @@ class Message(Base):
 
         msgs = []
 
-        
+
         for (data,) in messages:
             data_dict = json.loads(data)
 

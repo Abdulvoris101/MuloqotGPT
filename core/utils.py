@@ -10,7 +10,8 @@ import re
 
 
 async def send_event(text):
-    await bot.send_message("-840987349", text)
+
+    await bot.send_message("-840987349", text, parse_mode='HTML')
 
 
 class IsReplyFilter(BoundFilter):
