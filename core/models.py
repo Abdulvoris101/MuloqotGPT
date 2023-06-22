@@ -89,14 +89,16 @@ class Chat(Base):
     @classmethod
     def offset_add(self, chat_id):
         chat = session.query(Chat).filter_by(chat_id=chat_id).first()
+        message_len = session.query(Message).filter_by(chat_id=chat_id).count()
 
         if chat is not None:
             if chat.offset_limit is not None:
-                chat.offset_limit += 5
-                session.commit()
+                if int(message_len) < message_len:
+                    chat.offset_limit += 8
+                    session.commit()
 
             else:
-                chat.offset_limit = 15
+                chat.offset_limit = 10
                 session.commit()
 
 
