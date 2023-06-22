@@ -1,11 +1,14 @@
-from sqlalchemy import create_engine, Column, Integer, String, UnicodeText, Boolean, BigInteger, JSON, DateTime
+from sqlalchemy import create_engine, Column, select, Integer, String, UnicodeText, Boolean, BigInteger, JSON, DateTime
 from db.setup import session, engine, Base
 from .utils import send_event, translate_out_of_code
 from sqlalchemy import not_, cast
+from sqlalchemy import func
+from datetime import datetime, timedelta
 
 
 from datetime import datetime
     
+three_months_ago = datetime.now() - timedelta(days=90)
 
 # Create a base class for declarative models
 
@@ -48,6 +51,29 @@ class Chat(Base):
     def users(cls):
         return session.query(Chat).filter(not_(cast(Chat.chat_id, String).startswith('-'))).count()
 
+    @classmethod
+    def active_users(cls):
+
+        subquery = (
+            session.query(Message.chat_id, func.count(Message.id).label("message_count"))
+            .filter(Message.created_at >= three_months_ago)
+            .group_by(Message.chat_id)
+            .having(func.count(Message.id) >= 12)  # Assumes 4 weeks in a month, so 12 messages in 3 months
+            .subquery()
+        )
+
+        # Query users who have sent messages every week
+        users_query = (
+            session.query(Chat.chat_name)
+            .join(subquery, Chat.id == subquery.c.chat_id)
+            .all()
+        )
+
+        users = [user[0] for user in users_query]
+
+
+        return len(users)
+    
 
     @classmethod
     def create(cls, chat_id, chat_name, username, type_):
@@ -82,7 +108,6 @@ class Chat(Base):
     @classmethod
     def delete(self, chat_id):
         chat = session.query(Chat).filter_by(chat_id=chat_id).first()
-
         session.delete(chat)
 
 
