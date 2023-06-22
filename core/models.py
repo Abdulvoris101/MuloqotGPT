@@ -93,9 +93,8 @@ class Chat(Base):
 
         if chat is not None:
             if chat.offset_limit is not None:
-                if int(message_len) < message_len:
-                    chat.offset_limit += 8
-                    session.commit()
+                chat.offset_limit += 10
+                session.commit()
 
             else:
                 chat.offset_limit = 10
