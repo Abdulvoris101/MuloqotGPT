@@ -27,7 +27,6 @@ async def answer_ai(messages, chat_id):
         
         Error(error).save()
 
-        await send_event(f"#type {e.error.get('type')}\n{error}\n\n#openai error\n\n#user {chat_id}")
 
         if "tokens" in error:
             await send_event(f"#type {e.error.get('type')}\n{error}\n\n#openai error\n\n#user {chat_id}")
@@ -35,9 +34,10 @@ async def answer_ai(messages, chat_id):
             Chat.offset_add(chat_id=chat_id)
             
             return "О извините я вас не понял можете повторить?"
+        else:
+            await  send_event(f"#type {e.error.get('type')}\n{error}\n\n#openai error\n\n#user {chat_id}")
 
         return "Chatgptda uzilish kuzatilinmoqda, Iltimos, keyinroq qayta urinib ko'ring."
-
 
 
     except RateLimitError as e:
