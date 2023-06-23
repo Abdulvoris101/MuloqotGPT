@@ -112,7 +112,7 @@ class Chat(Base):
         if chat is not None:
             if chat.offset_limit is not None:
                 if message_len > chat.offset_limit:
-                    chat.offset_limit += 5
+                    chat.offset_limit += 10
             else:
                 chat.offset_limit = 10
             
