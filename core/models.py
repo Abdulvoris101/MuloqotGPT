@@ -64,7 +64,6 @@ class Chat(Base):
             .all()
         )
 
-
         return len(users_with_weekly_messages)
     
 
@@ -109,15 +108,16 @@ class Chat(Base):
         chat = session.query(Chat).filter_by(chat_id=chat_id).first()
         message_len = session.query(Message).filter_by(chat_id=chat_id).count()
 
+
         if chat is not None:
             if chat.offset_limit is not None:
-                chat.offset_limit += 10
-                session.commit()
-
+                if message_len > chat.offset_limit:
+                    chat.offset_limit += 5
             else:
                 chat.offset_limit = 10
-                session.commit()
-
+            
+            session.commit()
+        
 
 import json
 
@@ -136,6 +136,7 @@ class Message(Base):
         offset_limit = chat.offset_limit
         query = session.query(Message.data).filter_by(chat_id=chat_id).order_by(Message.id)
         
+
         if offset_limit is not None:
             firstRows = query.limit(5).all()
             nextRows = query.offset(offset_limit).all()
@@ -143,6 +144,7 @@ class Message(Base):
         else:
             messages = session.query(Message.data).filter_by(chat_id=chat_id).all()
 
+        
         msgs = []
 
 
