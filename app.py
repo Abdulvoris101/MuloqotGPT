@@ -1,44 +1,57 @@
-from aiogram import Bot, Dispatcher, executor, types
+from fastapi import FastAPI
+from aiogram import types, executor
+from bot import bot
 from dotenv import load_dotenv
 import os
-# from aiogram..co
-from aiogram.contrib.fsm_storage.memory import MemoryStorage
-from aiogram.dispatcher.filters.state import State, StatesGroup
+from aiogram.dispatcher.dispatcher import Dispatcher, Bot
+import uvicorn
+from bot import dp
+from admin.views import router
 
-load_dotenv()  # take environment variables from .env.
+from core.handlers import dp
+from admin.handlers import dp
+from imageai.handlers import dp
+from fastapi.staticfiles import StaticFiles
 
+load_dotenv()
 
+app = FastAPI()
 
-bot = Bot(token=os.environ.get('BOT_TOKEN'), parse_mode='HTML')
-storage = MemoryStorage()
+app.mount("/static", StaticFiles(directory="layout/static"), name="static")
 
-dp = Dispatcher(bot, storage=storage)
+app.include_router(router, prefix="/admin")
 
-
-class AdminLoginState(StatesGroup):
-    password = State()
-
-class AdminSystemMessageState(StatesGroup):
-    message = State()
-
-class AdminUserAddState(StatesGroup):
-    telegramId = State()
-    username = State()
-    name = State()
+WEBHOOK_PATH = f"/bot/{os.environ.get('BOT_TOKEN')}"
+WEBHOOK_URL = "https://9b20-84-54-86-36.ngrok-free.app" + WEBHOOK_PATH
 
 
-class PerformIdState(StatesGroup):
-    performid = State()
 
-class AdminSendMessage(StatesGroup):
-    message = State()
+@app.on_event("startup")
+async def on_startup():
+    webhookInfo = await bot.get_webhook_info()
 
-class AdminAdsMessage(StatesGroup):
-    message_photo = State()
+    if webhookInfo.url != WEBHOOK_URL:
+        await bot.set_webhook(
+            url=WEBHOOK_URL
+        )
 
-if __name__ == '__main__':
-    from core.handlers import dp
-    from admin.handlers import dp
-    from event.handlers import dp
-    
-    executor.start_polling(dp, skip_updates=True)
+
+@app.post(WEBHOOK_PATH)
+async def bot_webhook(update: dict):
+    tgUpdate = types.Update(**update)
+
+    Dispatcher.set_current(dp)
+    Bot.set_current(bot)
+
+    await dp.process_update(tgUpdate)
+
+
+@app.on_event("shutdown")
+async def on_shutdown():
+    await bot.delete_webhook()
+
+
+
+if __name__ == "__main__":
+
+    uvicorn.run("app:app", host='0.0.0.0', port=8000, reload=True, workers=3)

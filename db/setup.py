@@ -5,6 +5,7 @@ from sqlalchemy.orm import sessionmaker
 # Create the engine and session
 import os
 
+
 try:
    engine = create_engine("postgresql://postgres:postgres@localhost:5432/muloqotai?client_encoding=utf8")
 except Exception as error:
@@ -13,7 +14,7 @@ except Exception as error:
 
 Session = sessionmaker(bind=engine)
 session = Session()
-
+query = session.query
 
 # Create a base class for declarative models
 Base = declarative_base()

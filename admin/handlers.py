@@ -1,12 +1,12 @@
 from aiogram.dispatcher import FSMContext
 import os
-from app import dp, types, AdminLoginState, AdminSystemMessageState, AdminAdsMessage, AdminUserAddState,  AdminSendMessage, bot, PerformIdState
+from bot import dp, types, bot
+from db.state import AdminLoginState, AdminSystemMessageState, AdminAdsMessage, AdminUserAddState,  AdminSendMessage, PerformIdState
 from .models import Admin, Error, AdminMessage
 from core.models import Message, Chat
 from .utils import admin_keyboards
 from aiogram.dispatcher.filters import Text
-
-
+from db.setup import query
 
 @dp.message_handler(commands=['admin'])
 async def admin(message: types.Message, state=None):
@@ -60,7 +60,7 @@ async def add_rule(message: types.Message, state=FSMContext):
 @dp.message_handler(Text(equals=".📊 Statistika"))
 async def get_statistics(message: types.Message):
     if Admin.is_admin(user_id=message.from_user.id):
-        return await message.answer(f"👤 Foydalanuvchilar - {Chat.users()}.\n💥 Aktiv Foydalanuvchilar - {Chat.active_users()}\n👥 Guruhlar - {Chat.groups()}\n📥Xabarlar - {Message.count()}")
+        return await message.answer(f"👤 Foydalanuvchilar - {Chat.users()}.\n💥 Aktiv Foydalanuvchilar - {Chat.active_users()}\n👥 Guruhlar - {Chat.groups()}\n📥Xabarlar - {query(Message).count()}")
     
     return await message.answer("Afsuski bu so'rov faqat admin uchun")
 

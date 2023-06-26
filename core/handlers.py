@@ -1,11 +1,11 @@
-from app import dp, bot, types
+from bot import dp, bot, types
 from .utils import translate_message, IsReplyFilter, send_event
-from main import answer_ai
+from gpt import answer_ai
 from .models import Message, session, Chat
-from .keyboards import restoreMenu, joinChannelMenu
-from aiogram.utils.exceptions import CantParseEntities
+from .keyboards import joinChannelMenu
 import os
 from db.proccessors import MessageProcessor
+
 
 class AIChatHandler:
     def __init__(self, message):
@@ -79,6 +79,7 @@ class AIChatHandler:
             await bot.edit_message_text(chat_id=self.chat_id, message_id=sent_message.message_id, text="Iltimos boshqatan so'rov yuboring", disable_web_page_preview=True, parse_mode=types.ParseMode.MARKDOWN)
 
 
+
 @dp.message_handler(lambda message: not message.text.startswith('/') and not message.text.startswith('.') and message.chat.type == 'private')
 async def handle_private_messages(message: types.Message):
 
@@ -102,7 +103,6 @@ async def send_welcome(message: types.Message):
         return await message.answer("Botdan foydalanish uchun quyidagi kannalarga obuna bo'ling", reply_markup=joinChannelMenu)
     
     await activate(message)
-
 
 
 @dp.message_handler(commands=['groupinfo'])
@@ -170,3 +170,17 @@ async def check_issubscripted(message: types.Message):
     
     return await message.answer("Afsuski siz kanallarga obuna bo'lmagansiz 😔")
 
+
+
+@dp.message_handler(content_types=types.ContentType.NEW_CHAT_MEMBERS)
+async def handle_chat_member_updated(message: types.Message):
+    new_chat_members = message.new_chat_members
+    bot_id = message.bot.id
+
+    for member in new_chat_members:
+        if member.id == bot_id:
+            await message.answer(f"""👋 Assalomu alaykum! Mening ismim MuloqotAI 
+Men sizga yordam berish uchun yaratilgan aqlli chatbotman. 
+Bot ishlashi uchun menga administrator huquqlarini bering
+😊 Ko'proq foydam tegishi uchun /help kommandasini yuborib men bilan yaqinroq tanishib chiqing
+""")

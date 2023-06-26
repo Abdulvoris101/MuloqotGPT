@@ -10,7 +10,6 @@ from datetime import datetime
     
 three_months_ago = datetime.now() - timedelta(days=90)
 
-# Create a base class for declarative models
 
 
 class Chat(Base):
@@ -34,13 +33,14 @@ class Chat(Base):
         
         super().__init__()
 
+
     @classmethod
     def all(cls):
-        return session.query(Chat.id, Chat.chat_name, Chat.is_activated, Chat.chat_id).all()
+        return session.query(Chat.id, Chat.chat_name, Chat.username, Chat.offset_limit,  Chat.is_activated, Chat.chat_id, Chat.created_at).all()
 
     @classmethod
     def count(cls):
-        return session.query(Chat.id, Chat.chat_name, Chat.is_activated, Chat.chat_id).count()
+        return session.query(Chat).count()
     
     @classmethod
     def groups(cls):
@@ -112,7 +112,7 @@ class Chat(Base):
         if chat is not None:
             if chat.offset_limit is not None:
                 if message_len > chat.offset_limit:
-                    chat.offset_limit += 10
+                    chat.offset_limit += 10 
             else:
                 chat.offset_limit = 10
             
@@ -138,16 +138,15 @@ class Message(Base):
         
 
         if offset_limit is not None:
-            firstRows = query.limit(5).all()
-            nextRows = query.offset(offset_limit).all()
+            firstRows = query.limit(5).order_by(Message.id).all()
+            nextRows = query.offset(offset_limit).order_by(Message.id).all()
             messages = firstRows + nextRows          
         else:
-            messages = session.query(Message.data).filter_by(chat_id=chat_id).all()
+            messages = session.query(Message.data).filter_by(chat_id=chat_id).order_by(Message.id).all()
 
         
         msgs = []
-
-
+        
         for (data,) in messages:
             data_dict = json.loads(data)
 
@@ -159,6 +158,7 @@ class Message(Base):
             msgs.append(msg)    
 
         return msgs
+
 
     def save(self):
         self.created_at = datetime.now()
@@ -189,12 +189,9 @@ class Message(Base):
         chat_id = instance.chat.id
         created_at = datetime.now()
 
-
-
         if len(content) > 4095:
             non_charachters = len(content) - 4050
             content = content[:-non_charachters]
-
 
         uz_message = translate_out_of_code(content)
         
@@ -212,6 +209,7 @@ class Message(Base):
         created_at = datetime.now()
 
         data = {"role": "assistant", "content": str(instance.text), "uz_message": "system"}
+
         obj = cls(data=json.dumps(data, ensure_ascii=False), chat_id=chat_id, created_at=created_at)
 
         obj.save()

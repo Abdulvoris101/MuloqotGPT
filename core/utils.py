@@ -3,14 +3,11 @@ import os
 import requests
 import json
 from aiogram.dispatcher.filters import BoundFilter
-from app import types, bot
+from bot import types, bot
 import re
-
-# token = os.environ.get("YANDEX_TOKEN")
 
 
 async def send_event(text):
-
     await bot.send_message("-840987349", text, parse_mode='HTML')
 
 
@@ -62,31 +59,3 @@ def translate_out_of_code(text):
 
     # Return the translated text
     return translated_text
-
-
-
-
-
-
-
-    
-
-
-# def ya_translate(message, lang='ru'):
-#     url = "https://translate.api.cloud.yandex.net/translate/v2/translate"
-    
-
-#     data = {
-#         "folderId": os.environ.get("FOLDER_ID"),
-#         "texts": [message],
-#         "targetLanguageCode": lang,
-#     }
-
-#     response = requests.post(url=url, data=json.dumps(data), headers={
-#         "Authorization": f"Api-Key {token}"
-#     })
-
-#     if response.json().get("code") is not None:
-#         return "Botda texnik nosozlik kuzatilmoqda. Yaqin orada qaytamiz"
-
-#     return response.json()['translations'][0]['text']
