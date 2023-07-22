@@ -22,6 +22,7 @@ class Chat(Base):
     chat_id = Column(BigInteger)
     created_at = Column(DateTime, nullable=True)
     offset_limit = Column(BigInteger, nullable=True)
+    credit = Column(BigInteger, default=50)
 
 
     def __init__(self, chat_id, chat_name, username):

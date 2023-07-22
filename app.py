@@ -5,12 +5,14 @@ from dotenv import load_dotenv
 import os
 from aiogram.dispatcher.dispatcher import Dispatcher, Bot
 import uvicorn
-from bot import dp
-from admin.views import router
 
 from core.handlers import dp
 from admin.handlers import dp
+from bot import dp
 from imageai.handlers import dp
+
+from admin.views import router
+
 from fastapi.staticfiles import StaticFiles
 
 load_dotenv()
@@ -22,8 +24,7 @@ app.mount("/static", StaticFiles(directory="layout/static"), name="static")
 app.include_router(router, prefix="/admin")
 
 WEBHOOK_PATH = f"/bot/{os.environ.get('BOT_TOKEN')}"
-WEBHOOK_URL = "https://9b20-84-54-86-36.ngrok-free.app" + WEBHOOK_PATH
-
+WEBHOOK_URL = "https://2194-84-54-84-109.ngrok-free.app" + WEBHOOK_PATH
 
 
 @app.on_event("startup")
@@ -49,7 +50,6 @@ async def bot_webhook(update: dict):
 @app.on_event("shutdown")
 async def on_shutdown():
     await bot.delete_webhook()
-
 
 
 if __name__ == "__main__":

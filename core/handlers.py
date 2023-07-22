@@ -14,6 +14,7 @@ class AIChatHandler:
         self.full_name = message.chat.full_name
         self.text = str(message.text)
 
+
     async def is_active(self):
         chat = session.query(Chat.is_activated).filter_by(chat_id=self.chat_id).first()
 
@@ -37,6 +38,7 @@ class AIChatHandler:
 
         return True
     
+    
     def is_group(self, messages):
         if messages is None:
             MessageProcessor.create_system_messages(self.chat_id, self.message.chat.type)
@@ -51,7 +53,7 @@ class AIChatHandler:
         elif not await self.is_subscribed(self.message.chat.type, self.chat_id):
             return await self.message.answer("Botdan foydalanish uchun quyidagi kannalarga obuna bo'ling", reply_markup=joinChannelMenu)
 
-        sent_message = await self.message.reply("✏️...")
+        sent_message = await self.message.reply("⏳...")
 
         message_ru = translate_message(self.text, lang='ru')
         messages = Message.all(self.chat_id)
