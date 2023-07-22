@@ -6,6 +6,7 @@ from .keyboards import refreshMenu
 @dp.message_handler(commands=["art"])
 async def handle_art(message: types.Message):
     query = message.get_args()
+    
 
     if not query:
         return await message.answer("Iltimos so'rovingizni kiriting:\n` /art prompt` ", parse_mode="MARKDOWN")

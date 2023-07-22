@@ -51,12 +51,8 @@ class AIChatHandler:
         elif not await self.is_subscribed(self.message.chat.type, self.chat_id):
             return await self.message.answer("Botdan foydalanish uchun quyidagi kannalarga obuna bo'ling", reply_markup=joinChannelMenu)
 
-        sent_message = await self.message.reply("✍️..")
+        sent_message = await self.message.reply("✏️...")
 
-        if len(self.text) > 4050:
-            non_charachters = len(self.text) - 4050
-            self.text = self.text[:-non_charachters]
-        
         message_ru = translate_message(self.text, lang='ru')
         messages = Message.all(self.chat_id)
         
