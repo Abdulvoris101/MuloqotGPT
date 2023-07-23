@@ -21,7 +21,7 @@ class IsReplyFilter(BoundFilter):
 
 
 
-def translate_message(message, from_='uz', lang='ru'):
+def translate_message(message, from_='uz', lang='en'):
     try:
         translated_message = GoogleTranslator(source=from_, target=lang).translate(message)
     except:
@@ -35,7 +35,7 @@ def translate_out_of_code(text):
 
 
     if text.find("`") == -1:
-        return translate_message(text, from_='ru', lang='uz')
+        return translate_message(text, from_='auto', lang='uz')
 
 
     print(True)

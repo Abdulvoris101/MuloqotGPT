@@ -38,7 +38,7 @@ class AIChatHandler:
 
         return True
     
-    
+
     def is_group(self, messages):
         if messages is None:
             MessageProcessor.create_system_messages(self.chat_id, self.message.chat.type)
@@ -55,10 +55,10 @@ class AIChatHandler:
 
         sent_message = await self.message.reply("⏳...")
 
-        message_ru = translate_message(self.text, lang='ru')
+        message_en = translate_message(self.text, lang='en')
         messages = Message.all(self.chat_id)
         
-        content = f'{message_ru} 😂' if self.is_group(messages) else message_ru
+        content = f'{message_en} 😂' if self.is_group(messages) else message_en
 
         content = self.text if content is None else content
 
@@ -94,28 +94,23 @@ async def handle_reply(message: types.Message):
 
 
 @dp.message_handler(commands=['start'])
-async def send_welcome(message: types.Message):
+async def send_welcome(message: types.Message):   
     await message.answer("""🤖 Salom! Men MuloqotAi, sizning shaxsiy AI yordamchingizman,\n\nKanal - @muloqotainews\nOchiq guruh - @muloqataigr.\nBatafsil ma'lumot uchun - /help""")
-    
+
     if not await AIChatHandler.is_subscribed(message.chat.type, message.chat.id):
         return await message.answer("Botdan foydalanish uchun quyidagi kannalarga obuna bo'ling", reply_markup=joinChannelMenu)
     
     await activate(message)
 
 
-@dp.message_handler(commands=['groupinfo'])
-async def send_group_info(message: types.Message):
-    await message.answer("""Men endi guruhlar bilan ham ishlash imkoniyatiga egaman. Bu sizning guruhingizdagi a'zolar bilan birga muloqot qilishim va ularning savollari va talablari bo'yicha yordam berish imkonini beradi. Men bilan suxbat olib borish uchun shunchaki mening xabarimga reply qiling.\nShuningdek, Men guruh bilan hazil va latifalar bilan gaplashish imkoniyatiga egaman.""")
-
-
 @dp.message_handler(commands=['help'])
 async def help(message: types.Message):
-    await message.answer("""Shaxsiy va guruh suhbatlaringizda yordam beradigan foydali yordamchi! Ushbu botning guruhda ishlash tartibi quyidagicha:\n\n1️⃣ <b>Guruhga qo'shish</b>: MuloqotAIdan foydalanish uchun, uningni Telegram gruhingizga qo'shing. Bu uchun "@muloqataibot" ni qidiring va uningni gruhga taklif qiling.\n\n2️⃣ <b>Admin huquqlarini berish</b>: MuloqotAItning samarali ishlashi uchun uningni admin sifatida qo'shish kerak. Uningga to'g'ri admin huquqlarini berishni unutmang, masalan, xabarlarni o'chirish (ixtiyoriy) va boshqa sozlamalarni boshqarish.\n\n3️⃣ <b>Gruhda suhbatlashish</b>: MuloqotAI gruhda /startai kommandasini kiritsangiz bot faol bo'ladi va u bilan suhbat qurish uchun unga reply tarzida so'rov yuboring. Guruh a'zolari savollarni so'rash, ma'lumot so'ralish, yordam so'ralish yoki qiziqarli suhbatlar olib borishlari mumkin. Agarda vaqtinchalik to'xtatib turmoqchi bo'lsangiz /stopai kommandasini yuboring.""")
+    await message.answer("""Shaxsiy va guruh suhbatlaringizda yordam beradigan foydali yordamchi! Ushbu botning <b>guruhda</b> ishlash tartibi quyidagicha:\n\n1️⃣ <b>Guruhga qo'shish</b>: MuloqotAIdan foydalanish uchun, uningni Telegram gruhingizga qo'shing. Bu uchun "@muloqataibot" ni qidiring va uningni gruhga taklif qiling.\n\n2️⃣ <b>Admin huquqlarini berish</b>: MuloqotAItning samarali ishlashi uchun uningni admin sifatida qo'shish kerak. Uningga to'g'ri admin huquqlarini berishni unutmang, masalan, xabarlarni o'chirish (ixtiyoriy) va boshqa sozlamalarni boshqarish.\n\n3️⃣ <b>Gruhda suhbatlashish</b>: Bot bilan suhbat qurish uchun unga reply tarzida so'rov yuboring. Guruh a'zolari savollarni so'rash, ma'lumot so'ralish, yordam so'ralish yoki qiziqarli suhbatlar olib borishlari mumkin.\n\n➕ <b>Qo'shimcha:</b> Men guruh bilan hazil va latifalar bilan gaplashish imkoniyatiga egaman.""")
 
 
-@dp.message_handler(commands=['me'])
-async def me(message: types.Message):
-    await message.answer("""💡 Aqlli: Ko'plab mavzularni tushunish va javob berishga tayyorman. Umumiy bilimdan ma'lumotlarni qidirishga qadar, sizga aniqligi va maqbul javoblarni taklif etishim mumkin.\n\n🧠 Dono: Men doimiy o'rganish va rivojlanishda, yangi ma'lumotlarga va foydalanuvchi bilan bo'lishuvlarga moslashishim mumkin. Aqlli muloqotlarni taklif etishim mumkin.\n\n😄 Xushchaqchaq: Hayot kulguli tabassum bilan yaxshilanadi, va men sizning yuzingizga tabassum olib kelish uchun bu yerga keldim!""")
+@dp.message_handler(commands=['ability'])
+async def ability(message: types.Message):
+    await message.answer("""💡 Aqlli: Ko'plab mavzularni tushunish va javob berishga tayyorman. Umumiy bilimdan ma'lumotlarni qidirishga qadar, sizga aniqligi va maqbul javoblarni taklif etishim mumkin.\n\n🧠 Dono: Men doimiy o'rganish va rivojlanishda, yangi ma'lumotlarga va foydalanuvchi bilan bo'lishuvlarga moslashishim mumkin. Aqlli muloqotlarni taklif etishim mumkin.\n\n😄 Xushchaqchaq: Hayot kulguli tabassum bilan yaxshilanadi, va men sizning yuzingizga tabassum olib kelish uchun bu yerga keldim!\n\n🌄 Rassom: Mening yana bir qobilyatlarimdan biri bu rasm generatsiya qila olishim. Men sizga xar qanday turdagi ajoyib rasmlarni generatsiya qilib olib bera olaman\n\n⚙️ Avtotarjima: Meni siz bilan o'zbek tilida yanada yahshiroq muloqot qila olishim uchun, avtotarjima funksiyasini ishlataman. Endi siz ingliz tilida qiynalib menga yozishingiz shart emas. Bu funksiya ixtiyoriy xoxlagan paytiz o'chirib qo'yishingiz mumkin. """)
 
 
 @dp.message_handler(commands=['startai'])
@@ -128,44 +123,12 @@ async def activate(message: types.Message):
     await message.reply("Assalomu aleykum Men Muloqot AI man sizga qanday yordam bera olaman ?")
 
 
-@dp.message_handler(commands=['stopai'])
-async def deactivate(message: types.Message):
-
-    chat = session.query(Chat).filter_by(chat_id=message.chat.id).first()
-
-    if chat is not None:
-        chat.is_activated = False
-        session.commit()
-
-    await message.reply("MuloqotAi toxtatilindi. Muloqotni boshlash uchun - /startai")
-
-
-# @dp.message_handler(commands=['restore'])
-# async def restore_command(message: types.Message):
-#     await bot.send_message(message.chat.id, """Botni qaytadan boshlamoqchimisiz 🔄""", reply_markup=restoreMenu)
-
-
-# @dp.callback_query_handler(text="yes_restore")
-# async def restore(message: types.Message):
-
-#     chat = session.query(Chat).filter_by(chat_id=message.message.chat.id).first()
-
-#     if chat is None:
-#         return await bot.send_message(message.message.chat.id, "Siz xali muloqotni boshlamadingiz 😔")
-
-#     Chat.delete(message.message.chat.id)
-#     Message.delete(message.message.chat.id)
-
-#     await activate(message.message)
-
-#     await bot.send_message(message.message.chat.id, "Bot qayta ishga tushirildi.")
-
-
 @dp.callback_query_handler(text="check_subscription")
 async def check_issubscripted(message: types.Message):
     if await AIChatHandler.is_subscribed(message.message.chat.type, message.message.chat.id):
+        await activate(message)
         return await bot.send_message(message.message.chat.id, "Assalomu aleykum Men Muloqot AI man sizga qanday yordam bera olaman?")
-    
+
     return await message.answer("Afsuski siz kanallarga obuna bo'lmagansiz 😔")
 
 

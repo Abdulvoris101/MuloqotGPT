@@ -17,16 +17,17 @@ async def answer_ai(messages, chat_id):
     try:
         response = openai.ChatCompletion.create(
             model="gpt-3.5-turbo-0613",
-            messages=messages
+            messages=messages,
+            max_tokens=2040
         )
 
         return response['choices'][0]['message']['content']
-
+    
+    
     except InvalidRequestError as e:
         error = e.error["message"]
         
         Error(error).save()
-
 
         if "tokens" in error:
             await send_event(f"#type {e.error.get('type')}\n{error}\n\n#openai error\n\n#user {chat_id}")
@@ -47,9 +48,9 @@ async def answer_ai(messages, chat_id):
 
         await send_event(f"<b>#ratelimiterror</b>\n{error}\n#type {e.error.get('type')}\n\n#openai error\n\n#user {chat_id}")
         
-        time.sleep(5)
+        time.sleep(3)
         
-        return "Iltimos 20s dan keyin qayta urinib ko'ring!"
+        return "Iltimos 10s dan keyin qayta urinib ko'ring!"
     
     except ServiceUnavailableError as e:
         try:

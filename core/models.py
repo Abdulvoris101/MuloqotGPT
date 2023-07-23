@@ -137,16 +137,16 @@ class Message(Base):
         offset_limit = chat.offset_limit
         query = session.query(Message.data).filter_by(chat_id=chat_id).order_by(Message.id)
         
-
         if offset_limit is not None:
-            firstRows = query.limit(5).order_by(Message.id).all()
-            nextRows = query.offset(offset_limit).order_by(Message.id).all()
+            firstRows = query.limit(5).all()
+            nextRows = query.offset(offset_limit).all()
             messages = firstRows + nextRows          
         else:
             messages = session.query(Message.data).filter_by(chat_id=chat_id).order_by(Message.id).all()
 
         
         msgs = []
+        
         
         for (data,) in messages:
             data_dict = json.loads(data)
@@ -157,6 +157,7 @@ class Message(Base):
                 msg = {k: v for k, v in data_dict.items() if k != "uz_message"}
 
             msgs.append(msg)    
+
 
         return msgs
 
