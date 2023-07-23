@@ -16,9 +16,8 @@ openai.api_key = os.environ.get("API_KEY")
 async def answer_ai(messages, chat_id):
     try:
         response = openai.ChatCompletion.create(
-            model="gpt-3.5-turbo-0613",
-            messages=messages,
-            max_tokens=2040
+            model="gpt-3.5-turbo",
+            messages=messages
         )
 
         return response['choices'][0]['message']['content']
@@ -30,11 +29,10 @@ async def answer_ai(messages, chat_id):
         Error(error).save()
 
         if "tokens" in error:
-            await send_event(f"#type {e.error.get('type')}\n{error}\n\n#openai error\n\n#user {chat_id}")
 
             Chat.offset_add(chat_id=chat_id)
-            
-            return "О извините я вас не понял можете повторить?"
+
+            return "Kechirasiz, men sizni tushunmadim, takrorlay olasizmi?"
         else:
             await  send_event(f"#type {e.error.get('type')}\n{error}\n\n#openai error\n\n#user {chat_id}")
 

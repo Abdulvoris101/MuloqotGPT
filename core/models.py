@@ -23,7 +23,7 @@ class Chat(Base):
     created_at = Column(DateTime, nullable=True)
     offset_limit = Column(BigInteger, nullable=True)
     credit = Column(BigInteger, default=50)
-
+    auto_translate = Column(Boolean, default=True)
 
     def __init__(self, chat_id, chat_name, username):
         self.chat_name = chat_name
@@ -43,6 +43,26 @@ class Chat(Base):
     def count(cls):
         return session.query(Chat).count()
     
+    @classmethod
+    def is_translate(cls, chat_id):
+        chat = session.query(Chat).filter_by(chat_id=chat_id).first()
+    
+        if chat.auto_translate is None:
+            chat.auto_translate = True
+            chat.save()
+
+        return chat.auto_translate
+
+    
+    @classmethod
+    def toggle_set_translate(cls, chat_id):
+        chat = session.query(Chat).filter_by(chat_id=chat_id).first()
+        value = False if chat.auto_translate else True
+        chat.auto_translate = value
+        chat.save()
+
+        return value
+
     @classmethod
     def groups(cls):
         return session.query(Chat).filter(cast(Chat.chat_id, String).startswith('-')).count()
@@ -186,7 +206,6 @@ class Message(Base):
 
     @classmethod
     def assistant_role(cls, content, instance):
-        from core.utils import translate_message
 
         chat_id = instance.chat.id
         created_at = datetime.now()
@@ -195,7 +214,7 @@ class Message(Base):
             non_charachters = len(content) - 4050
             content = content[:-non_charachters]
 
-        uz_message = translate_out_of_code(content)
+        uz_message = translate_out_of_code(content, chat_id)
         
         data = {"role": "assistant", "content": str(content), "uz_message": str(uz_message)}
 

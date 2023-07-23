@@ -4,9 +4,11 @@ from bot import dp, types, bot
 from db.state import AdminLoginState, AdminSystemMessageState, AdminAdsMessage, AdminUserAddState,  AdminSendMessage, PerformIdState
 from .models import Admin, Error, AdminMessage
 from core.models import Message, Chat
-from .utils import admin_keyboards
+from .keyboards import admin_keyboards
 from aiogram.dispatcher.filters import Text
 from db.setup import query
+from aiogram.dispatcher.filters import ContentTypeFilter
+from  .utils import SendAny
 
 @dp.message_handler(commands=['admin'])
 async def admin(message: types.Message, state=None):
@@ -68,77 +70,37 @@ async def get_statistics(message: types.Message):
 @dp.message_handler(Text(equals=".📤 Xabar yuborish"))
 async def send_message_command(message: types.Message, state=None):
     if Admin.is_admin(user_id=message.from_user.id):
-
         await AdminSendMessage.message.set()
         return await message.answer("Xabarni kiriting")
     
     return await message.answer("Afsuski bu so'rov faqat admin uchun")
 
 
-@dp.message_handler(state=AdminSendMessage.message)
+@dp.message_handler(state=AdminSendMessage.message, content_types=types.ContentType.ANY)
 async def send_message(message: types.Message, state=FSMContext):
-
-    async with state.proxy() as data:
-        data['message'] = message.text
-
     if Admin.is_admin(user_id=message.from_user.id):
 
         await state.finish()
 
-        if len(message.text) > 4000:
-            return await message.answer("Juda katta matn!")
+        sendAny = SendAny(message)
 
         chats = Chat.all()
-
         for chat in chats:
             try: 
-                sent_message = await bot.send_message(chat_id=chat[3], text=message.text)
-                AdminMessage(message=str(sent_message.text), message_id=int(sent_message.message_id), chat_id=chat[3]).save()
-            
+                if message.content_type == "text":
+                    await sendAny.send_message(chat[5])
+                elif message.content_type == "photo":
+                    await sendAny.send_photo(chat[5])
+                elif message.content_type == "video":
+                    await sendAny.send_video(chat[5])
             except BaseException as e:
                 print(e)
-                print(chat[3])
+                print(chat[5])
 
         return await message.answer("Xabar yuborildi!")
 
     return await message.answer("Afsuski bu so'rov faqat admin uchun!")
 
-
-
-@dp.message_handler(Text(equals=".🌄 Reklama yuborish"))
-async def send_ads_command(message: types.Message, state=None):
-
-    if Admin.is_admin(user_id=message.from_user.id):
-
-        await AdminAdsMessage.message_photo.set()
-        
-        return await message.answer("Reklama postni yuboring!")
-    
-    return await message.answer("Afsuski bu so'rov faqat admin uchun")
-
-
-@dp.message_handler(content_types=types.ContentType.PHOTO, state=AdminAdsMessage.message_photo)
-async def send_adsmessage(message: types.Message, state=FSMContext):
-
-    if Admin.is_admin(user_id=message.from_user.id):
-        
-        async with state.proxy() as data:
-            data['message_photo'] = message.photo[-1].file_id
-
-
-        chats = Chat.all()
-
-        for chat in chats:
-            try: 
-                await bot.send_photo(chat_id=chat[3], photo=message.photo[-1].file_id, caption=message.caption)
-            except BaseException as e:
-                pass
-    
-        await state.finish()
-
-        return await message.answer("Xabar yuborildi!")
-
-    return await message.answer("Afsuski bu so'rov faqat admin uchun!")
 
 
 
@@ -154,65 +116,3 @@ async def get_errors_handler(message: types.Message):
 
 
 
-
-# @dp.message_handler(Text(equals=".👥 Foydalanuvchi qo'shish"))
-# async def add_user_command(message: types.Message, state=None):
-#     if Admin.is_admin(user_id=message.from_user.id):
-        
-#         await AdminUserAddState.telegramId.set()
-
-#         return await message.answer("Telegram Id kiriting")
-    
-#     return await message.answer("Afsuski bu so'rov faqat admin uchun")
-
-
-
-# @dp.message_handler(state=AdminUserAddState.telegramId)
-# async def telegramId_set(message: types.Message, state:FSMContext):
-#     if Admin.is_admin(user_id=message.from_user.id):
-
-#         async with state.proxy() as data:
-#             data["telegramId"] = message.text
-                
-#         await AdminUserAddState.next()
-
-#         return await message.answer("UserName kiriting")
-    
-#     return await message.answer("Afsuski bu so'rov faqat admin uchun")
-
-
-# @dp.message_handler(state=AdminUserAddState.username)
-# async def name_set(message: types.Message, state:FSMContext):
-#     if Admin.is_admin(user_id=message.from_user.id):
-
-
-#         async with state.proxy() as data:
-#             data["username"] = message.text
-        
-#         await AdminUserAddState.next()
-
-#         return await message.answer("Name kiriting")
-    
-#     return await message.answer("Afsuski bu so'rov faqat admin uchun")
-
-
-# @dp.message_handler(state=AdminUserAddState.name)
-# async def username_set(message: types.Message, state:FSMContext):
-#     if Admin.is_admin(user_id=message.from_user.id):
-
-
-#         async with state.proxy() as data:
-#             data["name"] = message.text
-
-#             chat = Chat(chat_id=data["telegramId"], chat_name=data["name"], username=data["username"])
-
-#             chat.save()
-
-#         await AdminUserAddState.next()
-
-#         await state.finish()
-
-#         return await message.answer("Foydalanuvchi kiritilindi!")
-
-    
-#     return await message.answer("Afsuski bu so'rov faqat admin uchun")

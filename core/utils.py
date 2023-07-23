@@ -6,9 +6,8 @@ from aiogram.dispatcher.filters import BoundFilter
 from bot import types, bot
 import re
 
-
 async def send_event(text):
-    await bot.send_message("-840987349", text, parse_mode='HTML')
+    await bot.send_message(os.environ.get("ERROR_CHANNEL_ID"), text, parse_mode='HTML')
 
 
 class IsReplyFilter(BoundFilter):
@@ -21,21 +20,30 @@ class IsReplyFilter(BoundFilter):
 
 
 
-def translate_message(message, from_='uz', lang='en'):
+def translate_message(message, chat_id, from_='uz', lang='en'):
+    from .models import Chat
+
+    if chat_id is not None:
+        is_translate = Chat.is_translate(chat_id)
+    else:
+        is_translate = True
+    
     try:
-        translated_message = GoogleTranslator(source=from_, target=lang).translate(message)
+        if is_translate:
+            translated_message = GoogleTranslator(source=from_, target=lang).translate(message)
+        else:
+            translated_message = message
     except:
         translated_message = "Chatgpt javob bermadi. Yana bir bor urinib ko'ring"
 
     return translated_message
 
 
-def translate_out_of_code(text):
+def translate_out_of_code(text, chat_id):
     # Define the pattern for identifying code blocks
 
-
     if text.find("`") == -1:
-        return translate_message(text, from_='auto', lang='uz')
+        return translate_message(text, chat_id, from_='auto', lang='uz')
 
 
     print(True)
@@ -50,7 +58,7 @@ def translate_out_of_code(text):
         text = text.replace(code_block, f'{{{{code_placeholder_{i}}}}}')
 
     # Translate the text outside of code blocks
-    translation = translate_message(text, 'ru', 'uz')
+    translation = translate_message(text, chat_id, 'ru', 'uz')
     translated_text = translation
 
     # Replace placeholders with the original code blocks

@@ -1,24 +1,14 @@
-from aiogram import types
+from bot import bot
 
-kb1 = types.KeyboardButton(".📊 Statistika")
-kb2 = types.KeyboardButton(".📤 Xabar yuborish")
-kb3 = types.KeyboardButton(".🤖 System xabar yuborish")
-kb4 = types.KeyboardButton(".‼️ Xatoliklar")
-# kb5 = types.KeyboardButton(".👥 Foydalanuvchi qo'shish")
-kb6 = types.KeyboardButton(".🌄 Reklama yuborish")
+class SendAny:
+    def __init__(self, message):
+        self.message = message
+    
+    async def send_photo(self, chat_id):
+        await bot.send_photo(chat_id, self.message.photo[-1].file_id, caption=self.message.caption)
+    
+    async def send_message(self, chat_id):
+        await bot.send_message(chat_id, self.message.text)
 
-
-admin_keyboards = types.ReplyKeyboardMarkup([
-        [
-            kb2
-        ],
-        [
-            kb3,
-            kb4
-        ],
-        [
-            kb6,
-            kb1
-        ]
-    ], resize_keyboard=True, one_time_keyboard=True
-)
+    async def send_video(self, chat_id):
+        await bot.send_video(chat_id, video=self.message.video.file_id, caption=self.message.caption)
