@@ -115,9 +115,11 @@ activatedCheckbox.addEventListener('change', filterTableRows);
 
 function filterTableRows() {
     const activatedRows = document.querySelectorAll('tbody tr');
-
+    console.log(activatedRows);
     activatedRows.forEach(function(row) {
         const checkboxCell = row.querySelector('td:nth-child(5) span');
+        console.log(checkboxCell);
+        
         const isChecked = activatedCheckbox.checked;
         const rowShouldDisplay = (isChecked && checkboxCell.innerHTML === 'True') || (!isChecked);
         

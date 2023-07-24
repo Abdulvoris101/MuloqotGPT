@@ -26,12 +26,6 @@
     <!-- ============================================================== -->
     <!-- Preloader - style you can find in spinners.css -->
     <!-- ============================================================== -->
-    <div class="preloader">
-        <div class="lds-ripple">
-            <div class="lds-pos"></div>
-            <div class="lds-pos"></div>
-        </div>
-    </div>
     <!-- ============================================================== -->
     <!-- Main wrapper - style you can find in pages.scss -->
     <!-- ============================================================== -->
@@ -201,7 +195,7 @@
                                             style="display: inline-block; width: 67px; height: 30px; vertical-align: top;"></canvas>
                                     </div>
                                 </li>
-                                <li class="ms-auto"><span class="counter text-success">{{ users| length }}</span></li>
+                                <li class="ms-auto"><span class="counter text-success">{{ users }}</span></li>
                             </ul>
                         </div>
                     </div>
@@ -271,6 +265,7 @@
                                 <table class="table no-wrap">
                                     <thead>
                                         <tr>
+                                            <th class="border-top-0">Id</th>
                                             <th class="border-top-0">Chat Id</th>
                                             <th class="border-top-0">Chat Name</th>
                                             <th class="border-top-0">Username</th>
@@ -287,8 +282,10 @@
                                         </tr>
                                     </thead>
                                     <tbody>
+                                        
                                         {% for chat in chats %}
                                             <tr>
+                                                <td>{{ chat.id }}</td>
                                                 <td>{{ chat.chat_id }}</td>
                                                 <td class="txt-oflo">{{ chat.chat_name }}</td>
                                                 <td>{{ chat.username }}</td>
@@ -296,28 +293,30 @@
                                                 <td><span class="text-success">{{ chat.is_activated }}</span></td>
                                                 <td>{{ chat.created_at }}</td>
                                             </tr>
-
                                         {% endfor %}
-                                        
+                                        <input type="hidden" id="total_pages" value="{{ total_pages }}">
                                     </tbody>
                                 </table>
-                                {{ current_page }}
+                                
                                 <!-- Pagination links -->
                                 
                                 <nav aria-label="...">
-                                    <ul class="pagination">
-                                      <li class="page-item disabled">
-                                        <a class="page-link" href="#" tabindex="-1">Previous</a>
-                                      </li>
-                                      <li class="page-item"><a class="page-link" href="#">1</a></li>
-                                      <li class="page-item active">
+                                    <ul class="pagination" id="pagination">
+                                      <!-- <li class="page-item disabled">
+                                        <a class="page-link" href="#" tabindex="- 1">Previous</a>
+                                      </li> -->
+                                      <!-- <li class="page-item active">
                                         <a class="page-link" href="#">2 <span class="sr-only">(current)</span></a>
-                                      </li>
-                                      <li class="page-item"><a class="page-link" href="#">3</a></li>
-                                      <li class="page-item">
-                                        <a class="page-link" href="#">Next</a>
-                                      </li>
+                                      </li> -->
+                                   
+                                    {% for page in range(0, total_pages) %}
+                                        <li class="page-item {% if page + 1 == current_page %}active{% endif %}"><a class="page-link"  data-page="{{page+1}}">{{ page+1 }}</a></li>
+                                    {% endfor %}
+
+                                    
+
                                     </ul>
+
                                   </nav>
                             </div>
                         </div>
@@ -365,6 +364,9 @@
     <script src="{{ url_for('static', path='plugins/bower_components/chartist/dist/chartist.min.js')}}"></script>
     <script src="{{ url_for('static', path='plugins/bower_components/chartist-plugin-tooltips/dist/chartist-plugin-tooltip.min.js')}}"></script>
     <script src="{{ url_for('static', path='js/pages/dashboards/dashboard1.js')}}"></script>
+    
+    
+    <!--This page JavaScript -->
 </body>
 
 </html>

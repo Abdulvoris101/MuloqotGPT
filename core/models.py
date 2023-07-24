@@ -25,12 +25,12 @@ class Chat(Base):
     credit = Column(BigInteger, default=50)
     auto_translate = Column(Boolean, default=True)
 
-    def __init__(self, chat_id, chat_name, username):
+    def __init__(self, chat_id, chat_name, username, is_activated=True):
         self.chat_name = chat_name
         self.chat_id = chat_id
         self.username = username
         self.created_at = datetime.now()
-        self.is_activated = True
+        self.is_activated = is_activated
         
         super().__init__()
 
@@ -262,7 +262,7 @@ class Message(Base):
 
 
 
-Base.metadata.create_all(engine)
+# Base.metadata.create_all(engine)
 
-# Commit the changes and close the session
-session.commit()
+# # Commit the changes and close the session
+# session.commit()

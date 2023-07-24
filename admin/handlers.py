@@ -2,7 +2,7 @@ from aiogram.dispatcher import FSMContext
 import os
 from bot import dp, types, bot
 from db.state import AdminLoginState, AdminSystemMessageState, AdminAdsMessage, AdminUserAddState,  AdminSendMessage, PerformIdState
-from .models import Admin, Error, AdminMessage
+from .models import Admin, AdminMessage
 from core.models import Message, Chat
 from .keyboards import admin_keyboards
 from aiogram.dispatcher.filters import Text
@@ -88,11 +88,6 @@ async def send_message(message: types.Message, state=FSMContext):
 
 
 
-
-
-@dp.message_handler(IsAdmin(), Text(equals=".‼️ Xatoliklar"))
-async def get_errors_handler(message: types.Message):
-    await message.answer(Error.all())
 
 
 

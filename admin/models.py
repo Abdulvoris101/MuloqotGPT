@@ -2,34 +2,8 @@ from sqlalchemy import create_engine, Column, Integer, String, Boolean, BigInteg
 from db.setup import session, Base, engine
 
 
-
-
-class Error(Base):
-    __tablename__ = 'error'
-
-    id = Column(Integer, primary_key=True)
-    message = Column(String)
-    
-    def __init__(self, message):
-        self.message = message
-
-    @classmethod
-    def all(self):
-        response = []
-
-        errors = session.query(Error).order_by(Error.id.desc()).limit(10).all()
-        
-        response.extend([f'<b>#{error.id}</b>\nMessage - {error.message}\n\n' for error in errors])
-
-        return response
-
-    def save(self):
-        session.add(self)
-        session.commit()
-
-
-
 # Define the 'Admin' table
+# 
 class Admin(Base):
     __tablename__ = 'admin'
 
@@ -49,7 +23,6 @@ class Admin(Base):
         if not self.__class__.is_admin(user_id):
             self.user_id = user_id
             self.save()
-
 
 
     def save(self):
@@ -92,7 +65,7 @@ class AdminMessage(Base):
         session.commit()
 
 
-Base.metadata.create_all(engine)
+# Base.metadata.create_all(engine)
 
-# Commit the changes and close the session
-session.commit()
+# # Commit the changes and close the session
+# session.commit()

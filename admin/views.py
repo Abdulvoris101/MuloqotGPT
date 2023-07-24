@@ -12,31 +12,30 @@ router = APIRouter()
 
 
 @router.get("/", response_class=HTMLResponse)
-async def admin_index(request: Request, page: int=Query(1)):
+async def admin_index(request: Request, page: int=Query(1, gt=0)):
 
     rows_per_page = 10
 
     # Calculate the offset for the current page
     offset = (page - 1) * rows_per_page
-
-    # Query the data with pagination
-    query = session.query(Chat).limit(rows_per_page).offset(offset)
-
-    # Fetch the results
-    users = query.all()
-
-    total_items = query.count()  # Get the total number of items
+    
+    # Query the data without pagination to get the total count
+    total_items = session.query(Chat).count()
 
     # Calculate the total number of pages
     total_pages = (total_items // rows_per_page) + (1 if total_items % rows_per_page > 0 else 0)
 
+    # Query the data with pagination
+    query = session.query(Chat).limit(rows_per_page).offset(offset)
+    chats = query.all()
+
     context = {
-        "users": users,
+        "chats": chats,
         "groups": Chat.groups(),
         "messages": Message.count(),
         "active_users": Chat.active_users(),
         "request": request,
-        "chats": Chat.all(),
+        "users": Chat.users(),
         "total_pages": total_pages,
         "current_page": page
     }
