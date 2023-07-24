@@ -66,7 +66,7 @@
                 <!-- End Logo -->
                 <!-- ============================================================== -->
                 <div class="navbar-collapse collapse" id="navbarSupportedContent" data-navbarbg="skin5">
-                   
+                    
                     <!-- ============================================================== -->
                     <!-- Right side toggle and nav items -->
                     <!-- ============================================================== -->
@@ -294,6 +294,7 @@
                                                 <td>{{ chat.created_at }}</td>
                                             </tr>
                                         {% endfor %}
+
                                         <input type="hidden" id="total_pages" value="{{ total_pages }}">
                                     </tbody>
                                 </table>
@@ -310,7 +311,7 @@
                                       </li> -->
                                    
                                     {% for page in range(0, total_pages) %}
-                                        <li class="page-item {% if page + 1 == current_page %}active{% endif %}"><a class="page-link"  data-page="{{page+1}}">{{ page+1 }}</a></li>
+                                        <li class="page-item {% if page + 1 == current_page %}active{% endif %}"><a class="page-link" data-page="{{page+1}}">{{ page+1 }}</a></li>
                                     {% endfor %}
 
                                     

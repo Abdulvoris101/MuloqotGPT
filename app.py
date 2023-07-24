@@ -25,7 +25,7 @@ app.mount("/static", StaticFiles(directory="layout/static"), name="static")
 app.include_router(router, prefix="/admin")
 
 WEBHOOK_PATH = f"/bot/{os.environ.get('BOT_TOKEN')}"
-WEBHOOK_URL = "https://535d-213-230-82-9.ngrok-free.app" + WEBHOOK_PATH
+WEBHOOK_URL = "https://d2c8-84-54-92-43.ngrok-free.app" + WEBHOOK_PATH
 
 
 @app.on_event("startup")
@@ -57,4 +57,4 @@ add_pagination(app)
 
 
 if __name__ == "__main__":
-    uvicorn.run("app:app", host='0.0.0.0', port=8000, workers=1)
+    uvicorn.run("app:app", host='0.0.0.0', port=8000, reload=False, workers=1)

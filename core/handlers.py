@@ -1,11 +1,13 @@
 from bot import dp, bot, types
-from .utils import translate_message, IsReplyFilter, send_event
+from .utils import translate_message, activate, count_tokens
 from gpt import answer_ai
-from .models import Message, session, Chat
+from .models import Message, Chat
 from .keyboards import joinChannelMenu, settingsMenu
-import os
-from db.proccessors import MessageProcessor
-from aiogram.types import ChatActions
+from .filters import IsReplyFilter, UserFilter
+
+PROCESSING_MESSAGE = "⏳..."
+ERROR_MESSAGE = "Iltimos boshqatan so'rov yuboring"
+
 
 class AIChatHandler:
     def __init__(self, message):
@@ -13,91 +15,87 @@ class AIChatHandler:
         self.chat_id = message.chat.id
         self.full_name = message.chat.full_name
         self.text = str(message.text)
-
-    @classmethod
-    async def is_active(cls, chat_id):
-        chat = session.query(Chat.is_activated).filter_by(chat_id=chat_id).first()
-
-        if chat is None:
-            return False
-
-        return chat.is_activated
-    
-
-    @classmethod
-    async def is_subscribed(cls, chat_type, user_id):
-        if chat_type == 'private':
-            channel_id = os.environ.get("CHANNEL_ID")
-
-            chat_member = await bot.get_chat_member(channel_id, user_id)
-
-            if chat_member.is_chat_member():
-                return True
-
-            return False
-
-        return True
-    
-
-    def is_group(self, messages):
-        if messages is None:
-            MessageProcessor.create_system_messages(self.chat_id, self.message.chat.type)
-
-        return len(messages) <= 2 and self.message.chat.type != 'private'
-
+        
 
     async def reply_or_send(self, message, *args, **kwargs):
         if self.message.chat.type == "private":
             return await self.message.answer(message, *args,  **kwargs)
         else:
             return await self.message.reply(message, *args, **kwargs)
+    
+    async def check_tokens(self, messages):
+        if count_tokens(messages) >= 3500:
+            return True
 
-    async def process_ai_message(self):
+        return False
 
-        if not await self.is_active(self.chat_id):
-            await activate(self.message)
+    async def clear_message(self):
+        messages = Message.all(self.chat_id)
 
-        elif not await self.is_subscribed(self.message.chat.type, self.chat_id):
-            return await self.message.answer("Botdan foydalanish uchun quyidagi kannalarga obuna bo'ling", reply_markup=joinChannelMenu)
+        if await self.check_tokens(messages):
+            Message.delete_by_limit(self.chat_id)
+            await self.clear_message()
+        else:
+            return
 
-        sent_message = await self.reply_or_send("⏳...")
 
+    async def handle(self):
+
+        # Ensure user activation and check entry to the channel
+        await UserFilter.activate_and_check(self.message, self.chat_id)
+
+        # Send a temporary message indicating processing
+        sent_message = await self.reply_or_send(PROCESSING_MESSAGE)
+
+        # Translate the message to English
         message_en = translate_message(self.text, self.chat_id, lang='en')
 
+        # Get all messages for the chat
+
+        await self.clear_message()
+
         messages = Message.all(self.chat_id)
-        
+
+        # Determine the content to use for AI processing
         content = self.text if message_en is None else message_en
 
-        msg = Message.user_role(content=content, instance=self.message)
+        # Create a new user role message
+        msg = Message.user_role(text=content, instance=self.message)
         
+        # Append the user role message to the list of messages
         messages.append(msg)
 
+        # Indicate typing to the user
         await self.message.answer_chat_action("typing")
         
+        # Perform AI processing on the messages
         response = await answer_ai(messages, chat_id=self.chat_id)
 
+        # Create an assistant role message for the AI response
         response_uz = Message.assistant_role(content=response, instance=self.message)
 
+        # Delete the temporary processing message
         await bot.delete_message(self.chat_id, sent_message.message_id)
 
         try:
+            # Send the AI response to the user
             await self.reply_or_send(str(response_uz), disable_web_page_preview=True, parse_mode=types.ParseMode.MARKDOWN)
         except Exception as e:
-            await self.reply_or_send("Iltimos boshqatan so'rov yuboring", disable_web_page_preview=True, parse_mode=types.ParseMode.MARKDOWN)
+            await self.reply_or_send(ERROR_MESSAGE, disable_web_page_preview=True, parse_mode=types.ParseMode.MARKDOWN)
 
 
 @dp.message_handler(lambda message: not message.text.startswith('/') and not message.text.startswith('.') and message.chat.type == 'private')
 async def handle_private_messages(message: types.Message):
     chat = AIChatHandler(message=message)
 
-    return await chat.process_ai_message()
+    return await chat.handle()
 
 
 @dp.message_handler(IsReplyFilter())
 async def handle_reply(message: types.Message):
     chat = AIChatHandler(message=message)
 
-    return await chat.process_ai_message()
+    return await chat.handle()
 
 
 @dp.message_handler(commands=['start'])
@@ -105,7 +103,7 @@ async def send_welcome(message: types.Message):
     await message.answer("""🤖 Salom! Men MuloqotAi, sizning shaxsiy yordamchingizman.\nAvtotarjimon yoniq xolatda.\nBatafsil ma'lumot uchun - /help""")
     await message.answer("""Sizga qanday yordam bera olaman?""")
 
-    if not await AIChatHandler.is_subscribed(message.chat.type, message.chat.id):
+    if not await UserFilter.is_subscribed(message.chat.type, message.chat.id):
         return await message.answer("Botdan foydalanish uchun quyidagi kannalarga obuna bo'ling", reply_markup=joinChannelMenu)
     
     await activate(message)
@@ -133,24 +131,16 @@ async def ability(message: types.Message):
     await message.answer("""💡 Aqlli: Ko'plab mavzularni tushunish va javob berishga tayyorman. Umumiy bilimdan ma'lumotlarni qidirishga qadar, sizga aniqligi va maqbul javoblarni taklif etishim mumkin.\n\n🧠 Dono: Men doimiy o'rganish va rivojlanishda, yangi ma'lumotlarga va foydalanuvchi bilan bo'lishuvlarga moslashishim mumkin. Aqlli muloqotlarni taklif etishim mumkin.\n\n😄 Xushchaqchaq: Hayot kulguli tabassum bilan yaxshilanadi, va men sizning yuzingizga tabassum olib kelish uchun bu yerga keldim!\n\n🌄 Rassom: Mening yana bir qobilyatlarimdan biri bu rasm generatsiya qila olishim. Men sizga xar qanday turdagi ajoyib rasmlarni generatsiya qilib olib bera olaman\n\n⚙️ Avtotarjima: Meni siz bilan o'zbek tilida yanada yahshiroq muloqot qila olishim uchun, avtotarjima funksiyasini ishlataman. Endi siz ingliz tilida qiynalib menga yozishingiz shart emas. Bu funksiya ixtiyoriy xoxlagan paytiz o'chirib qo'yishingiz mumkin. """)
 
 
-@dp.message_handler(commands=['startai'])
-async def activate(message: types.Message):
-    chat = Chat(message.chat.id, message.chat.full_name, message.chat.username)
-
-    await chat.activate(str(message.chat.type))
-
-
 @dp.message_handler(commands=['settings'])
 async def settings(message: types.Message):
-    if not await AIChatHandler.is_active(message.chat.id):
+    if not await UserFilter.is_active(message.chat.id):
         return await message.answer("Muloqotni boshlash uchun - /start")
 
     await message.answer("⚙️ Sozlamalar", reply_markup=settingsMenu(message.chat.id))
 
-
 @dp.callback_query_handler(text="check_subscription")
 async def check_issubscripted(message: types.Message):
-    if await AIChatHandler.is_subscribed(message.message.chat.type, message.message.chat.id):
+    if await UserFilter.is_subscribed(message.message.chat.type, message.message.chat.id):
         await activate(message)
         return await bot.send_message(message.message.chat.id, "Assalomu aleykum Men Muloqot AI man sizga qanday yordam bera olaman?")
 

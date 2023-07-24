@@ -26,9 +26,7 @@ async def answer_ai(messages, chat_id):
         error = e.error["message"]
         
         if "tokens" in error:
-
-            Chat.offset_add(chat_id=chat_id)
-
+            await  send_event(f"#type {e.error.get('type')}\n{error}\n\n#openai error\n\n#user {chat_id}")
             return "Kechirasiz, men sizni tushunmadim, takrorlay olasizmi?"
         else:
             await  send_event(f"#type {e.error.get('type')}\n{error}\n\n#openai error\n\n#user {chat_id}")

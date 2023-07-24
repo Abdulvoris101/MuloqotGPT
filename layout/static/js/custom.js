@@ -77,7 +77,6 @@ $(document).ready(function() {
 
   // Show the correct pages based on the current page
   showPages(currentPage);
-
   // Add a click event handler to the pagination links
   $('#pagination a.page-link').click(function(e) {
     e.preventDefault();
@@ -90,5 +89,6 @@ $(document).ready(function() {
 
     // Redirect to the new page
     window.location.href = newUrl;
+
   });
 });

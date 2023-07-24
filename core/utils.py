@@ -1,24 +1,26 @@
-from deep_translator import GoogleTranslator, YandexTranslator
+from deep_translator import GoogleTranslator
 import os
-import requests
-import json
-from aiogram.dispatcher.filters import BoundFilter
 from bot import types, bot
 import re
+import tiktoken
+
+def count_tokens(messages):
+    enc = tiktoken.get_encoding("cl100k_base")
+    token_counts = [len(enc.encode(message['content'])) for message in messages]
+    total_tokens = sum(token_counts)
+    return total_tokens
+
 
 async def send_event(text):
     await bot.send_message(os.environ.get("ERROR_CHANNEL_ID"), text, parse_mode='HTML')
 
 
-class IsReplyFilter(BoundFilter):
-    async def check(self, message: types.Message) -> bool:
-        if message.reply_to_message is not None:
-            if message.reply_to_message.from_user.is_bot:
-                return True
+async def activate(message: types.Message):
+    from .models import Chat
 
-        return  str(message.text).lower().startswith("muloqotai") or str(message.text).lower().startswith("@muloqataibot")
-
-
+    chat = Chat(message.chat.id, message.chat.full_name, message.chat.username)
+    await chat.activate(str(message.chat.type))
+    
 
 def translate_message(message, chat_id, from_='uz', lang='en'):
     from .models import Chat

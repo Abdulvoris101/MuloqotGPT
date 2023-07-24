@@ -1,5 +1,5 @@
-from sqlalchemy import create_engine, Column, select, Integer, String, UnicodeText, Boolean, BigInteger, JSON, DateTime
-from db.setup import session, engine, Base
+from sqlalchemy import Column, Integer, String, UnicodeText, Boolean, BigInteger, JSON, DateTime
+from db.setup import session, Base
 from .utils import send_event, translate_out_of_code
 from sqlalchemy import not_, cast
 from sqlalchemy import func
@@ -21,9 +21,10 @@ class Chat(Base):
     is_activated = Column(Boolean)
     chat_id = Column(BigInteger)
     created_at = Column(DateTime, nullable=True)
-    offset_limit = Column(BigInteger, nullable=True)
     credit = Column(BigInteger, default=50)
     auto_translate = Column(Boolean, default=True)
+    last_updated = Column(DateTime, nullable=True)
+    messages_count = Column(BigInteger, default=0)
 
     def __init__(self, chat_id, chat_name, username, is_activated=True):
         self.chat_name = chat_name
@@ -37,7 +38,7 @@ class Chat(Base):
 
     @classmethod
     def all(cls):
-        return session.query(Chat.id, Chat.chat_name, Chat.username, Chat.offset_limit,  Chat.is_activated, Chat.chat_id, Chat.created_at).all()
+        return session.query(Chat.id, Chat.chat_name, Chat.username, Chat.is_activated, Chat.chat_id, Chat.created_at).all()
 
     @classmethod
     def count(cls):
@@ -53,7 +54,6 @@ class Chat(Base):
 
         return chat.auto_translate
 
-    
     @classmethod
     def toggle_set_translate(cls, chat_id):
         chat = session.query(Chat).filter_by(chat_id=chat_id).first()
@@ -124,21 +124,6 @@ class Chat(Base):
         session.delete(chat)
 
 
-    @classmethod
-    def offset_add(self, chat_id):
-        chat = session.query(Chat).filter_by(chat_id=chat_id).first()
-        message_len = session.query(Message).filter_by(chat_id=chat_id).count()
-
-
-        if chat is not None:
-            if chat.offset_limit is not None:
-                if message_len > chat.offset_limit:
-                    chat.offset_limit += 10 
-            else:
-                chat.offset_limit = 10
-            
-            session.commit()
-        
 
 import json
 
@@ -153,18 +138,8 @@ class Message(Base):
 
     @classmethod
     def all(cls, chat_id):
-        chat = session.query(Chat).filter_by(chat_id=chat_id).first()
-        offset_limit = chat.offset_limit
-        query = session.query(Message.data).filter_by(chat_id=chat_id).order_by(Message.id)
-        
-        if offset_limit is not None:
-            firstRows = query.limit(5).all()
-            nextRows = query.offset(offset_limit).all()
-            messages = firstRows + nextRows          
-        else:
-            messages = session.query(Message.data).filter_by(chat_id=chat_id).order_by(Message.id).all()
+        messages = session.query(Message.data).filter_by(chat_id=chat_id).order_by(Message.id).all()
 
-        
         msgs = []
         
         
@@ -190,11 +165,20 @@ class Message(Base):
 
 
     @classmethod
-    def user_role(cls, content, instance):
+    def user_role(cls, text, instance):
         chat_id = instance.chat.id
         created_at = datetime.now()
+        chat = session.query(Chat).filter_by(chat_id=chat_id).first()
+
+        chat.last_updated = datetime.now()
         
-        data = {"role": "user", "content": str(content), "uz_message": instance.text}
+        if chat.messages_count is None:
+            chat.messages_count = 0
+
+        chat.messages_count += 1
+        chat.save()
+
+        data = {"role": "user", "content": str(text), "uz_message": instance.text}
 
         obj = cls(data=json.dumps(data, ensure_ascii=False), chat_id=chat_id, created_at=created_at)
         obj.save()
@@ -203,6 +187,28 @@ class Message(Base):
         
         return data
 
+    @classmethod
+    def user_role_test(cls, text, uz_message, chat_id):
+        chat_id = chat_id
+        created_at = datetime.now()
+        chat = session.query(Chat).filter_by(chat_id=chat_id).first()
+    
+        chat.last_updated = datetime.now()
+        
+        if chat.messages_count is None:
+            chat.messages_count = 0
+
+        chat.messages_count += 1
+        chat.save()
+
+        data = {"role": "user", "content": str(text), "uz_message": uz_message}
+
+        obj = cls(data=json.dumps(data, ensure_ascii=False), chat_id=chat_id, created_at=created_at)
+        obj.save()
+
+        del data["uz_message"]
+        
+        return data
 
     @classmethod
     def assistant_role(cls, content, instance):
@@ -217,6 +223,25 @@ class Message(Base):
         uz_message = translate_out_of_code(content, chat_id)
         
         data = {"role": "assistant", "content": str(content), "uz_message": str(uz_message)}
+
+        obj = cls(data=json.dumps(data, ensure_ascii=False), chat_id=chat_id, created_at=created_at)
+
+        obj.save()
+
+        return uz_message
+
+    @classmethod
+    def assistant_role_test(cls, text, uz_message, chat_id):
+        chat_id = chat_id
+        created_at = datetime.now()
+
+        if len(text) > 4095:
+            non_charachters = len(text) - 4050
+            text = text[:-non_charachters]
+
+        uz_message = translate_out_of_code(text, chat_id)
+        
+        data = {"role": "assistant", "content": str(text), "uz_message": str(uz_message)}
 
         obj = cls(data=json.dumps(data, ensure_ascii=False), chat_id=chat_id, created_at=created_at)
 
@@ -260,6 +285,13 @@ class Message(Base):
     def delete(self, chat_id):
         session.query(Message).filter_by(chat_id=chat_id).delete()
 
+    @classmethod
+    def delete_by_limit(self, chat_id):
+        messages = session.query(Message).filter_by(chat_id=chat_id).order_by(Message.id).offset(4).limit(3).all()
+        
+        for message in messages:
+            session.delete(message)
+            session.commit()
 
 
 # Base.metadata.create_all(engine)
