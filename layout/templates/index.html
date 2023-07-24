@@ -201,7 +201,7 @@
                                             style="display: inline-block; width: 67px; height: 30px; vertical-align: top;"></canvas>
                                     </div>
                                 </li>
-                                <li class="ms-auto"><span class="counter text-success">{{ users }}</span></li>
+                                <li class="ms-auto"><span class="counter text-success">{{ users| length }}</span></li>
                             </ul>
                         </div>
                     </div>
@@ -301,6 +301,9 @@
                                         
                                     </tbody>
                                 </table>
+                                {{ current_page }}
+                                <!-- Pagination links -->
+                                
                                 <nav aria-label="...">
                                     <ul class="pagination">
                                       <li class="page-item disabled">

@@ -19,5 +19,13 @@ query = session.query
 # Create a base class for declarative models
 Base = declarative_base()
 
+def get_db():
+    db = Session
+
+    try: 
+        yield db
+    except:
+        db.close_all()
+
 
 

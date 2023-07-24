@@ -14,6 +14,7 @@ from imageai.handlers import dp
 from admin.views import router
 
 from fastapi.staticfiles import StaticFiles
+from fastapi_pagination import add_pagination
 
 load_dotenv()
 
@@ -50,6 +51,9 @@ async def bot_webhook(update: dict):
 @app.on_event("shutdown")
 async def on_shutdown():
     await bot.delete_webhook()
+
+
+add_pagination(app)
 
 
 if __name__ == "__main__":
