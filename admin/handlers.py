@@ -8,7 +8,8 @@ from .keyboards import admin_keyboards
 from aiogram.dispatcher.filters import Text
 from db.setup import query
 from aiogram.dispatcher.filters import ContentTypeFilter
-from  .utils import SendAny
+from  .utils import SendAny, IsAdmin
+
 
 @dp.message_handler(commands=['admin'])
 async def admin(message: types.Message, state=None):
@@ -33,84 +34,64 @@ async def password_handler(message: types.Message, state=FSMContext):
     return await message.answer("Noto'g'ri parol!")
 
 
-@dp.message_handler(Text(equals=".🤖 System xabar yuborish"))
-async def add_rule_command(message: types.Message, state=None):
-    if Admin.is_admin(user_id=message.from_user.id):
-        
-        await AdminSystemMessageState.message.set()
+@dp.message_handler(IsAdmin(), Text(equals=".🤖 System xabar yuborish"))
+async def add_rule_command(message: types.Message, state=None):        
+    await AdminSystemMessageState.message.set()
 
-        return await message.answer("Qoidani faqat ingliz yoki rus tilida kiriting!")
+    return await message.answer("Qoidani faqat ingliz yoki rus tilida kiriting!")
     
-    return await message.answer("Afsuski bu so'rov faqat admin uchun")
 
 
-@dp.message_handler(state=AdminSystemMessageState.message)
-async def add_rule(message: types.Message, state=FSMContext):
-    is_admin = Admin.is_admin(user_id=message.from_user.id)
-    
+@dp.message_handler(IsAdmin(), state=AdminSystemMessageState.message)
+async def add_rule(message: types.Message, state=FSMContext):    
     async with state.proxy() as data:
         data['message'] = message.text
 
-    if is_admin:
-        await state.finish()
-        Message.system_to_all(text=message.text)
-        return await message.answer("System xabar kiritildi!")
-
-    return await message.answer("Afsuski bu so'rov faqat admin uchun")
+    await state.finish()
+    Message.system_to_all(text=message.text)
+    return await message.answer("System xabar kiritildi!")
 
 
-@dp.message_handler(Text(equals=".📊 Statistika"))
+
+@dp.message_handler(IsAdmin(), Text(equals=".📊 Statistika"))
 async def get_statistics(message: types.Message):
-    if Admin.is_admin(user_id=message.from_user.id):
-        return await message.answer(f"👤 Foydalanuvchilar - {Chat.users()}.\n💥 Aktiv Foydalanuvchilar - {Chat.active_users()}\n👥 Guruhlar - {Chat.groups()}\n📥Xabarlar - {query(Message).count()}")
+    return await message.answer(f"👤 Foydalanuvchilar - {Chat.users()}.\n💥 Aktiv Foydalanuvchilar - {Chat.active_users()}\n👥 Guruhlar - {Chat.groups()}\n📥Xabarlar - {query(Message).count()}")
     
-    return await message.answer("Afsuski bu so'rov faqat admin uchun")
 
-
-@dp.message_handler(Text(equals=".📤 Xabar yuborish"))
+@dp.message_handler(IsAdmin(), Text(equals=".📤 Xabar yuborish"))
 async def send_message_command(message: types.Message, state=None):
-    if Admin.is_admin(user_id=message.from_user.id):
-        await AdminSendMessage.message.set()
-        return await message.answer("Xabarni kiriting")
-    
-    return await message.answer("Afsuski bu so'rov faqat admin uchun")
+    await AdminSendMessage.message.set()
+    return await message.answer("Xabarni kiriting")
 
 
-@dp.message_handler(state=AdminSendMessage.message, content_types=types.ContentType.ANY)
+@dp.message_handler(IsAdmin(), state=AdminSendMessage.message, content_types=types.ContentType.ANY)
 async def send_message(message: types.Message, state=FSMContext):
-    if Admin.is_admin(user_id=message.from_user.id):
+    await state.finish()
 
-        await state.finish()
+    sendAny = SendAny(message)
 
-        sendAny = SendAny(message)
+    chats = Chat.all()
+    for chat in chats:
+        try: 
+            if message.content_type == "text":
+                await sendAny.send_message(chat[5])
+            elif message.content_type == "photo":
+                await sendAny.send_photo(chat[5])
+            elif message.content_type == "video":
+                await sendAny.send_video(chat[5])
+            
+        except BaseException as e:
+            print(e)
+            print(chat[5])
 
-        chats = Chat.all()
-        for chat in chats:
-            try: 
-                if message.content_type == "text":
-                    await sendAny.send_message(chat[5])
-                elif message.content_type == "photo":
-                    await sendAny.send_photo(chat[5])
-                elif message.content_type == "video":
-                    await sendAny.send_video(chat[5])
-            except BaseException as e:
-                print(e)
-                print(chat[5])
-
-        return await message.answer("Xabar yuborildi!")
-
-    return await message.answer("Afsuski bu so'rov faqat admin uchun!")
+    return await message.answer("Xabar yuborildi!")
 
 
 
 
-@dp.message_handler(Text(equals=".‼️ Xatoliklar"))
+
+@dp.message_handler(IsAdmin(), Text(equals=".‼️ Xatoliklar"))
 async def get_errors_handler(message: types.Message):
-    is_admin = Admin.is_admin(user_id=message.from_user.id)
-
-    if not is_admin:
-        return await message.answer("Afsuski bu so'rov faqat admin uchun")
-
     await message.answer(Error.all())
 
 

@@ -24,7 +24,7 @@ app.mount("/static", StaticFiles(directory="layout/static"), name="static")
 app.include_router(router, prefix="/admin")
 
 WEBHOOK_PATH = f"/bot/{os.environ.get('BOT_TOKEN')}"
-WEBHOOK_URL = "https://2194-84-54-84-109.ngrok-free.app" + WEBHOOK_PATH
+WEBHOOK_URL = "https://535d-213-230-82-9.ngrok-free.app" + WEBHOOK_PATH
 
 
 @app.on_event("startup")

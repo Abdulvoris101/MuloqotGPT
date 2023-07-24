@@ -1,4 +1,7 @@
 from bot import bot
+from aiogram.dispatcher.filters import BoundFilter
+from aiogram import types
+from .models import Admin
 
 class SendAny:
     def __init__(self, message):
@@ -12,3 +15,8 @@ class SendAny:
 
     async def send_video(self, chat_id):
         await bot.send_video(chat_id, video=self.message.video.file_id, caption=self.message.caption)
+
+
+class IsAdmin(BoundFilter):
+    async def check(self, message: types.Message) -> bool:
+        return  Admin.is_admin(user_id=message.from_user.id)
