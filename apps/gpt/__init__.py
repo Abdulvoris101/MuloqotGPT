@@ -12,7 +12,7 @@ load_dotenv()  # take environment variables from .env.
 openai.api_key = os.environ.get("API_KEY")
 
 
-async def answer_ai(messages, chat_id):
+async def request_gpt(messages, chat_id):
     try:
         response = openai.ChatCompletion.create(
             model="gpt-3.5-turbo",

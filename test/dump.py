@@ -1,4 +1,4 @@
-from core.models import Chat, Message
+from apps.core.models import Chat, Message
 from faker import Faker
 
 fake = Faker()

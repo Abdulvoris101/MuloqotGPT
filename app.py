@@ -1,6 +1,5 @@
 from fastapi import FastAPI
-from aiogram import types, executor
-from bot import bot
+from aiogram import types
 from dotenv import load_dotenv
 import os
 from aiogram.dispatcher.dispatcher import Dispatcher, Bot
@@ -8,7 +7,7 @@ import uvicorn
 
 from apps.core.handlers import dp
 from apps.admin.handlers import dp
-from bot import dp
+from bot import dp, bot
 from apps.imageai.handlers import dp
 
 from apps.admin.views import router
@@ -36,7 +35,6 @@ async def on_startup():
         await bot.set_webhook(
             url=WEBHOOK_URL
         )
-
 
 @app.post(WEBHOOK_PATH)
 async def bot_webhook(update: dict):

@@ -1,6 +1,6 @@
 from bot import dp, bot, types
 from .utils import translate_message, activate, count_tokens
-from gpt import answer_ai
+from apps.gpt import request_gpt
 from .models import Message, Chat
 from .keyboards import joinChannelMenu, settingsMenu
 from filters.core import IsReplyFilter, UserFilter
@@ -72,7 +72,7 @@ class AIChatHandler:
         await self.message.answer_chat_action("typing")
         
         # Perform AI processing on the messages
-        response = await answer_ai(messages, chat_id=self.chat_id)
+        response = await request_gpt(messages, chat_id=self.chat_id)
 
         # Create an assistant role message for the AI response
         response_uz = Message.assistant_role(content=response, instance=self.message)
