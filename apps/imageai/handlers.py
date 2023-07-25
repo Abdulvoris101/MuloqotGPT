@@ -1,9 +1,8 @@
 from bot import dp, bot, types
-from .utils import LexicaAi 
-from .keyboards import refreshMenu, buyCreditMenu
-from aiogram.dispatcher.filters import Command
+from utils.requests import LexicaAi
+from .keyboards import buyCreditMenu
 from filters.imageai import IsPrivate
-from apps.core.orm import Credit
+from apps.core.manager import Credit
 
 dp.filters_factory.bind(IsPrivate)
 

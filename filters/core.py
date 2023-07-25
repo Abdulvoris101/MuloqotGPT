@@ -4,9 +4,8 @@ import os
 from app import bot
 from aiogram.dispatcher.filters import BoundFilter
 from aiogram import types
-from apps.core.utils import activate
 from apps.core.keyboards import joinChannelMenu
-
+from apps.core.manager import ChatManager
 
 class IsReplyFilter(BoundFilter):
     async def check(self, message: types.Message) -> bool:
@@ -46,7 +45,7 @@ class UserFilter:
     @classmethod
     async def activate_and_check(cls, message, chat_id):
         if not await cls.is_active(chat_id):
-            await activate(message)
+            await ChatManager.activate(message)
 
         elif not await cls.is_subscribed(message.chat.type, chat_id):
             return await message.answer("Botdan foydalanish uchun quyidagi kannalarga obuna bo'ling", reply_markup=joinChannelMenu)

@@ -1,8 +1,7 @@
-import requests
-from apps.core.utils import translate_message
-import json
+from utils.translate import translate_message
 import random
 import httpx
+
 
 class LexicaAi:
     url = "https://lexica.art/api/infinite-prompts"

@@ -1,15 +1,12 @@
-from sqlalchemy import Column, Integer, String, UnicodeText, Boolean, BigInteger, JSON, DateTime
+from sqlalchemy import Column, Integer, String, UnicodeText, Boolean, BigInteger, DateTime
 from db.setup import session, Base
-from .utils import send_event, translate_out_of_code
-from sqlalchemy import not_, cast
-from sqlalchemy import func, desc
+from sqlalchemy import not_, cast, func, desc
 from datetime import datetime, timedelta
+from utils.translate import translate_out_of_code
+from utils import send_event
 
 
-from datetime import datetime
-    
 three_months_ago = datetime.now() - timedelta(days=90)
-
 
 
 class Chat(Base):
@@ -35,25 +32,27 @@ class Chat(Base):
         
         super().__init__()
 
-
     @classmethod
     def all(cls):
         return session.query(Chat.id, Chat.chat_name, Chat.username, Chat.last_updated, Chat.messages_count, Chat.auto_translate, Chat.chat_id, Chat.credit, Chat.created_at).all()
+
+    @classmethod
+    def groups(cls):
+        return session.query(Chat).filter(cast(Chat.chat_id, String).startswith('-')).count()
+
+    @classmethod
+    def users(cls):
+        return session.query(Chat).filter(not_(cast(Chat.chat_id, String).startswith('-'))).count()
 
     @classmethod
     def count(cls):
         return session.query(Chat).count()
     
     @classmethod
-    def is_translate(cls, chat_id):
+    def get(cls, chat_id):
         chat = session.query(Chat).filter_by(chat_id=chat_id).first()
+        return chat
     
-        if chat.auto_translate is None:
-            chat.auto_translate = True
-            chat.save()
-
-        return chat.auto_translate
-
     @classmethod
     def toggle_set_translate(cls, chat_id):
         chat = session.query(Chat).filter_by(chat_id=chat_id).first()
@@ -62,15 +61,6 @@ class Chat(Base):
         chat.save()
 
         return value
-
-    @classmethod
-    def groups(cls):
-        return session.query(Chat).filter(cast(Chat.chat_id, String).startswith('-')).count()
-
-
-    @classmethod
-    def users(cls):
-        return session.query(Chat).filter(not_(cast(Chat.chat_id, String).startswith('-'))).count()
 
     @classmethod
     def active_users(cls):
@@ -87,35 +77,12 @@ class Chat(Base):
 
         return len(users_with_weekly_messages)
     
-
-    @classmethod
-    def create(cls, chat_id, chat_name, username, type_):
-        from db.proccessors import MessageProcessor
-
-        obj = cls(chat_name=chat_name, chat_id=chat_id, username=username)
-
-        session.add(obj)
-        session.commit()
-
-        MessageProcessor.create_system_messages(chat_id, type_)
-
-        return obj
-
-    
     def save(self):
         session.add(self)
         session.commit()
 
-    async def activate(self, type_):
-        chat = session.query(Chat).filter_by(chat_id=self.chat_id).first()
-        
-        if chat is None:
-            chat = Chat.create(self.chat_id, self.chat_name, self.username, type_)
-            await send_event(f"#new\nid: {chat.id}\ntelegramId: {self.chat_id}\nusername: @{self.username}\nname: {self.chat_name}\ntype: {type_}")
+        return self
 
-        chat.is_activated = True
-        session.add(chat)
-        session.commit()
 
     
     @classmethod

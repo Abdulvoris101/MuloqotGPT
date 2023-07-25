@@ -20,3 +20,4 @@ class MessageProcessor:
         for message in system_messages:
             Message(chat_id=chat_id, data=message).save()
 
+

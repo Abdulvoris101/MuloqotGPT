@@ -7,7 +7,7 @@ from apps.core.models import Message, Chat
 from .keyboards import admin_keyboards, cancel_keyboards, sendMessageMenu, dynamic_sendMenu
 from aiogram.dispatcher.filters import Text
 from db.setup import query
-from .utils import SendAny, extract_inline_buttons
+from utils import SendAny, extract_inline_buttons
 from filters.admin import IsAdmin
 
 

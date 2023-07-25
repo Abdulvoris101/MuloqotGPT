@@ -1,36 +1,12 @@
 from deep_translator import GoogleTranslator
-import os
-from bot import types, bot
 import re
-import tiktoken
 
-def count_tokens(messages):
-    enc = tiktoken.get_encoding("cl100k_base")
-    token_counts = [len(enc.encode(message['content'])) for message in messages]
-    total_tokens = sum(token_counts)
-    return total_tokens
-
-
-async def send_event(text):
-    await bot.send_message(os.environ.get("EVENT_CHANNEL_ID"), text, parse_mode='HTML')
-
-
-async def send_error(text):
-    await bot.send_message(os.environ.get("ERROR_CHANNEL_ID"), text, parse_mode='HTML')
-
-
-async def activate(message: types.Message):
-    from .models import Chat
-
-    chat = Chat(message.chat.id, message.chat.full_name, message.chat.username)
-    await chat.activate(str(message.chat.type))
-    
 
 def translate_message(message, chat_id, from_='uz', lang='en'):
-    from .models import Chat
+    from apps.core.models import Chat
 
     if chat_id is not None:
-        is_translate = Chat.is_translate(chat_id)
+        is_translate = Chat.get(chat_id).auto_translate
     else:
         is_translate = True
     
@@ -50,9 +26,6 @@ def translate_out_of_code(text, chat_id):
 
     if text.find("`") == -1:
         return translate_message(text, chat_id, from_='auto', lang='uz')
-
-
-    print(True)
 
     code_pattern = r'```.*?```'
 

@@ -1,5 +1,19 @@
-from bot import bot
+import os
+from bot import bot, types
+import tiktoken
 import re
+
+# Bot 
+
+async def send_event(text):
+    await bot.send_message(os.environ.get("EVENT_CHANNEL_ID"), text, parse_mode='HTML')
+
+
+async def send_error(text):
+    await bot.send_message(os.environ.get("ERROR_CHANNEL_ID"), text, parse_mode='HTML')
+
+
+# SendAny type message
 
 class SendAny:
     def __init__(self, message):
@@ -26,6 +40,16 @@ class SendAny:
 
 
 
+# Token counter
+
+def count_tokens(messages):
+    enc = tiktoken.get_encoding("cl100k_base")
+    token_counts = [len(enc.encode(message['content'])) for message in messages]
+    total_tokens = sum(token_counts)
+    return total_tokens
+
+
+# Extract inline buttons
 
 def extract_inline_buttons(text):
     # Split the input string using the found occurrences

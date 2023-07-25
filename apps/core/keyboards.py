@@ -1,6 +1,5 @@
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from .models import Chat
-from db.setup import session
 
 restoreMenu = InlineKeyboardMarkup(row_width=2)
 btnYes = InlineKeyboardButton(text="Xa", callback_data="yes_restore")
@@ -19,7 +18,7 @@ joinChannelMenu.add(btnCheck)
 
 def settingsMenu(chat_id):
     settingsMenu = InlineKeyboardMarkup(row_width=2)
-    is_translate = Chat.is_translate(chat_id)
+    is_translate = Chat.get(chat_id).auto_translate
         
     text = "Tarjimonni o'chirish" if is_translate else "Tarjimonni yoqish"
     
