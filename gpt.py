@@ -2,7 +2,7 @@ import os
 import openai
 from openai.error import RateLimitError, ServiceUnavailableError, InvalidRequestError
 from dotenv import load_dotenv
-from core.models import  Chat
+from core.models import  Message
 import sys
 from core.utils import send_event
 import time
@@ -27,6 +27,9 @@ async def answer_ai(messages, chat_id):
         
         if "tokens" in error:
             await  send_event(f"#type {e.error.get('type')}\n{error}\n\n#openai error\n\n#user {chat_id}")
+            
+            Message.delete_by_limit(chat_id)
+
             return "Kechirasiz, men sizni tushunmadim, takrorlay olasizmi?"
         else:
             await  send_event(f"#type {e.error.get('type')}\n{error}\n\n#openai error\n\n#user {chat_id}")

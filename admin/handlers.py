@@ -48,6 +48,7 @@ async def add_rule(message: types.Message, state=FSMContext):
         data['message'] = message.text
 
     await state.finish()
+    
     Message.system_to_all(text=message.text)
     return await message.answer("System xabar kiritildi!")
 
@@ -71,6 +72,7 @@ async def send_message(message: types.Message, state=FSMContext):
     sendAny = SendAny(message)
 
     chats = Chat.all()
+
     for chat in chats:
         try: 
             if message.content_type == "text":

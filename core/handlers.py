@@ -76,7 +76,7 @@ class AIChatHandler:
 
         # Delete the temporary processing message
         await bot.delete_message(self.chat_id, sent_message.message_id)
-
+        
         try:
             # Send the AI response to the user
             await self.reply_or_send(str(response_uz), disable_web_page_preview=True, parse_mode=types.ParseMode.MARKDOWN)

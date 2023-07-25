@@ -14,7 +14,7 @@ router = APIRouter()
 @router.get("/", response_class=HTMLResponse)
 async def admin_index(request: Request, page: int=Query(1, gt=0)):
 
-    rows_per_page = 10
+    rows_per_page = 5
 
     # Calculate the offset for the current page
     offset = (page - 1) * rows_per_page
@@ -27,7 +27,10 @@ async def admin_index(request: Request, page: int=Query(1, gt=0)):
 
     # Query the data with pagination
     query = session.query(Chat).limit(rows_per_page).offset(offset)
+
     chats = query.all()
+
+    all_chats = session.query(Chat).all()
 
     context = {
         "chats": chats,
@@ -36,9 +39,27 @@ async def admin_index(request: Request, page: int=Query(1, gt=0)):
         "active_users": Chat.active_users(),
         "request": request,
         "users": Chat.users(),
+        "all_chats": all_chats,
         "total_pages": total_pages,
         "current_page": page
     }
     
     return templates.TemplateResponse("index.html", context)
+
+
+
+@router.get("/system_messages", response_class=HTMLResponse)
+async def system_messages(request: Request):
+    all_system_messages = Message.get_system_messages()
+
+    context = {
+        "groups": Chat.groups(),
+        "messages": Message.count(),
+        "active_users": Chat.active_users(),
+        "request": request,
+        "users": Chat.users(),
+        "all_system_messages": all_system_messages
+    }
+    
+    return templates.TemplateResponse("system_messages.html", context)
 

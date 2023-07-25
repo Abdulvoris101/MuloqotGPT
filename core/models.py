@@ -38,7 +38,7 @@ class Chat(Base):
 
     @classmethod
     def all(cls):
-        return session.query(Chat.id, Chat.chat_name, Chat.username, Chat.is_activated, Chat.chat_id, Chat.created_at).all()
+        return session.query(Chat.id, Chat.chat_name, Chat.username, Chat.last_updated, Chat.messages_count, Chat.auto_translate, Chat.chat_id, Chat.credit, Chat.created_at).all()
 
     @classmethod
     def count(cls):
@@ -253,6 +253,8 @@ class Message(Base):
     def system_role(cls, instance):
         chat_id = instance.chat.id
         created_at = datetime.now()
+        
+        print(chat_id)
 
         data = {"role": "assistant", "content": str(instance.text), "uz_message": "system"}
 
@@ -269,11 +271,35 @@ class Message(Base):
 
         for chat in chats:
             data = {"role": "assistant", "content": text, "uz_message": "system"}
-            obj = cls(data=json.dumps(data, ensure_ascii=False), chat_id=chat[3], created_at=created_at)
+            obj = cls(data=json.dumps(data, ensure_ascii=False), chat_id=chat[4], created_at=created_at)
 
             obj.save()
 
         return 
+
+    @classmethod
+    def get_system_messages(cls):
+        chat = session.query(Chat).filter_by(chat_id=5069155115).first()
+
+        messages = session.query(Message.data).filter_by(chat_id=chat.chat_id).all()
+
+        msgs = []
+                
+        for (data,) in messages:
+            data_dict = json.loads(data)
+
+            data_dict = json.loads(data)
+
+            if not isinstance(data_dict, dict):
+                msg = {k: v for k, v in eval(data_dict).items() if k != "uz_message"}
+            else:
+                msg = {k: v for k, v in data_dict.items() if k != "uz_message"}
+
+            if msg["role"] == "system":
+                msgs.append(msg)    
+
+        return msgs 
+        
 
     @classmethod
     def count(cls):
