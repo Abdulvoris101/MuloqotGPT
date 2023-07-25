@@ -12,6 +12,10 @@ def count_tokens(messages):
 
 
 async def send_event(text):
+    await bot.send_message(os.environ.get("EVENT_CHANNEL_ID"), text, parse_mode='HTML')
+
+
+async def send_error(text):
     await bot.send_message(os.environ.get("ERROR_CHANNEL_ID"), text, parse_mode='HTML')
 
 

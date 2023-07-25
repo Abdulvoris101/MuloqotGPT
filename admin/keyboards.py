@@ -1,24 +1,37 @@
 from aiogram import types
 
-kb1 = types.KeyboardButton(".📊 Statistika")
-kb2 = types.KeyboardButton(".📤 Xabar yuborish")
-kb3 = types.KeyboardButton(".🤖 System xabar yuborish")
-kb4 = types.KeyboardButton(".‼️ Xatoliklar")
-# kb5 = types.KeyboardButton(".👥 Foydalanuvchi qo'shish")
-kb6 = types.KeyboardButton(".🌄 Reklama yuborish")
-
-
 admin_keyboards = types.ReplyKeyboardMarkup([
         [
-            kb2
+            types.KeyboardButton("📤 Xabar yuborish.!"),
+            types.KeyboardButton("🤖 System xabar yuborish.!")
         ],
         [
-            kb3,
-            kb4
+            types.KeyboardButton("📊 Statistika.!")
         ],
-        [
-            kb6,
-            kb1
-        ]
     ], resize_keyboard=True, one_time_keyboard=True
 )
+
+
+cancel_keyboards = types.ReplyKeyboardMarkup([
+        [
+            types.KeyboardButton("/cancel"),
+        ],
+    ], resize_keyboard=True, one_time_keyboard=True
+)
+
+sendMessageMenu = types.InlineKeyboardMarkup(row_width=1)
+
+inlineMessage = types.InlineKeyboardButton(text="Inline bilan", callback_data="with_inline")
+simpleMessage = types.InlineKeyboardButton(text="Oddiy post", callback_data="without_inline")
+
+sendMessageMenu.add(inlineMessage)
+sendMessageMenu.add(simpleMessage)
+
+
+def dynamic_sendMenu(inline_keyboards):
+    sendInlineMenu = types.InlineKeyboardMarkup(row_width=2)
+
+    for kb in inline_keyboards:
+        sendInlineMenu.add(types.InlineKeyboardButton(text=str(kb["name"]), url=str(kb["callback_url"])))
+    
+    return sendInlineMenu

@@ -18,5 +18,7 @@ class PerformIdState(StatesGroup):
 class AdminSendMessage(StatesGroup):
     message = State()
 
-class AdminAdsMessage(StatesGroup):
-    message_photo = State()
+class SendMessageWithInlineState(StatesGroup):
+    buttons = State()
+    message = State()
+

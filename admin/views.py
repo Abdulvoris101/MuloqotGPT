@@ -51,7 +51,7 @@ async def admin_index(request: Request, page: int=Query(1, gt=0)):
 @router.get("/system_messages", response_class=HTMLResponse)
 async def system_messages(request: Request):
     all_system_messages = Message.get_system_messages()
-
+    
     context = {
         "groups": Chat.groups(),
         "messages": Message.count(),

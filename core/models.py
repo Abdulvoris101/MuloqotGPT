@@ -2,7 +2,7 @@ from sqlalchemy import Column, Integer, String, UnicodeText, Boolean, BigInteger
 from db.setup import session, Base
 from .utils import send_event, translate_out_of_code
 from sqlalchemy import not_, cast
-from sqlalchemy import func
+from sqlalchemy import func, desc
 from datetime import datetime, timedelta
 
 
@@ -254,8 +254,6 @@ class Message(Base):
         chat_id = instance.chat.id
         created_at = datetime.now()
         
-        print(chat_id)
-
         data = {"role": "assistant", "content": str(instance.text), "uz_message": "system"}
 
         obj = cls(data=json.dumps(data, ensure_ascii=False), chat_id=chat_id, created_at=created_at)
@@ -271,7 +269,7 @@ class Message(Base):
 
         for chat in chats:
             data = {"role": "assistant", "content": text, "uz_message": "system"}
-            obj = cls(data=json.dumps(data, ensure_ascii=False), chat_id=chat[4], created_at=created_at)
+            obj = cls(data=json.dumps(data, ensure_ascii=False), chat_id=chat[6], created_at=created_at)
 
             obj.save()
 
@@ -279,7 +277,7 @@ class Message(Base):
 
     @classmethod
     def get_system_messages(cls):
-        chat = session.query(Chat).filter_by(chat_id=5069155115).first()
+        chat = session.query(Chat).order_by(desc(Chat.id)).first()
 
         messages = session.query(Message.data).filter_by(chat_id=chat.chat_id).all()
 

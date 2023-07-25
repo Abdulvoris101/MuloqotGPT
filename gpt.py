@@ -4,7 +4,7 @@ from openai.error import RateLimitError, ServiceUnavailableError, InvalidRequest
 from dotenv import load_dotenv
 from core.models import  Message
 import sys
-from core.utils import send_event
+from core.utils import send_error
 import time
 
 load_dotenv()  # take environment variables from .env.
@@ -26,13 +26,13 @@ async def answer_ai(messages, chat_id):
         error = e.error["message"]
         
         if "tokens" in error:
-            await  send_event(f"#type {e.error.get('type')}\n{error}\n\n#openai error\n\n#user {chat_id}")
+            await send_error(f"#type {e.error.get('type')}\n{error}\n\n#openai error\n\n#user {chat_id}")
             
             Message.delete_by_limit(chat_id)
 
             return "Kechirasiz, men sizni tushunmadim, takrorlay olasizmi?"
         else:
-            await  send_event(f"#type {e.error.get('type')}\n{error}\n\n#openai error\n\n#user {chat_id}")
+            await  send_error(f"#type {e.error.get('type')}\n{error}\n\n#openai error\n\n#user {chat_id}")
 
         return "Chatgptda uzilish kuzatilinmoqda, Iltimos, keyinroq qayta urinib ko'ring."
 
@@ -40,7 +40,7 @@ async def answer_ai(messages, chat_id):
     except RateLimitError as e:
         error = e.error["message"]
         
-        await send_event(f"<b>#ratelimiterror</b>\n{error}\n#type {e.error.get('type')}\n\n#openai error\n\n#user {chat_id}")
+        await send_error(f"<b>#ratelimiterror</b>\n{error}\n#type {e.error.get('type')}\n\n#openai error\n\n#user {chat_id}")
         
         time.sleep(3)
         
@@ -52,7 +52,7 @@ async def answer_ai(messages, chat_id):
         except:
             error = str(e)
 
-        await send_event(f"<b>#serviceunvavailable</b>\n#type ServiceUnavailable\n{error}\n\n#openai error\n\n#user {chat_id}")
+        await send_error(f"<b>#serviceunvavailable</b>\n#type ServiceUnavailable\n{error}\n\n#openai error\n\n#user {chat_id}")
 
         return "Chatgptda uzilish kuzatilinmoqda, Iltimos, keyinroq qayta urinib ko'ring."
     
@@ -60,7 +60,7 @@ async def answer_ai(messages, chat_id):
     except openai.OpenAIError as e:        
         error = e.error["message"]
 
-        await send_event(f"<b>#all error</b>\n#type {e.error.get('type')}\n{error}\n\n#openai error\n\n#user {chat_id}")
+        await send_error(f"<b>#all error</b>\n#type {e.error.get('type')}\n{error}\n\n#openai error\n\n#user {chat_id}")
 
         return "Chatgptda uzilish kuzatilinmoqda, Iltimos, keyinroq qayta urinib ko'ring"
     
@@ -68,7 +68,7 @@ async def answer_ai(messages, chat_id):
     except Exception as e:
         # Handle other exceptions
 
-        await send_event(f"<b>#error</b>\n{e}\n\n#exc error\n\n#user {chat_id}")
+        await send_error(f"<b>#error</b>\n{e}\n\n#exc error\n\n#user {chat_id}")
 
         return "Что-то пошло не так. Пожалуйста, отправьте запрос позже"
 

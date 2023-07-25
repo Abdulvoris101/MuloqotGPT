@@ -4,9 +4,12 @@ from gpt import answer_ai
 from .models import Message, Chat
 from .keyboards import joinChannelMenu, settingsMenu
 from .filters import IsReplyFilter, UserFilter
+from aiogram.dispatcher.dispatcher import FSMContext
 
 PROCESSING_MESSAGE = "⏳..."
 ERROR_MESSAGE = "Iltimos boshqatan so'rov yuboring"
+
+
 
 
 class AIChatHandler:
@@ -84,7 +87,9 @@ class AIChatHandler:
             await self.reply_or_send(ERROR_MESSAGE, disable_web_page_preview=True, parse_mode=types.ParseMode.MARKDOWN)
 
 
-@dp.message_handler(lambda message: not message.text.startswith('/') and not message.text.startswith('.') and message.chat.type == 'private')
+
+
+@dp.message_handler(lambda message: not message.text.startswith('/') and not message.text.endswith('.!') and message.chat.type == 'private')
 async def handle_private_messages(message: types.Message):
     chat = AIChatHandler(message=message)
 
@@ -157,6 +162,7 @@ async def toggle_translate(message: types.Message):
                             text="⚙️ Sozlamalar", reply_markup=settingsMenu(chat_id=message.message.chat.id))
 
     await message.answer(text)
+    
     
 # Close inline
 @dp.callback_query_handler(text="close")
