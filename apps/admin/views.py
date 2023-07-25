@@ -1,8 +1,7 @@
 from fastapi.templating import Jinja2Templates
 from fastapi import APIRouter, Request, Query, Depends
 from fastapi.responses import HTMLResponse
-from core.models import Message, Chat
-from core.schemas import ChatScheme
+from apps.core.models import Message, Chat
 from db.setup import session
 
 

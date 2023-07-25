@@ -2,9 +2,9 @@ import os
 import openai
 from openai.error import RateLimitError, ServiceUnavailableError, InvalidRequestError
 from dotenv import load_dotenv
-from core.models import  Message
+from apps.core.models import  Message
 import sys
-from core.utils import send_error
+from apps.core.utils import send_error
 import time
 
 load_dotenv()  # take environment variables from .env.

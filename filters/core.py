@@ -1,11 +1,11 @@
 from db.setup import session
-from .models import Chat
+from apps.core.models import Chat
 import os
 from app import bot
 from aiogram.dispatcher.filters import BoundFilter
 from aiogram import types
-from .utils import activate
-from .keyboards import joinChannelMenu
+from apps.core.utils import activate
+from apps.core.keyboards import joinChannelMenu
 
 
 class IsReplyFilter(BoundFilter):

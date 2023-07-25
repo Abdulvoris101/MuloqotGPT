@@ -3,16 +3,16 @@ from .utils import translate_message, activate, count_tokens
 from gpt import answer_ai
 from .models import Message, Chat
 from .keyboards import joinChannelMenu, settingsMenu
-from .filters import IsReplyFilter, UserFilter
-from aiogram.dispatcher.dispatcher import FSMContext
+from filters.core import IsReplyFilter, UserFilter
 
-PROCESSING_MESSAGE = "⏳..."
-ERROR_MESSAGE = "Iltimos boshqatan so'rov yuboring"
 
 
 
 
 class AIChatHandler:
+    PROCESSING_MESSAGE = "⏳..."
+    ERROR_MESSAGE = "Iltimos boshqatan so'rov yuboring"
+
     def __init__(self, message):
         self.message = message
         self.chat_id = message.chat.id
@@ -48,7 +48,7 @@ class AIChatHandler:
         await UserFilter.activate_and_check(self.message, self.chat_id)
 
         # Send a temporary message indicating processing
-        sent_message = await self.reply_or_send(PROCESSING_MESSAGE)
+        sent_message = await self.reply_or_send(self.PROCESSING_MESSAGE)
 
         # Translate the message to English
         message_en = translate_message(self.text, self.chat_id, lang='en')
@@ -84,9 +84,7 @@ class AIChatHandler:
             # Send the AI response to the user
             await self.reply_or_send(str(response_uz), disable_web_page_preview=True, parse_mode=types.ParseMode.MARKDOWN)
         except Exception as e:
-            await self.reply_or_send(ERROR_MESSAGE, disable_web_page_preview=True, parse_mode=types.ParseMode.MARKDOWN)
-
-
+            await self.reply_or_send(self.ERROR_MESSAGE, disable_web_page_preview=True, parse_mode=types.ParseMode.MARKDOWN)
 
 
 @dp.message_handler(lambda message: not message.text.startswith('/') and not message.text.endswith('.!') and message.chat.type == 'private')
@@ -113,15 +111,16 @@ async def send_welcome(message: types.Message):
     
     await activate(message)
 
+# Bot chatgpt va lexica ai ni rasm generatsiyasi uchun  ishlatadi. Siz chatgptni mutloq bepul  ishlatishingiz mumkin, lekin rasm generatsiya  qilish uchun aqsha sotib olishingiz kerak. Bitta rasm generatsiyasi  20 aqsha turadi, va xar bir foydalanuvchiga boshida 100 aqsha beriladi. Batafsil -> link
+
 
 @dp.message_handler(commands=['help'])
 async def help(message: types.Message):
-    await message.answer("""<b>Bot qanday ishlaydi?</b>
-Bot chatgpt va lexica ai ni rasm generatsiyasi uchun  ishlatadi. Siz chatgptni mutloq bepul  ishlatishingiz mumkin, lekin rasm generatsiya  qilish uchun aqsha sotib olishingiz kerak. Bitta rasm generatsiyasi  20 aqsha turadi, va xar bir foydalanuvchiga boshida 100 aqsha beriladi. Batafsil -> link
+    await message.answer("""<b>Botni qanday ishlataman?</b>
+Botda  chatgptni  ishlatish uchun botga shunchaki so'rov yuborish kifoya. Rasm generatsiyasi uchun esa shu komandani yuboring: /art prompt. Prompt o'rniga o'zingizni so'rovingizni yuboring. 
 
-Bot qo'shimcha xususiyatlari:
-
-🔹<b>Avtotarjima:</b> - bilasiz chatgpt o'zbek tilini tushunmaydi shuning uchun botda avtotarjima xususiyati mavjud, agarda avtotarjimani yoqib qo'ysangiz sizning xar bir so'rovingiz tarjimon orqali ingliz tilga  o'tqizilib chatgptga yuboriladi va  kelgan javob esa o'zbekchaga tarjima qilinadi. Bu bilan siz ingliz tilini bilmasdan turib chatgptni to'liqona ishlatishingiz mumkin bo'ladi. Avtotarjima mutlaqo bepul
+<b>Botning qo'shimcha xususiyatlari</b>:
+🔹<b>Avtotarjima:</b> - bilasiz chatgpt o'zbek tilini tushunmaydi shuning uchun botda avtotarjima xususiyati mavjud, agarda avtotarjimani yoqib qo'ysangiz sizning xar bir so'rovingiz tarjimon orqali ingliz tilga  o'tqizilib chatgptga yuboriladi va  kelgan javob esa o'zbekchaga tarjima qilinadi. Bu bilan siz ingliz tilini bilmasdan turib chatgptni to'liqona ishlatishingiz mumkin bo'ladi.
 
 🔹<b>Xazilkash AI:</b> muloqotai guruhlarda xam gaplasha oladi, qiziq tomoni u guruhlarda gaplashgan payti juda xam xazilkash tutadi. Siz bot bilan xuddi do'st kabi muloqot qila olasiz. Agarda siz  aniqroq javob olmoqchi bo'lsangiz uning o'ziga yozing
 
@@ -129,9 +128,9 @@ Botni guruhga qanday qo'shish bo'yicha batafsil ma'lumot - /groupinfo""")
 
 @dp.message_handler(commands=["groupinfo"])
 async def groupinfo(message: types.Message):
-    await message.answer("""Shaxsiy va guruh suhbatlaringizda yordam beradigan foydali yordamchi! Ushbu botning <b>guruhda</b> ishlash tartibi quyidagicha:\n\n1️⃣ <b>Guruhga qo'shish</b>: MuloqotAIdan foydalanish uchun, uningni Telegram gruhingizga qo'shing. Bu uchun "@muloqataibot" ni qidiring va uningni gruhga taklif qiling.\n\n2️⃣ <b>Admin huquqlarini berish</b>: MuloqotAItning samarali ishlashi uchun uningni admin sifatida qo'shish kerak. Uningga to'g'ri admin huquqlarini berishni unutmang, masalan, xabarlarni o'chirish (ixtiyoriy) va boshqa sozlamalarni boshqarish.\n\n3️⃣ <b>Gruhda suhbatlashish</b>: Bot bilan suhbat qurish uchun unga reply tarzida so'rov yuboring. Guruh a'zolari savollarni so'rash, ma'lumot so'ralish, yordam so'ralish yoki qiziqarli suhbatlar olib borishlari mumkin.\n\n➕ <b>Qo'shimcha:</b> Men guruh bilan hazil va latifalar bilan gaplashish imkoniyatiga egaman.""")
+    await message.answer("""Shaxsiy va guruh suhbatlaringizda yordam beradigan foydali yordamchi! Ushbu botning <b>guruhda</b> ishlash tartibi quyidagicha:\n\n1️⃣ <b>Guruhga qo'shish</b>: MuloqotAIdan foydalanish uchun, uningni Telegram gruhingizga qo'shing. Bu uchun "@muloqataibot" ni qidiring va uningni gruhga taklif qiling.\n\n2️⃣ <b>Admin huquqlarini berish</b>: MuloqotAItning samarali ishlashi uchun uningni admin sifatida qo'shish kerak. Uningga to'g'ri admin huquqlarini berishni unutmang, masalan, xabarlarni o'chirish (ixtiyoriy) va boshqa sozlamalarni boshqarish.\n\n3️⃣ <b>Gruhda suhbatlashish</b>: Bot bilan suhbat qurish uchun unga reply tarzida so'rov yuboring. Guruh a'zolari savollarni so'rash, ma'lumot so'ralish, yordam so'ralish yoki qiziqarli suhbatlar olib borishlari mumkin.\n\n➕ <b>Ochiq guruh:</b> @muloqataigr""")
 
-@dp.message_handler(commands=['ability'])
+@dp.message_handler(commands=['about'])
 async def ability(message: types.Message):
     await message.answer("""💡 Aqlli: Ko'plab mavzularni tushunish va javob berishga tayyorman. Umumiy bilimdan ma'lumotlarni qidirishga qadar, sizga aniqligi va maqbul javoblarni taklif etishim mumkin.\n\n🧠 Dono: Men doimiy o'rganish va rivojlanishda, yangi ma'lumotlarga va foydalanuvchi bilan bo'lishuvlarga moslashishim mumkin. Aqlli muloqotlarni taklif etishim mumkin.\n\n😄 Xushchaqchaq: Hayot kulguli tabassum bilan yaxshilanadi, va men sizning yuzingizga tabassum olib kelish uchun bu yerga keldim!\n\n🌄 Rassom: Mening yana bir qobilyatlarimdan biri bu rasm generatsiya qila olishim. Men sizga xar qanday turdagi ajoyib rasmlarni generatsiya qilib olib bera olaman\n\n⚙️ Avtotarjima: Meni siz bilan o'zbek tilida yanada yahshiroq muloqot qila olishim uchun, avtotarjima funksiyasini ishlataman. Endi siz ingliz tilida qiynalib menga yozishingiz shart emas. Bu funksiya ixtiyoriy xoxlagan paytiz o'chirib qo'yishingiz mumkin. """)
 
@@ -163,7 +162,7 @@ async def toggle_translate(message: types.Message):
 
     await message.answer(text)
     
-    
+
 # Close inline
 @dp.callback_query_handler(text="close")
 async def close(message: types.Message):

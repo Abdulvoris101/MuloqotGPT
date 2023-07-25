@@ -2,8 +2,8 @@ from bot import dp, bot, types
 from .utils import LexicaAi 
 from .keyboards import refreshMenu, buyCreditMenu
 from aiogram.dispatcher.filters import Command
-from .filters import IsPrivate
-from core.orm import Credit
+from filters.imageai import IsPrivate
+from apps.core.orm import Credit
 
 dp.filters_factory.bind(IsPrivate)
 
@@ -22,7 +22,10 @@ async def handle_art(message: types.Message):
     if not is_enough:
         return await message.answer("Sizda aqsha qolmadi ❌", reply_markup=buyCreditMenu)
     
-    message = await bot.send_message(message.chat.id, "...")
+    sent_message = await bot.send_message(message.chat.id, "...")
+
+    await message.answer_chat_action("typing")
+
     
     images = LexicaAi.generate(query)
 
@@ -32,6 +35,6 @@ async def handle_art(message: types.Message):
 
     media_group[0].caption = f"\n🌄 {query}\n\n<b>Ishlatilindi:</b> 20 aqsha\n<b>Balans:</b> {credit.get()[0]} aqsha \n\n@muloqataibot"
     
-    await bot.delete_message(message.chat.id, message_id=message.message_id)
+    await bot.delete_message(message.chat.id, message_id=sent_message.message_id)
     await bot.send_media_group(message.chat.id, media=media_group)
 

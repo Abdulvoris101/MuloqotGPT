@@ -6,12 +6,12 @@ import os
 from aiogram.dispatcher.dispatcher import Dispatcher, Bot
 import uvicorn
 
-from core.handlers import dp
-from admin.handlers import dp
+from apps.core.handlers import dp
+from apps.admin.handlers import dp
 from bot import dp
-from imageai.handlers import dp
+from apps.imageai.handlers import dp
 
-from admin.views import router
+from apps.admin.views import router
 
 from fastapi.staticfiles import StaticFiles
 from fastapi_pagination import add_pagination

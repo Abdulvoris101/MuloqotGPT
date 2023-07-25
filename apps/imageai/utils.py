@@ -1,5 +1,5 @@
 import requests
-from core.utils import translate_message
+from apps.core.utils import translate_message
 import json
 import random
 import httpx
