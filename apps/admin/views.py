@@ -2,6 +2,7 @@ from fastapi.templating import Jinja2Templates
 from fastapi import APIRouter, Request, Query, Depends
 from fastapi.responses import HTMLResponse
 from apps.core.models import Message, Chat
+from apps.core.managers import ChatManager, MessageManager
 from db.setup import session
 
 
@@ -18,8 +19,8 @@ async def admin_index(request: Request, page: int=Query(1, gt=0)):
     offset = (page - 1) * rows_per_page
     
     # Query the data without pagination to get the total count
-    total_items = session.query(Chat).count()
-
+    total_items = ChatManager.count()
+    
     # Calculate the total number of pages
     total_pages = (total_items // rows_per_page) + (1 if total_items % rows_per_page > 0 else 0)
 
@@ -28,15 +29,15 @@ async def admin_index(request: Request, page: int=Query(1, gt=0)):
 
     chats = query.all()
 
-    all_chats = session.query(Chat).all()
+    all_chats = ChatManager.all()
 
     context = {
         "chats": chats,
-        "groups": Chat.groups(),
+        "groups": ChatManager.groups(),
         "messages": Message.count(),
-        "active_users": Chat.active_users(),
+        "active_users": ChatManager.active_users(),
         "request": request,
-        "users": Chat.users(),
+        "users": ChatManager.users(),
         "all_chats": all_chats,
         "total_pages": total_pages,
         "current_page": page
@@ -48,14 +49,14 @@ async def admin_index(request: Request, page: int=Query(1, gt=0)):
 
 @router.get("/system_messages", response_class=HTMLResponse)
 async def system_messages(request: Request):
-    all_system_messages = Message.get_system_messages()
+    all_system_messages = MessageManager.get_system_messages()
     
     context = {
-        "groups": Chat.groups(),
+        "groups": ChatManager.groups(),
         "messages": Message.count(),
-        "active_users": Chat.active_users(),
+        "active_users": ChatManager.active_users(),
         "request": request,
-        "users": Chat.users(),
+        "users": ChatManager.users(),
         "all_system_messages": all_system_messages
     }
     

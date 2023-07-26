@@ -3,13 +3,11 @@ import os
 from bot import dp, types, bot
 from db.state import AdminLoginState, AdminSystemMessageState, SendMessageWithInlineState,  AdminSendMessage, PerformIdState
 from .models import Admin
-from apps.core.models import Message, Chat
+from apps.core.managers import ChatManager, MessageManager
 from .keyboards import admin_keyboards, cancel_keyboards, sendMessageMenu, dynamic_sendMenu
 from aiogram.dispatcher.filters import Text
-from db.setup import query
 from utils import SendAny, extract_inline_buttons
-from filters.admin import IsAdmin
-
+from filters import IsAdmin
 
 
 @dp.message_handler(IsAdmin(), commands=["cancel"], state='*')
@@ -59,14 +57,14 @@ async def add_rule(message: types.Message, state=FSMContext):
 
     await state.finish()
     
-    Message.system_to_all(text=message.text)
+    MessageManager.system_to_allchat(text=message.text)
     return await message.answer("System xabar kiritildi!")
 
 
 
 @dp.message_handler(IsAdmin(), Text(equals="📊 Statistika.!"))
 async def get_statistics(message: types.Message):
-    return await message.answer(f"👤 Foydalanuvchilar - {Chat.users()}.\n💥 Aktiv Foydalanuvchilar - {Chat.active_users()}\n👥 Guruhlar - {Chat.groups()}\n📥Xabarlar - {query(Message).count()}")
+    return await message.answer(f"👤 Foydalanuvchilar - {ChatManager.users()}.\n💥 Aktiv Foydalanuvchilar - {ChatManager.active_users()}\n👥 Guruhlar - {ChatManager.groups()}\n📥Xabarlar - {MessageManager.count()}")
     
 
 @dp.message_handler(IsAdmin(), Text(equals="📤 Xabar yuborish.!"))
@@ -95,20 +93,20 @@ async def send_message(message: types.Message, state=FSMContext):
 
     sendAny = SendAny(message)
 
-    chats = Chat.all()
+    chats = ChatManager.all()
 
     for chat in chats:
         try: 
             if message.content_type == "text":
-                await sendAny.send_message(chat[6])
+                await sendAny.send_message(chat.chat_id)
             elif message.content_type == "photo":
-                await sendAny.send_photo(chat[6])
+                await sendAny.send_photo(chat.chat_id)
             elif message.content_type == "video":
-                await sendAny.send_video(chat[6])
+                await sendAny.send_video(chat.chat_id)
             
         except BaseException as e:
             print(e)
-            print(chat[6])
+            print(chat.chat_id)
 
     return await message.answer("Xabar yuborildi!")
 
@@ -122,7 +120,7 @@ async def check_issubscripted(message: types.Message):
     return await message.answer("Inline")
 
 
-# With inline  buttons set
+# With inline  buttons set  
 
 @dp.message_handler(state=SendMessageWithInlineState.buttons)
 async def set_buttons(message: types.Message, state=FSMContext):
@@ -146,20 +144,20 @@ async def send_message_with_inline(message: types.Message, state=FSMContext):
 
         sendAny = SendAny(message)
 
-        chats = Chat.all()
+        chats = ChatManager.all()
 
         for chat in chats:
             try: 
                 if message.content_type == "text":
-                    await sendAny.send_message(chat[6], inline_keyboards)
+                    await sendAny.send_message(chat.chat_id, inline_keyboards)
                 elif message.content_type == "photo":
-                    await sendAny.send_photo(chat[6], inline_keyboards)
+                    await sendAny.send_photo(chat.chat_id, inline_keyboards)
                 elif message.content_type == "video":
-                    await sendAny.send_video(chat[6], inline_keyboards)
+                    await sendAny.send_video(chat.chat_id, inline_keyboards)
                 
             except BaseException as e:
                 print(e)
-                print(chat[6])
+                print(chat.chat_id)
     
     
     await state.finish()

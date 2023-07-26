@@ -1,8 +1,8 @@
 from bot import dp, bot, types
-from utils.requests import LexicaAi
+from .gen import LexicaAi
 from .keyboards import buyCreditMenu
-from filters.imageai import IsPrivate
-from apps.core.manager import Credit
+from filters import IsPrivate
+from apps.core.managers import CreditManager
 
 dp.filters_factory.bind(IsPrivate)
 
@@ -11,7 +11,7 @@ dp.filters_factory.bind(IsPrivate)
 async def handle_art(message: types.Message):
     query = message.get_args()
 
-    credit = Credit(message.from_user.id)
+    credit = CreditManager(message.from_user.id)
 
     if not query:
         return await message.answer("Iltimos so'rovingizni kiriting:\n` /art prompt` ", parse_mode="MARKDOWN")

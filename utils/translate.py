@@ -21,7 +21,7 @@ def translate_message(message, chat_id, from_='uz', lang='en'):
     return translated_message
 
 
-def translate_out_of_code(text, chat_id):
+def skip_code_translation(text, chat_id):
     # Define the pattern for identifying code blocks
 
     if text.find("`") == -1:

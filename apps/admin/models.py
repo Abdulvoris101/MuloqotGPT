@@ -1,5 +1,5 @@
-from sqlalchemy import create_engine, Column, Integer, String, Boolean, BigInteger, JSON
-from db.setup import session, Base, engine
+from sqlalchemy import Column, Integer, String, BigInteger, JSON
+from db.setup import session, Base
 
 
 # Define the 'Admin' table
@@ -23,7 +23,6 @@ class Admin(Base):
         if not self.__class__.is_admin(user_id):
             self.user_id = user_id
             self.save()
-
 
     def save(self):
         session.add(self)
@@ -63,9 +62,3 @@ class AdminMessage(Base):
     def save(self):
         session.add(self)
         session.commit()
-
-
-# Base.metadata.create_all(engine)
-
-# # Commit the changes and close the session
-# session.commit()

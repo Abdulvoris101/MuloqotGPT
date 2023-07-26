@@ -2,8 +2,7 @@ import os
 import openai
 from openai.error import RateLimitError, ServiceUnavailableError, InvalidRequestError
 from dotenv import load_dotenv
-from apps.core.models import  Message
-import sys
+from apps.core.managers import MessageManager
 from utils import send_error
 import time
 
@@ -28,7 +27,7 @@ async def request_gpt(messages, chat_id):
         if "tokens" in error:
             await send_error(f"#type {e.error.get('type')}\n{error}\n\n#openai error\n\n#user {chat_id}")
             
-            Message.delete_by_limit(chat_id)
+            MessageManager.delete_by_limit(chat_id)
 
             return "Kechirasiz, men sizni tushunmadim, takrorlay olasizmi?"
         else:

@@ -5,22 +5,14 @@ from app import bot
 from aiogram.dispatcher.filters import BoundFilter
 from aiogram import types
 from apps.core.keyboards import joinChannelMenu
-from apps.core.manager import ChatManager
-
-class IsReplyFilter(BoundFilter):
-    async def check(self, message: types.Message) -> bool:
-        if message.reply_to_message is not None:
-            if message.reply_to_message.from_user.is_bot:
-                return True
-
-        return  str(message.text).lower().startswith("muloqotai") or str(message.text).lower().startswith("@muloqataibot")
+from apps.core.managers import ChatManager
 
 
 class UserFilter:
 
     @classmethod
     async def is_active(cls, chat_id):
-        chat = session.query(Chat.is_activated).filter_by(chat_id=chat_id).first()
+        chat = Chat.get(chat_id)
 
         if chat is None:
             return False
@@ -46,6 +38,5 @@ class UserFilter:
     async def activate_and_check(cls, message, chat_id):
         if not await cls.is_active(chat_id):
             await ChatManager.activate(message)
-
         elif not await cls.is_subscribed(message.chat.type, chat_id):
             return await message.answer("Botdan foydalanish uchun quyidagi kannalarga obuna bo'ling", reply_markup=joinChannelMenu)

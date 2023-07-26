@@ -1,13 +1,6 @@
 from sqlalchemy import Column, Integer, String, UnicodeText, Boolean, BigInteger, DateTime
 from db.setup import session, Base
-from sqlalchemy import not_, cast, func, desc
-from datetime import datetime, timedelta
-from utils.translate import translate_out_of_code
-from utils import send_event
-
-
-three_months_ago = datetime.now() - timedelta(days=90)
-
+from datetime import datetime
 
 class Chat(Base):
     __tablename__ = 'chat'
@@ -18,7 +11,7 @@ class Chat(Base):
     is_activated = Column(Boolean)
     chat_id = Column(BigInteger)
     created_at = Column(DateTime, nullable=True)
-    credit = Column(BigInteger, default=50)
+    credit = Column(BigInteger, default=100)
     auto_translate = Column(Boolean, default=True)
     last_updated = Column(DateTime, nullable=True)
     messages_count = Column(BigInteger, default=0)
@@ -29,66 +22,41 @@ class Chat(Base):
         self.username = username
         self.created_at = datetime.now()
         self.is_activated = is_activated
-        
         super().__init__()
 
-    @classmethod
-    def all(cls):
-        return session.query(Chat.id, Chat.chat_name, Chat.username, Chat.last_updated, Chat.messages_count, Chat.auto_translate, Chat.chat_id, Chat.credit, Chat.created_at).all()
-
-    @classmethod
-    def groups(cls):
-        return session.query(Chat).filter(cast(Chat.chat_id, String).startswith('-')).count()
-
-    @classmethod
-    def users(cls):
-        return session.query(Chat).filter(not_(cast(Chat.chat_id, String).startswith('-'))).count()
-
-    @classmethod
-    def count(cls):
-        return session.query(Chat).count()
-    
-    @classmethod
-    def get(cls, chat_id):
-        chat = session.query(Chat).filter_by(chat_id=chat_id).first()
-        return chat
-    
-    @classmethod
-    def toggle_set_translate(cls, chat_id):
-        chat = session.query(Chat).filter_by(chat_id=chat_id).first()
-        value = False if chat.auto_translate else True
-        chat.auto_translate = value
-        chat.save()
-
-        return value
-
-    @classmethod
-    def active_users(cls):
-        created_at = three_months_ago.strftime('%Y-%m-%d')
-
-        users_with_weekly_messages = (
-            session.query(Chat.username)
-            .join(Message, Chat.chat_id == Message.chat_id)
-            .filter(Message.created_at >= three_months_ago)
-            .group_by(Chat.username)
-            .having(func.count(Message.id) >= 12)  # Assuming there are approximately 4 weeks in a month
-            .all()
-        )
-
-        return len(users_with_weekly_messages)
-    
     def save(self):
         session.add(self)
         session.commit()
 
         return self
-
-
     
+    @classmethod
+    def get(cls, chat_id):
+        chat = session.query(Chat).filter_by(chat_id=chat_id).first()
+
+        if chat is not None:
+            if chat.auto_translate is None:
+                chat.auto_translate = True
+            if chat.messages_count is None:
+                chat.messages_count = 0
+            if chat.credit is None:
+                chat.credit = 100
+        
+            chat.save()
+
+        return chat
+
+    @classmethod
+    def update(cls, instance, column, value):
+        setattr(instance, column, value)
+        session.commit()
+
     @classmethod
     def delete(self, chat_id):
         chat = session.query(Chat).filter_by(chat_id=chat_id).first()
         session.delete(chat)
+
+    
 
 
 
@@ -103,186 +71,19 @@ class Message(Base):
     chat_id = Column(BigInteger)
     created_at = Column(DateTime, nullable=True)
 
-    @classmethod
-    def all(cls, chat_id):
-        messages = session.query(Message.data).filter_by(chat_id=chat_id).order_by(Message.id).all()
-
-        msgs = []
-        
-        
-        for (data,) in messages:
-            data_dict = json.loads(data)
-
-            if not isinstance(data_dict, dict):
-                msg = {k: v for k, v in eval(data_dict).items() if k != "uz_message"}
-            else:
-                msg = {k: v for k, v in data_dict.items() if k != "uz_message"}
-
-            msgs.append(msg)    
-
-
-        return msgs
-
-
     def save(self):
         self.created_at = datetime.now()
         self.data = json.dumps(self.data, ensure_ascii=False)
         session.add(self)
         session.commit()
-
-
-    @classmethod
-    def user_role(cls, text, instance):
-        chat_id = instance.chat.id
-        created_at = datetime.now()
-        chat = session.query(Chat).filter_by(chat_id=chat_id).first()
-
-        chat.last_updated = datetime.now()
         
-        if chat.messages_count is None:
-            chat.messages_count = 0
-
-        chat.messages_count += 1
-        chat.save()
-
-        data = {"role": "user", "content": str(text), "uz_message": instance.text}
-
-        obj = cls(data=json.dumps(data, ensure_ascii=False), chat_id=chat_id, created_at=created_at)
-        obj.save()
-
-        del data["uz_message"]
-        
-        return data
-
-    @classmethod
-    def user_role_test(cls, text, uz_message, chat_id):
-        chat_id = chat_id
-        created_at = datetime.now()
-        chat = session.query(Chat).filter_by(chat_id=chat_id).first()
-    
-        chat.last_updated = datetime.now()
-        
-        if chat.messages_count is None:
-            chat.messages_count = 0
-
-        chat.messages_count += 1
-        chat.save()
-
-        data = {"role": "user", "content": str(text), "uz_message": uz_message}
-
-        obj = cls(data=json.dumps(data, ensure_ascii=False), chat_id=chat_id, created_at=created_at)
-        obj.save()
-
-        del data["uz_message"]
-        
-        return data
-
-    @classmethod
-    def assistant_role(cls, content, instance):
-
-        chat_id = instance.chat.id
-        created_at = datetime.now()
-
-        if len(content) > 4095:
-            non_charachters = len(content) - 4050
-            content = content[:-non_charachters]
-
-        uz_message = translate_out_of_code(content, chat_id)
-        
-        data = {"role": "assistant", "content": str(content), "uz_message": str(uz_message)}
-
-        obj = cls(data=json.dumps(data, ensure_ascii=False), chat_id=chat_id, created_at=created_at)
-
-        obj.save()
-
-        return uz_message
-
-    @classmethod
-    def assistant_role_test(cls, text, uz_message, chat_id):
-        chat_id = chat_id
-        created_at = datetime.now()
-
-        if len(text) > 4095:
-            non_charachters = len(text) - 4050
-            text = text[:-non_charachters]
-
-        uz_message = translate_out_of_code(text, chat_id)
-        
-        data = {"role": "assistant", "content": str(text), "uz_message": str(uz_message)}
-
-        obj = cls(data=json.dumps(data, ensure_ascii=False), chat_id=chat_id, created_at=created_at)
-
-        obj.save()
-
-        return uz_message
-
-    @classmethod
-    def system_role(cls, instance):
-        chat_id = instance.chat.id
-        created_at = datetime.now()
-        
-        data = {"role": "assistant", "content": str(instance.text), "uz_message": "system"}
-
-        obj = cls(data=json.dumps(data, ensure_ascii=False), chat_id=chat_id, created_at=created_at)
-
-        obj.save()
-
-        return obj
-
-    @classmethod
-    def system_to_all(cls, text):
-        chats = Chat.all()
-        created_at = datetime.now()
-
-        for chat in chats:
-            data = {"role": "assistant", "content": text, "uz_message": "system"}
-            obj = cls(data=json.dumps(data, ensure_ascii=False), chat_id=chat[6], created_at=created_at)
-
-            obj.save()
-
-        return 
-
-    @classmethod
-    def get_system_messages(cls):
-        chat = session.query(Chat).order_by(desc(Chat.id)).first()
-
-        messages = session.query(Message.data).filter_by(chat_id=chat.chat_id).all()
-
-        msgs = []
-                
-        for (data,) in messages:
-            data_dict = json.loads(data)
-
-            data_dict = json.loads(data)
-
-            if not isinstance(data_dict, dict):
-                msg = {k: v for k, v in eval(data_dict).items() if k != "uz_message"}
-            else:
-                msg = {k: v for k, v in data_dict.items() if k != "uz_message"}
-
-            if msg["role"] == "system":
-                msgs.append(msg)    
-
-        return msgs 
-        
-
     @classmethod
     def count(cls):
         return session.query(Message).count()
-
     
-
     @classmethod
     def delete(self, chat_id):
         session.query(Message).filter_by(chat_id=chat_id).delete()
-
-    @classmethod
-    def delete_by_limit(self, chat_id):
-        messages = session.query(Message).filter_by(chat_id=chat_id).order_by(Message.id).offset(4).limit(3).all()
-        
-        for message in messages:
-            session.delete(message)
-            session.commit()
 
 
 # Base.metadata.create_all(engine)

@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, BackgroundTasks
 from aiogram import types
 from dotenv import load_dotenv
 import os
@@ -14,6 +14,7 @@ from apps.admin.views import router
 
 from fastapi.staticfiles import StaticFiles
 from fastapi_pagination import add_pagination
+from starlette.concurrency import run_in_threadpool
 
 load_dotenv()
 
@@ -24,7 +25,7 @@ app.mount("/static", StaticFiles(directory="layout/static"), name="static")
 app.include_router(router, prefix="/admin")
 
 WEBHOOK_PATH = f"/bot/{os.environ.get('BOT_TOKEN')}"
-WEBHOOK_URL = "https://5949-89-249-60-114.ngrok-free.app" + WEBHOOK_PATH
+WEBHOOK_URL = "https://6d67-84-54-92-43.ngrok-free.app" + WEBHOOK_PATH
 
 
 @app.on_event("startup")
@@ -36,10 +37,11 @@ async def on_startup():
             url=WEBHOOK_URL
         )
 
+
 @app.post(WEBHOOK_PATH)
 async def bot_webhook(update: dict):
     tgUpdate = types.Update(**update)
-
+    
     Dispatcher.set_current(dp)
     Bot.set_current(bot)
 
