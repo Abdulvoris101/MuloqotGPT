@@ -23,7 +23,7 @@ app = FastAPI()
 
 app.mount("/static", StaticFiles(directory="layout/static"), name="static")
 
-app.include_router(router, prefix="/admin")
+app.include_router(router, prefix="/moderator")
 
 WEBHOOK_PATH = f"/bot/{os.environ.get('BOT_TOKEN')}"
 WEBHOOK_URL = os.environ.get("WEB_URL") + WEBHOOK_PATH

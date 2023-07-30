@@ -36,10 +36,11 @@ class AIChatHandler:
         messages = MessageManager.all(self.chat_id)
 
         if await self.check_tokens(messages):
+            print("Delete")
             MessageManager.delete_by_limit(self.chat_id)
-            await self.trim_message_tokens()
-        else:
-            return messages
+            return await self.trim_message_tokens()
+        
+        return messages
 
     async def get_en_message(self):
         message_en = translate_message(self.text, self.chat_id, lang='en')

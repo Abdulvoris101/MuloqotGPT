@@ -10,7 +10,7 @@ templates = Jinja2Templates(directory="layout/templates")
 
 router = APIRouter()
 
-@router.get("/", response_class=HTMLResponse)
+@router.get("/chats", response_class=HTMLResponse)
 async def admin_index(request: Request, page: int=Query(1, gt=0)):
 
     rows_per_page = 5

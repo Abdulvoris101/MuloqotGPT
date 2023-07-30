@@ -82,7 +82,6 @@ class MessageManager:
 
             msgs.append(msg)    
 
-
         return msgs
     
     @classmethod
