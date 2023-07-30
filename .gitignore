@@ -3,3 +3,5 @@ env
 sqlite3.db
 __pycache__/
 customer.txt
+*.sql
+backup.sql
