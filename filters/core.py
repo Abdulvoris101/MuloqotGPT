@@ -35,8 +35,7 @@ class UserFilter:
 
     
     @classmethod
-    async def activate_and_check(cls, message, chat_id):
+    async def activate(cls, message, chat_id):
         if not await cls.is_active(chat_id):
             await ChatManager.activate(message)
-        elif not await cls.is_subscribed(message.chat.type, chat_id):
-            return await message.answer("Botdan foydalanish uchun quyidagi kannalarga obuna bo'ling", reply_markup=joinChannelMenu)
+        

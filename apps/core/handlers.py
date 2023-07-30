@@ -36,7 +36,6 @@ class AIChatHandler:
         messages = MessageManager.all(self.chat_id)
 
         if await self.check_tokens(messages):
-            print("Delete")
             MessageManager.delete_by_limit(self.chat_id)
             return await self.trim_message_tokens()
         
@@ -49,8 +48,10 @@ class AIChatHandler:
         return message_en
 
     async def handle(self):
-
-        await UserFilter.activate_and_check(self.message, self.chat_id)
+        if not await UserFilter.is_subscribed(self.message.chat.type, self.chat_id):
+            return await self.message.answer("Botdan foydalanish uchun quyidagi kannalarga obuna bo'ling", reply_markup=joinChannelMenu)
+        else:
+            await UserFilter.activate(self.message, self.chat_id)
 
         proccess_message = await self.reply_or_send(self.PROCESSING_MESSAGE)
         
@@ -93,16 +94,17 @@ async def handle_reply(message: types.Message):
 
 # Basic commands 
 
+
 @dp.message_handler(commands=['start'])
 async def send_welcome(message: types.Message): 
 
     await message.answer(text.START_COMMAND)
-    await message.answer(text.HOW_TO_HELP_TEXT)
 
     if not await UserFilter.is_subscribed(message.chat.type, message.chat.id):
         return await message.answer("Botdan foydalanish uchun quyidagi kannalarga obuna bo'ling", reply_markup=joinChannelMenu)
-    
-    await ChatManager.activate(message)
+    else:
+        await message.answer(text.HOW_TO_HELP_TEXT)
+        await ChatManager.activate(message)
 
 
 @dp.message_handler(commands=['help'])
@@ -112,7 +114,6 @@ async def help(message: types.Message):
 @dp.message_handler(commands=["groupinfo"])
 async def groupinfo(message: types.Message):
     await message.answer(text.GROUP_INFO_COMMAND)
-
 
 @dp.message_handler(commands=['info'])
 async def ability(message: types.Message):
@@ -125,7 +126,6 @@ async def settings(message: types.Message):
         return await message.answer("Muloqotni boshlash uchun - /start")
 
     await message.answer("⚙️ Sozlamalar", reply_markup=settingsMenu(message.chat.id))
-
 
 # Handle calbacks 
 @dp.callback_query_handler(text="check_subscription")
