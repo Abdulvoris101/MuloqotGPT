@@ -4,7 +4,7 @@ from fastapi.responses import HTMLResponse
 from apps.core.models import Message, Chat
 from apps.core.managers import ChatManager, MessageManager
 from db.setup import session
-
+from sqlalchemy import desc
 
 templates = Jinja2Templates(directory="layout/templates")
 
@@ -13,7 +13,7 @@ router = APIRouter()
 @router.get("/chats", response_class=HTMLResponse)
 async def admin_index(request: Request, page: int=Query(1, gt=0)):
 
-    rows_per_page = 5
+    rows_per_page = 15
 
     # Calculate the offset for the current page
     offset = (page - 1) * rows_per_page
@@ -25,7 +25,7 @@ async def admin_index(request: Request, page: int=Query(1, gt=0)):
     total_pages = (total_items // rows_per_page) + (1 if total_items % rows_per_page > 0 else 0)
 
     # Query the data with pagination
-    query = session.query(Chat).limit(rows_per_page).offset(offset)
+    query = session.query(Chat).order_by(desc(Chat.id)).limit(rows_per_page).offset(offset)
 
     chats = query.all()
 
