@@ -9,6 +9,7 @@ from apps.core.handlers import dp
 from apps.admin.handlers import dp
 from bot import dp, bot
 from apps.imageai.handlers import dp
+from apps.payment.handlers import dp
 
 from apps.admin.views import router
 
@@ -25,7 +26,7 @@ app.mount("/static", StaticFiles(directory="layout/static"), name="static")
 app.include_router(router, prefix="/admin")
 
 WEBHOOK_PATH = f"/bot/{os.environ.get('BOT_TOKEN')}"
-WEBHOOK_URL = "https://6d67-84-54-92-43.ngrok-free.app" + WEBHOOK_PATH
+WEBHOOK_URL = "https://45b9-84-54-92-43.ngrok-free.app" + WEBHOOK_PATH
 
 
 @app.on_event("startup")

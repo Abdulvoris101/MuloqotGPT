@@ -1,4 +1,6 @@
 # core
+import os
+COST = os.environ.get("AQSHA_COST")
 
 START_COMMAND = """🤖 Salom! Men MuloqotAi, sizning shaxsiy 
 yordamchingizman.
@@ -50,3 +52,63 @@ Bot ishlashi uchun menga administrator huquqlarini bering
 """
 
 GREETINGS_TEXT = "Assalomu aleykum Men Muloqot AI man sizga qanday yordam bera olaman?"
+
+AQSHA_TEXT = f"""'Aqsha' uchun joriy narxlarimiz quyidagicha:
+
+1 aqsha - {COST} so'm
+200 aqsha - {int(COST) * 200} so'm
+
+Minimum 200 aqsha sotib olishingiz mumkin!
+
+Chatga kerakli miqdordagi aqshani yozing, biz sizga to'lashingiz kerak bo'lgan summa miqdorni ko'rsatamiz."""
+
+
+def buy_text(amount, price, transaction_id):
+        
+    BUY_TEXT = f"""
+Buyurtmangiz tafsilotlari:
+
+<b>Mahsulot:</b> "Aqsha"
+<b>Miqdori:</b> {amount} aqsha
+<b>Umumiy summa:</b> <b>{price} so'm</b>
+
+Xaridni yakunlash uchun <b>{price}</b> so'm miqdorini quyidagi kartaga oʻtkazing:
+
+<b>Karta raqami:</b> <code>5614 6814 0539 6512</code>
+<b>Karta egasi</b>: TULKIN XUDAYBERGANOV
+
+Agarda siz payme dan to'lasangiz to'lovni avtomotlashtirish uchun
+
+To'lovni amalga oshirayotganda, <b>to'lov izohiga quyidagi matnini kiriting</b>:
+
+<b>Izoh:</b> <code>{transaction_id}</code>
+
+Izoh matni sizning to'lovingizni aniqlash va buyurtmangizni to'g'ri tekshirish uchun kerak.To'lov qilib bo'lganizdan keyin 
+"✅ To'lovni tekshirish"  knopkasini bosing
+
+Agarda siz paymedan boshqa bir ilovada pul o'tkazsangiz sizning to'lovingiz qo'lda tekshirilib chiqiladi.
+
+Toʻlov jarayonida biror muammoga duch kelsangiz yoki savollaringiz boʻlsa, bizning @texnosupportuzbot botiga yozing.
+"""
+
+    return BUY_TEXT
+
+FAILED_PAYMENT_STEP1 = """
+Afsuski sizning to'lovingiz topilmadi. Lekin xavotirlanishga o'rin yo'q.
+
+Biz xozirda sizning to'lovingizni o'zimiz qo'lda tekshirib chiqamiz,
+uning uchun esa bizga yuborgan kartangizdagi ismingizni yozing 👇
+"""
+
+FAILED_PAYMENT_STEP2 = """
+Ajoyib! Sizning to'lovingiz 24 soat ichida tekshirilib chiqib, 
+sizning xisobingizga aqsha tushirib beramiz.
+
+Balans - /balance
+
+Agarda biror savolingiz bo'lsa, bizga murojat qiling - @texnosupportuzbot
+"""
+
+# Agarda biror savolingiz bo'lsa, bizga murojat qiling - @texnosupportuzbot
+# 24 soat ichida
+# sizning xisobingizga aqsha tushirib beramiz.

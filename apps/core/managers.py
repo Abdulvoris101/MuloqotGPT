@@ -172,11 +172,16 @@ class CreditManager:
         self.chat_id = chat_id
 
     def get(self):
-        return session.query(Chat.credit).filter_by(chat_id=self.chat_id).first()
+        chat = session.query(Chat.credit).filter_by(chat_id=self.chat_id).first()
+        
+        return chat
 
     def use(self, amount):
         chat = session.query(Chat).filter_by(chat_id=self.chat_id).first()
 
+        if chat is None:
+            return False
+        
         if chat.credit < amount:
             return False
         
@@ -188,6 +193,13 @@ class CreditManager:
     
     def increase(self, amount):
         chat = session.query(Chat).filter_by(chat_id=self.chat_id).first()
+        
+        
+        if chat is None:
+            return False
+
         chat.credit = chat.credit + amount
         chat.save()
+
+    
     

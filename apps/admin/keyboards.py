@@ -6,7 +6,8 @@ admin_keyboards = types.ReplyKeyboardMarkup([
             types.KeyboardButton("🤖 System xabar yuborish.!")
         ],
         [
-            types.KeyboardButton("📊 Statistika.!")
+            types.KeyboardButton("📊 Statistika.!"),
+            types.KeyboardButton("💎 Aqsha to'ldirish.!")
         ],
     ], resize_keyboard=True, one_time_keyboard=True
 )

@@ -22,3 +22,14 @@ class SendMessageWithInlineState(StatesGroup):
     buttons = State()
     message = State()
 
+
+
+class Payment(StatesGroup):
+    amount_aqsha = State()
+    is_success = State()
+    full_name = State()
+    
+class PopupState(StatesGroup):
+    chat_id = State()
+    price = State()
+    

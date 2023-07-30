@@ -1,22 +1,22 @@
 from aiogram.dispatcher import FSMContext
 import os
 from bot import dp, types, bot
-from db.state import AdminLoginState, AdminSystemMessageState, SendMessageWithInlineState,  AdminSendMessage, PerformIdState
+from db.state import AdminLoginState, AdminSystemMessageState, PopupState, SendMessageWithInlineState,  AdminSendMessage, PerformIdState
 from .models import Admin
-from apps.core.managers import ChatManager, MessageManager
+from apps.core.managers import ChatManager, MessageManager, CreditManager
 from .keyboards import admin_keyboards, cancel_keyboards, sendMessageMenu, dynamic_sendMenu
 from aiogram.dispatcher.filters import Text
 from utils import SendAny, extract_inline_buttons
 from filters import IsAdmin
+import math
 
-
-@dp.message_handler(IsAdmin(), commands=["cancel"], state='*')
-async def cancel(message: types.Message, state: FSMContext):    
-    if state is None:
-        return
-    
+@dp.message_handler(commands=["cancel"], state='*')
+async def cancel(message: types.Message, state: FSMContext):   
     await state.finish()
-    return await bot.send_message(message.chat.id, "State bekor qilindi!", reply_markup=admin_keyboards)
+    if Admin.is_admin(message.from_user.id):
+        return await bot.send_message(message.chat.id, "State bekor qilindi!", reply_markup=admin_keyboards)
+    
+    return await bot.send_message(message.chat.id, "Bekor qilindi!", reply_markup=types.ReplyKeyboardRemove())
 
 
 @dp.message_handler(commands=['admin'])
@@ -48,6 +48,49 @@ async def add_rule_command(message: types.Message, state=None):
 
     return await message.answer("Qoidani faqat ingliz yoki rus tilida kiriting!", reply_markup=cancel_keyboards)
     
+
+
+@dp.message_handler(IsAdmin(), Text(equals="💎 Aqsha to'ldirish.!"))
+async def add_aqsha(message: types.Message, state=None):        
+    await PopupState.chat_id.set()
+    return await message.answer("Chat id kiriting", reply_markup=cancel_keyboards)
+    
+
+
+@dp.message_handler(IsAdmin(), state=PopupState.chat_id)
+async def set_chat_id(message: types.Message, state=None):  
+    
+    async with state.proxy() as data:
+        data['chat_id'] = message.text
+          
+    await PopupState.next()
+    return await message.answer("So'mda summani kiriting", reply_markup=cancel_keyboards)
+    
+
+
+@dp.message_handler(IsAdmin(), state=PopupState.price)
+async def set_price(message: types.Message, state=FSMContext):  
+    
+    async with state.proxy() as data:
+        chat_id = data['chat_id']
+    
+    try:
+        price = math.ceil(float(message.text))
+    except:
+        return await message.answer("Raqamlarda kiriting!")
+
+    amount = price / int(os.environ.get("AQSHA_COST"))
+
+    is_success = CreditManager(chat_id).increase(amount)
+    
+    await state.finish()
+
+    if is_success == False:
+        return await message.answer("Chat id notog'ri", reply_markup=admin_keyboards)
+
+    return await message.answer("Aqsha to'ldirildi!", reply_markup=admin_keyboards)
+    
+
 
 
 @dp.message_handler(IsAdmin(), state=AdminSystemMessageState.message)
@@ -124,7 +167,7 @@ async def check_issubscripted(message: types.Message):
 
 @dp.message_handler(state=SendMessageWithInlineState.buttons)
 async def set_buttons(message: types.Message, state=FSMContext):
-    async with state .proxy() as data:
+    async with state.proxy() as data:
         data["buttons"] = message.text
     
     await SendMessageWithInlineState.next()
