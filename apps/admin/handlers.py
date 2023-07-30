@@ -49,13 +49,11 @@ async def add_rule_command(message: types.Message, state=None):
     return await message.answer("Qoidani faqat ingliz yoki rus tilida kiriting!", reply_markup=cancel_keyboards)
     
 
-
 @dp.message_handler(IsAdmin(), Text(equals="💎 Aqsha to'ldirish.!"))
 async def add_aqsha(message: types.Message, state=None):        
     await PopupState.chat_id.set()
     return await message.answer("Chat id kiriting", reply_markup=cancel_keyboards)
     
-
 
 @dp.message_handler(IsAdmin(), state=PopupState.chat_id)
 async def set_chat_id(message: types.Message, state=None):  
@@ -66,7 +64,6 @@ async def set_chat_id(message: types.Message, state=None):
     await PopupState.next()
     return await message.answer("So'mda summani kiriting", reply_markup=cancel_keyboards)
     
-
 
 @dp.message_handler(IsAdmin(), state=PopupState.price)
 async def set_price(message: types.Message, state=FSMContext):  
