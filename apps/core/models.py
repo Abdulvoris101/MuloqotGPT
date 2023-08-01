@@ -79,7 +79,20 @@ class Message(Base):
         
     @classmethod
     def count(cls):
-        return session.query(Message).count()
+        chats = session.query(Chat).all()
+        msg_counts = 1
+
+        for chat in chats:
+            messages_count = chat.messages_count
+            
+            if messages_count is not None:
+                msg_counts += messages_count
+
+        # Calculate the total count of messages from all chats
+        total_messages_count = msg_counts
+
+        return total_messages_count
+
     
     @classmethod
     def delete(self, chat_id):

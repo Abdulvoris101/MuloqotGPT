@@ -29,7 +29,10 @@ class ChatManager:
     
     @classmethod
     async def activate(cls, message):
-        tg_user = message.message.chat
+        try:
+            tg_user = message.message.chat
+        except:
+            tg_user = message.chat
 
         chat = Chat.get(tg_user.id)
         
