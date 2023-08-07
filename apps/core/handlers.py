@@ -48,10 +48,8 @@ class AIChatHandler:
         return message_en
 
     async def handle(self):
-        if not await UserFilter.is_subscribed(self.message.chat.type, self.chat_id):
-            return await self.message.answer("Botdan foydalanish uchun quyidagi kannalarga obuna bo'ling", reply_markup=joinChannelMenu)
-        else:
-            await UserFilter.activate(self.message, self.chat_id)
+
+        await UserFilter.activate(self.message, self.chat_id)
 
         proccess_message = await self.reply_or_send(self.PROCESSING_MESSAGE)
         
@@ -100,11 +98,9 @@ async def send_welcome(message: types.Message):
 
     await message.answer(text.START_COMMAND)
 
-    if not await UserFilter.is_subscribed(message.chat.type, message.chat.id):
-        return await message.answer("Botdan foydalanish uchun quyidagi kannalarga obuna bo'ling", reply_markup=joinChannelMenu)
-    else:
-        await message.answer(text.HOW_TO_HELP_TEXT)
-        await ChatManager.activate(message)
+
+    await message.answer(text.HOW_TO_HELP_TEXT)
+    await ChatManager.activate(message)
 
 
 @dp.message_handler(commands=['help'])
@@ -127,15 +123,15 @@ async def settings(message: types.Message):
 
     await message.answer("⚙️ Sozlamalar", reply_markup=settingsMenu(message.chat.id))
 
-# Handle calbacks 
-@dp.callback_query_handler(text="check_subscription")
-async def check_issubscripted(message: types.Message):
-    if await UserFilter.is_subscribed(message.message.chat.type, message.message.chat.id):
-        await ChatManager.activate(message)
+# # Handle calbacks 
+# @dp.callback_query_handler(text="check_subscription")
+# async def check_issubscripted(message: types.Message):
+#     if await UserFilter.is_subscribed(message.message.chat.type, message.message.chat.id):
+#         await ChatManager.activate(message)
 
-        return await bot.send_message(message.message.chat.id, text.GREETINGS_TEXT)
+#         return await bot.send_message(message.message.chat.id, text.GREETINGS_TEXT)
 
-    return await message.answer("Afsuski siz kanallarga obuna bo'lmagansiz 😔")
+#     return await message.answer("Afsuski siz kanallarga obuna bo'lmagansiz 😔")
 
 
 # Auto translate

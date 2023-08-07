@@ -15,13 +15,12 @@ from apps.admin.views import router
 
 from fastapi.staticfiles import StaticFiles
 from fastapi_pagination import add_pagination
-from starlette.concurrency import run_in_threadpool
 
-load_dotenv()
+load_dotenv() 
 
 app = FastAPI()
 
-app.mount("/static", StaticFiles(directory="layout/static"), name="static")
+app.mount("/static", StaticFiles(directory="layout/static"), name="static")                                         
 
 app.include_router(router, prefix="/moderator")
 

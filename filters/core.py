@@ -19,19 +19,6 @@ class UserFilter:
 
         return chat.is_activated
     
-    @classmethod
-    async def is_subscribed(cls, chat_type, user_id):
-        if chat_type == 'private':
-            channel_id = os.environ.get("CHANNEL_ID")
-
-            chat_member = await bot.get_chat_member(channel_id, user_id)
-
-            if chat_member.is_chat_member():
-                return True
-
-            return False
-
-        return True
 
     
     @classmethod
