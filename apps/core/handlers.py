@@ -8,7 +8,7 @@ from filters import IsReplyFilter
 from utils.translate import translate_message
 from utils import count_tokens
 import utils.text as text
-
+import asyncio
 
 class AIChatHandler:
     PROCESSING_MESSAGE = "⏳..."
@@ -60,34 +60,41 @@ class AIChatHandler:
         messages = await self.trim_message_tokens()
 
         await self.message.answer_chat_action("typing")
-        
-        response = await request_gpt(messages, chat_id=self.chat_id)
 
-        response_uz = MessageManager.assistant_role(content=response, instance=self.message)
+        asyncio.create_task(self.process_gpt_request(messages, self.chat_id, proccess_message))
 
-        await bot.delete_message(self.chat_id, proccess_message.message_id)
-        
+
+    
+    async def process_gpt_request(self, messages, chat_id, proccess_message):
         try:
-            # Send the AI response to the user
-            await self.reply_or_send(str(response_uz), disable_web_page_preview=True, parse_mode=types.ParseMode.MARKDOWN)
+            response = await request_gpt(messages, chat_id)
+            response_uz = MessageManager.assistant_role(content=response, instance=self.message)
+
+            await bot.delete_message(chat_id, proccess_message.message_id)
+
+            try:
+                # Send the AI response to the user
+                await self.reply_or_send(str(response_uz), disable_web_page_preview=True, parse_mode=types.ParseMode.MARKDOWN)
+            except Exception as e:
+                await self.reply_or_send(self.ERROR_MESSAGE, disable_web_page_preview=True, parse_mode=types.ParseMode.MARKDOWN)
         except Exception as e:
-            await self.reply_or_send(self.ERROR_MESSAGE, disable_web_page_preview=True, parse_mode=types.ParseMode.MARKDOWN)
-
-
+            # Handle errors from request_gpt
+            await self.reply_or_send("An error occurred while processing your request.")
 
 # handly reply and private messages
 @dp.message_handler(lambda message: not message.text.startswith('/') and not message.text.endswith('.!') and not message.text.startswith('✅') and message.chat.type == 'private')
 async def handle_private_messages(message: types.Message):
     chat = AIChatHandler(message=message)
 
-    return await chat.handle()
+    
+    await chat.handle()
 
 
 @dp.message_handler(IsReplyFilter())
 async def handle_reply(message: types.Message):
     chat = AIChatHandler(message=message)
 
-    return await chat.handle()
+    await chat.handle()
 
 
 # Basic commands 
