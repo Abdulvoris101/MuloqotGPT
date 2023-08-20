@@ -43,7 +43,7 @@ class SendAny:
 # Token counter
 
 def count_tokens(messages):
-    enc = tiktoken.get_encoding("cl100k_base")
+    enc = tiktoken.get_encoding("p50k_base")
     token_counts = [len(enc.encode(message['content'])) for message in messages]
     total_tokens = sum(token_counts)
     return total_tokens

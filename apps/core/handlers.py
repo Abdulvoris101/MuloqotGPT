@@ -27,7 +27,7 @@ class AIChatHandler:
             return await self.message.reply(message, *args, **kwargs)
     
     async def check_tokens(self, messages):
-        if count_tokens(messages) >= 3500:
+        if count_tokens(messages) >= 4000:
             return True
 
         return False
@@ -77,9 +77,10 @@ class AIChatHandler:
                 await self.reply_or_send(str(response_uz), disable_web_page_preview=True, parse_mode=types.ParseMode.MARKDOWN)
             except Exception as e:
                 await self.reply_or_send(self.ERROR_MESSAGE, disable_web_page_preview=True, parse_mode=types.ParseMode.MARKDOWN)
+       
         except Exception as e:
             # Handle errors from request_gpt
-            await self.reply_or_send("An error occurred while processing your request.")
+            await self.reply_or_send("Iltimos 5s dan keyin qayta urinib ko'ring!")
 
 # handly reply and private messages
 @dp.message_handler(lambda message: not message.text.startswith('/') and not message.text.endswith('.!') and not message.text.startswith('✅') and message.chat.type == 'private')
