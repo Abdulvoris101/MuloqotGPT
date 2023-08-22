@@ -74,8 +74,6 @@ async def request_gpt(messages, chat_id):
                 response_data = await response.json()
                 status = response.status
 
-            print(response_data)
-            print(status)
             # Handle the response using your CleanResponse and handleResponse logic
             response = CleanResponse(response_data, status, chat_id)
             response = await response.handleResponse()
@@ -84,7 +82,7 @@ async def request_gpt(messages, chat_id):
 
     except aiohttp.ClientError as e:
         print("Exception", e)
-        
+
         await send_error(f"<b>#error</b>\n{e}\n\\n#user {chat_id}")
         return "Iltimos 10s dan keyin qayta urinib ko'ring!"
 
