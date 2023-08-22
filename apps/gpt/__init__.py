@@ -6,7 +6,8 @@ from apps.core.managers import MessageManager
 from utils import send_error
 import httpx
 import json
-
+import aiohttp
+import asyncio
 
 load_dotenv()  # take environment variables from .env.
 
@@ -14,14 +15,14 @@ openai.api_key = os.environ.get("API_KEY")
 
 
 class CleanResponse:
-    def __init__(self, response, chat_id):
-        self.status = response.status_code
+    def __init__(self, response, status, chat_id):
+        self.status = status
         self.response = response
         self.chat_id = chat_id
 
     async def handleError(self):
         error = self.response.get("error", False)
-
+        
         if error:
             errorMessage = error['message']
 
@@ -41,9 +42,9 @@ class CleanResponse:
 
 
     async def handleResponse(self):
-        self.response = json.loads(self.response.text)
-        
+    
         choices = self.response.get('choices', False)
+
 
         if choices:
             return self.response['choices'][0]['message']['content']
@@ -57,31 +58,39 @@ class CleanResponse:
 
 async def request_gpt(messages, chat_id):
     try:
-        async with httpx.AsyncClient() as client:
+        async with aiohttp.ClientSession() as session:
+            
+            headers = {
+                "Authorization": f"Bearer {os.environ.get('API_KEY')}"
+            }
+            
+            data = {
+                "model": "gpt-3.5-turbo",
+                "messages": messages
+            }
 
-            response = await client.post(
-                "https://api.openai.com/v1/chat/completions",
 
-                headers={
-                    "Authorization": f"Bearer {os.environ.get('API_KEY')}"
-                },
-                json={
-                    "model": "gpt-3.5-turbo",
-                    "messages": messages
-                }
-            )
+            async with session.post("https://api.openai.com/v1/chat/completions", headers=headers, json=data) as response:
+                response_data = await response.json()
+                status = response.status
 
-            response = CleanResponse(response, chat_id)
+            print(response_data)
+            print(status)
+            # Handle the response using your CleanResponse and handleResponse logic
+            response = CleanResponse(response_data, status, chat_id)
             response = await response.handleResponse()
 
             return response
 
-    except Exception as e:
-        # Handle other exceptions
+    except aiohttp.ClientError as e:
         print("Exception", e)
-
+        
         await send_error(f"<b>#error</b>\n{e}\n\\n#user {chat_id}")
+        return "Iltimos 10s dan keyin qayta urinib ko'ring!"
 
+    except Exception as e:
+        print("Other Exception", e)
+        await send_error(f"<b>#error</b>\n{e}\n\\n#user {chat_id}")
         return "Iltimos 10s dan keyin qayta urinib ko'ring!"
 
 

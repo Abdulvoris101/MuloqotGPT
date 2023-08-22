@@ -79,6 +79,7 @@ class AIChatHandler:
                 await self.reply_or_send(self.ERROR_MESSAGE, disable_web_page_preview=True, parse_mode=types.ParseMode.MARKDOWN)
        
         except Exception as e:
+            print("Exception proccess",  e)
             # Handle errors from request_gpt
             await self.reply_or_send("Iltimos 5s dan keyin qayta urinib ko'ring!")
 
