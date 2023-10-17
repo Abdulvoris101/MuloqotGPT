@@ -28,7 +28,7 @@ async def buy_credit(message: types.Message):
 
 
 @dp.message_handler(commands=["balance"])
-async def buy_credit(message: types.Message):
+async def balance(message: types.Message):
     await bot.send_message(
         message.chat.id, 
         f'Balansingiz - {CreditManager(message.chat.id).get()[0]} aqsha.\n\nAqsha faqatgina rasm generatsiya uchun ishlatilinadi.\nMuloqotAi bilan suxbatlashish mutlaqo bepul',
@@ -38,6 +38,7 @@ async def buy_credit(message: types.Message):
 
 @dp.message_handler(state=Payment.amount_aqsha)
 async def get_aqsha(message: types.Message, state=FSMContext):
+    
     if not message.text.isdigit() and not isinstance(message.text, int):
         return await message.answer("Iltimos faqatgina butun son kiriting!")
     
@@ -64,7 +65,7 @@ async def check_payment(message: types.Message, state=FSMContext):
 
     await bot.delete_message(message.chat.id, sent_message.message_id)
 
-    await message.answer(text.FAILED_PAYMENT_STEP1, reply_markup=types.ReplyKeyboardRemove())
+    await message.answer(text.PAYMENT_STEP1, reply_markup=types.ReplyKeyboardRemove())
     await Payment.next()
 
 

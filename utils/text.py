@@ -87,8 +87,6 @@ Toʻlov jarayonida biror muammoga duch kelsangiz yoki savollaringiz boʻlsa, biz
     return BUY_TEXT
 
 PAYMENT_STEP1 = """
-Afsuski sizning to'lovingiz topilmadi. Lekin xavotirlanishga o'rin yo'q.
-
 Biz xozirda sizning to'lovingizni o'zimiz qo'lda tekshirib chiqamiz,
 uning uchun esa bizga yuborgan kartangizdagi ismingizni yozing 👇
 """
