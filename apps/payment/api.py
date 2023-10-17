@@ -1,22 +1,22 @@
-from p2p_payme.client import PaymeClient
-import os
+# from p2p_payme.client import PaymeClient
+# from utils import constants
 
-phone_number = os.environ.get("PHONE")
-password = os.environ.get("PASSWORD_PAYME")
-device = os.environ.get("DEVICE")
+# phone_number = constants.PHONE
+# password = constants.PASSWORD_PAYME
+# device = constants.DEVICE
 
-client = PaymeClient(phone_number, password, device)
+# client = PaymeClient(phone_number, password, device)
 
-card = client.cards.get(name="uzcard")
+# card = client.cards.get(name="uzcard")  
 
 
-class Cheque:
+# class Cheque:
 
-    @classmethod
-    def get_transaction(cls, comment):
-        transaction = client.transactions(card.id).filter(description=comment)
+#     @classmethod
+#     def get_transaction(cls, comment):
+#         transaction = client.transactions(card.id).filter(description=comment)
 
-        if len(transaction) == 0 or transaction is None:
-            return False
+#         if len(transaction) == 0 or transaction is None:
+#             return False
         
-        return transaction[0]
+#         return transaction[0]

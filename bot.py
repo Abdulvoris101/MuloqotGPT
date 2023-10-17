@@ -1,12 +1,10 @@
 from aiogram import Bot, Dispatcher, executor, types
-from dotenv import load_dotenv
 import os
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
+from utils import constants
 
 
-load_dotenv()  # take environment variables from .env.
-
-bot = Bot(token=os.environ.get('BOT_TOKEN'), parse_mode='HTML')
+bot = Bot(token=constants.BOT_TOKEN, parse_mode='HTML')
 storage = MemoryStorage()
 
 dp = Dispatcher(bot, storage=storage)

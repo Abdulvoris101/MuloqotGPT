@@ -1,6 +1,6 @@
-from fastapi import FastAPI, BackgroundTasks
+from fastapi import FastAPI
 from aiogram import types
-from dotenv import load_dotenv
+from utils import constants
 import os
 from aiogram.dispatcher.dispatcher import Dispatcher, Bot
 import uvicorn
@@ -16,7 +16,7 @@ from apps.admin.views import router
 from fastapi.staticfiles import StaticFiles
 from fastapi_pagination import add_pagination
 
-load_dotenv() 
+# load_dotenv() 
 
 app = FastAPI()
 
@@ -24,8 +24,8 @@ app.mount("/static", StaticFiles(directory="layout/static"), name="static")
 
 app.include_router(router, prefix="/moderator")
 
-WEBHOOK_PATH = f"/bot/{os.environ.get('BOT_TOKEN')}"
-WEBHOOK_URL = os.environ.get("WEB_URL") + WEBHOOK_PATH
+WEBHOOK_PATH = f"/bot/{constants.BOT_TOKEN}"
+WEBHOOK_URL = constants.WEB_URL + WEBHOOK_PATH
 
 
 @app.on_event("startup")
@@ -57,4 +57,4 @@ add_pagination(app)
 
 
 if __name__ == "__main__":
-    uvicorn.run("app:app", host='0.0.0.0', port=8005, reload=False, workers=4)
+    uvicorn.run("app:app", host='0.0.0.0', port=8005, reload=False, workers=1)

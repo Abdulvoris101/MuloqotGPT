@@ -1,16 +1,17 @@
 import os
 from bot import bot, types
 import tiktoken
+from utils import constants
 import re
 
 # Bot 
 
 async def send_event(text):
-    await bot.send_message(os.environ.get("EVENT_CHANNEL_ID"), text, parse_mode='HTML')
+    await bot.send_message(constants.EVENT_CHANNEL_ID, text, parse_mode='HTML')
 
 
 async def send_error(text):
-    await bot.send_message(os.environ.get("ERROR_CHANNEL_ID"), text, parse_mode='HTML')
+    await bot.send_message(constants.ERROR_CHANNEL_ID, text, parse_mode='HTML')
 
 
 # SendAny type message

@@ -3,15 +3,14 @@ import openai
 from openai.error import RateLimitError, ServiceUnavailableError, InvalidRequestError
 from dotenv import load_dotenv
 from apps.core.managers import MessageManager
-from utils import send_error
+from utils import send_error, constants
 import httpx
 import json
 import aiohttp
 import asyncio
 
-load_dotenv()  # take environment variables from .env.
 
-openai.api_key = os.environ.get("API_KEY")
+openai.api_key = constants.API_KEY
 
 
 class CleanResponse:
@@ -61,7 +60,7 @@ async def request_gpt(messages, chat_id):
         async with aiohttp.ClientSession() as session:
             
             headers = {
-                "Authorization": f"Bearer {os.environ.get('API_KEY')}"
+                "Authorization": f"Bearer {constants.API_KEY}"
             }
             
             data = {

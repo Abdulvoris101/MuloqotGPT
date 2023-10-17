@@ -6,9 +6,10 @@ from .models import Admin
 from apps.core.managers import ChatManager, MessageManager, CreditManager
 from .keyboards import admin_keyboards, cancel_keyboards, sendMessageMenu, dynamic_sendMenu
 from aiogram.dispatcher.filters import Text
-from utils import SendAny, extract_inline_buttons
+from utils import SendAny, extract_inline_buttons, constants
 from filters import IsAdmin
 import math
+
 
 @dp.message_handler(commands=["cancel"], state='*')
 async def cancel(message: types.Message, state: FSMContext):   
@@ -33,7 +34,7 @@ async def password_handler(message: types.Message, state=FSMContext):
     async with state.proxy() as data:
         data['password'] = message.text
 
-    if message.text == str(os.environ.get('PASSWORD')):
+    if message.text == str(constants.PASSWORD):
         await state.finish()
         Admin(message.from_user.id).register(message.from_user.id)
         
@@ -76,7 +77,7 @@ async def set_price(message: types.Message, state=FSMContext):
     except:
         return await message.answer("Raqamlarda kiriting!")
 
-    amount = price / int(os.environ.get("AQSHA_COST"))
+    amount = price / int(constants.AQSHA_COST)
 
     is_success = CreditManager(chat_id).increase(amount)
     
