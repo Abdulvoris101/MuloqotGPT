@@ -1,6 +1,8 @@
 # core
-import os
-COST = os.environ.get("AQSHA_COST")
+
+from utils import constants
+
+COST = constants.AQSHA_COST
 
 START_COMMAND = """🤖 Salom! Men MuloqotAi, sizning shaxsiy 
 yordamchingizman.
@@ -77,25 +79,14 @@ Xaridni yakunlash uchun <b>{price}</b> so'm miqdorini quyidagi kartaga oʻtkazin
 <b>Karta raqami:</b> <code>5614 6814 0539 6512</code>
 <b>Karta egasi</b>: TULKIN XUDAYBERGANOV
 
-Agarda siz payme dan to'lasangiz to'lovni avtomotlashtirish uchun
-
-To'lovni amalga oshirayotganda, <b>to'lov izohiga quyidagi matnini kiriting</b>:
-
-<b>Izoh:</b> <code>{transaction_id}</code>
-
-Izoh matni sizning to'lovingizni aniqlash va buyurtmangizni to'g'ri tekshirish uchun kerak.To'lov qilib bo'lganizdan keyin 
-"✅ To'lovni tekshirish"  knopkasini bosing
-
-Agarda siz paymedan boshqa bir ilovada pul o'tkazsangiz sizning to'lovingiz qo'lda tekshirilib chiqiladi.
+Sizning to'lovingiz qo'lda tekshirilib chiqiladi va siz bilan aloqaga chiqiladi.
 
 Toʻlov jarayonida biror muammoga duch kelsangiz yoki savollaringiz boʻlsa, bizning @texnosupportuzbot botiga yozing.
 """
 
     return BUY_TEXT
 
-FAILED_PAYMENT_STEP1 = """
-Afsuski sizning to'lovingiz topilmadi. Lekin xavotirlanishga o'rin yo'q.
-
+PAYMENT_STEP1 = """
 Biz xozirda sizning to'lovingizni o'zimiz qo'lda tekshirib chiqamiz,
 uning uchun esa bizga yuborgan kartangizdagi ismingizni yozing 👇
 """
