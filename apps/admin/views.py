@@ -30,12 +30,13 @@ async def admin_index(request: Request, page: int=Query(1, gt=0)):
     chats = query.all()
 
     all_chats = ChatManager.all()
-
+    
     context = {
         "chats": chats,
         "groups": ChatManager.groups(),
         "messages": Message.count(),
         "active_users": ChatManager.active_users(),
+        "all_tokens": MessageManager.all_tokens(),
         "request": request,
         "users": ChatManager.users(),
         "all_chats": all_chats,
@@ -54,6 +55,7 @@ async def system_messages(request: Request):
     context = {
         "groups": ChatManager.groups(),
         "messages": Message.count(),
+        "all_tokens": MessageManager.all_tokens(),
         "active_users": ChatManager.active_users(),
         "request": request,
         "users": ChatManager.users(),

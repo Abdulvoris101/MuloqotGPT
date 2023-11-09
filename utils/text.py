@@ -19,9 +19,7 @@ Rasm generatsiyasi uchun esa shu komandani yuboring: /art prompt. Prompt o'rniga
 <b>Botning qo'shimcha xususiyatlari</b>:
 🔹<b>Avtotarjima:</b> - bilasiz chatgpt o'zbek tilini tushunmaydi shuning uchun botda avtotarjima xususiyati mavjud, agarda avtotarjimani yoqib qo'ysangiz sizning xar bir so'rovingiz tarjimon orqali ingliz tilga  o'tqizilib chatgptga yuboriladi va  kelgan javob esa o'zbekchaga tarjima qilinadi. Bu bilan siz ingliz tilini bilmasdan turib chatgptni to'liqona ishlatishingiz mumkin bo'ladi.
 
-🔹<b>Xazilkash AI:</b> muloqotai guruhlarda xam gaplasha oladi, qiziq tomoni u guruhlarda gaplashgan payti juda xam xazilkash tutadi. Siz bot bilan xuddi do'st kabi muloqot qila olasiz. Agarda siz  aniqroq javob olmoqchi bo'lsangiz uning o'ziga yozing
-
-Botni guruhga qanday qo'shish bo'yicha batafsil ma'lumot - /groupinfo"""
+"""
 
 
 GROUP_INFO_COMMAND = """Shaxsiy va guruh suhbatlaringizda yordam beradigan foydali yordamchi! Ushbu botning <b>guruhda</b> ishlash tartibi quyidagicha:

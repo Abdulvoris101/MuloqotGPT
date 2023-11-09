@@ -24,13 +24,14 @@ class LexicaAi:
 
         return images
 
+
     @classmethod
-    def get_random_images(cls, image_sources, num_images):
+    def get_random_images(cls, images, num_of_images):
         # Shuffle the array of image sources
-        random.shuffle(image_sources)
+        random.shuffle(images)
         
         # Get the first six elements from the shuffled array
-        random_images = image_sources[:num_images]
+        random_images = images[:num_of_images]
         
         return random_images
 

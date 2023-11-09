@@ -1,5 +1,5 @@
 from .models import Chat, Message
-from utils import send_event
+from utils import send_event, count_tokens
 from utils.translate import skip_code_translation
 from db.setup import session
 from db.proccessors import MessageProcessor
@@ -50,18 +50,12 @@ class ChatManager:
 
     @classmethod
     def active_users(cls):
-        created_at = cls.three_months_ago.strftime('%Y-%m-%d')
+        current_month_records = session.query(Chat).filter(func.extract('month', Chat.last_updated) == datetime.now().month).count()
 
-        users_with_weekly_messages = (
-            session.query(Chat.username)
-            .join(Message, Chat.chat_id == Message.chat_id)
-            .filter(Message.created_at >= cls.three_months_ago)
-            .group_by(Chat.username)
-            .having(func.count(Message.id) >= 12)  # Assuming there are approximately 4 weeks in a month
-            .all()
-        )
+        return current_month_records
+    
+    
 
-        return len(users_with_weekly_messages)
 
 
 class MessageManager:
@@ -69,9 +63,37 @@ class MessageManager:
     
     # Get all data messages
 
+
+    @classmethod
+    def all_tokens(cls):
+        messages = MessageManager.all_messages()
+
+        tokens = count_tokens(messages)
+
+        return tokens
+
     @classmethod
     def all(cls, chat_id):
         messages = session.query(Message.data).filter_by(chat_id=chat_id).order_by(Message.id).all()
+
+        msgs = []
+        
+        for (data,) in messages:
+            data_dict = json.loads(data)
+
+            if not isinstance(data_dict, dict):
+                msg = {k: v for k, v in eval(data_dict).items() if k != "uz_message"}
+            else:
+                msg = {k: v for k, v in data_dict.items() if k != "uz_message"}
+
+            msgs.append(msg)    
+
+        return msgs
+    
+
+    @classmethod
+    def all_messages(cls):
+        messages = session.query(Message.data).order_by(Message.id).all()
 
         msgs = []
         

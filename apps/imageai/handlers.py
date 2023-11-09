@@ -37,3 +37,4 @@ async def handle_art(message: types.Message):
     await bot.delete_message(message.chat.id, message_id=sent_message.message_id)
     await bot.send_media_group(message.chat.id, media=media_group)
 
+

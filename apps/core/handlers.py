@@ -27,7 +27,7 @@ class AIChatHandler:
             return await self.message.reply(message, *args, **kwargs)
     
     async def check_tokens(self, messages):
-        if count_tokens(messages) >= 4000:
+        if count_tokens(messages) >= 2000:
             return True
 
         return False
@@ -83,6 +83,7 @@ class AIChatHandler:
             # Handle errors from request_gpt
             await self.reply_or_send("Iltimos 5s dan keyin qayta urinib ko'ring!")
 
+
 # handly reply and private messages
 @dp.message_handler(lambda message: not message.text.startswith('/') and not message.text.endswith('.!') and not message.text.startswith('✅') and message.chat.type == 'private')
 async def handle_private_messages(message: types.Message):
@@ -92,11 +93,11 @@ async def handle_private_messages(message: types.Message):
     await chat.handle()
 
 
-@dp.message_handler(IsReplyFilter())
-async def handle_reply(message: types.Message):
-    chat = AIChatHandler(message=message)
+# @dp.message_handler(IsReplyFilter())
+# async def handle_reply(message: types.Message):
+#     chat = AIChatHandler(message=message)
 
-    await chat.handle()
+#     await chat.handle()
 
 
 # Basic commands 
@@ -116,9 +117,10 @@ async def send_welcome(message: types.Message):
 async def help(message: types.Message):
     await message.answer(text.HELP_COMMAND)
 
-@dp.message_handler(commands=["groupinfo"])
-async def groupinfo(message: types.Message):
-    await message.answer(text.GROUP_INFO_COMMAND)
+# @dp.message_handler(commands=["groupinfo"])
+# async def groupinfo(message: types.Message):
+#     await message.answer(text.GROUP_INFO_COMMAND)
+
 
 @dp.message_handler(commands=['info'])
 async def ability(message: types.Message):
