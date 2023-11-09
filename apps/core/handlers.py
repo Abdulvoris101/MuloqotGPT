@@ -55,7 +55,7 @@ class AIChatHandler:
         
         message_en = await self.get_en_message() # translate message to en
 
-        MessageManager.user_role(content=message_en, instance=self.message)
+        MessageManager.user_role(translated_text=message_en, instance=self.message)
 
         messages = await self.trim_message_tokens()
 
@@ -68,7 +68,7 @@ class AIChatHandler:
     async def process_gpt_request(self, messages, chat_id, proccess_message):
         try:
             response = await request_gpt(messages, chat_id)
-            response_uz = MessageManager.assistant_role(content=response, instance=self.message)
+            response_uz = MessageManager.assistant_role(translated_text=response, instance=self.message)
 
             await bot.delete_message(chat_id, proccess_message.message_id)
 

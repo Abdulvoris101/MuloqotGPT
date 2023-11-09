@@ -118,9 +118,9 @@ class MessageManager:
         return data
     
     @classmethod
-    def user_role(cls, content, instance):
+    def user_role(cls, translated_text, instance):
 
-        data = cls.base_role(instance.chat.id, "user", content, instance.text)
+        data = cls.base_role(instance.chat.id, "user", translated_text, instance.text)
 
         chat = Chat.get(instance.chat.id)
 
@@ -131,12 +131,33 @@ class MessageManager:
     
         return data
 
+    @classmethod
+    def user_role_for_test(cls, translated_text, text, chat_id):
+
+        data = cls.base_role(chat_id, "user", translated_text, text)
+
+        chat = Chat.get(chat_id)
+
+        Chat.update(chat, "last_updated", datetime.now())
+        Chat.update(chat, "messages_count", chat.messages_count + 1)
+
+        del data["uz_message"] # deleting uz_message before it requests to openai
+    
+        return data
 
     @classmethod
-    def assistant_role(cls, content, instance):
-        uz_text = skip_code_translation(content, instance.chat.id) # returns uz text  
+    def assistant_role_for_test(cls, translated_text, chat_id):
+        uz_text = skip_code_translation(translated_text, chat_id) # returns uz text  
 
-        cls.base_role(instance.chat.id, "assistant", content, uz_text)
+        cls.base_role(chat_id, "assistant", translated_text, uz_text)
+
+        return uz_text
+    
+    @classmethod
+    def assistant_role(cls, translated_text, instance):
+        uz_text = skip_code_translation(translated_text, instance.chat.id) # returns uz text  
+
+        cls.base_role(instance.chat.id, "assistant", translated_text, uz_text)
 
         return uz_text
 
