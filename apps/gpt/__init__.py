@@ -14,7 +14,7 @@ load_dotenv()  # take environment variables from .env.
 openai.api_key = os.environ.get("API_KEY")
 
 
-class CleanResponse:
+class HandleResponse:
     def __init__(self, response, status, chat_id):
         self.status = status
         self.response = response
@@ -29,7 +29,7 @@ class CleanResponse:
             if self.status == 429:
                 await send_error(f"<b>#error</b>\n{errorMessage}\n\n#user {self.chat_id}")
 
-                return "Iltimos 10s dan keyin qayta urinib ko'ring!"
+                return "Iltimos 10 sekund dan keyin qayta urinib ko'ring!"
 
             elif self.status == 500 or self.status == 503:
                 return "Chatgpt javob bermayapti, Iltimos birozdan so'ng yana qayta urinib ko'ring"
@@ -41,7 +41,7 @@ class CleanResponse:
 
 
 
-    async def handleResponse(self):
+    async def getContent(self):
     
         choices = self.response.get('choices', False)
 
@@ -66,7 +66,8 @@ async def request_gpt(messages, chat_id):
             
             data = {
                 "model": "gpt-3.5-turbo",
-                "messages": messages
+                "messages": messages,
+                "max_tokens": 1000
             }
 
 
@@ -75,8 +76,8 @@ async def request_gpt(messages, chat_id):
                 status = response.status
 
             # Handle the response using your CleanResponse and handleResponse logic
-            response = CleanResponse(response_data, status, chat_id)
-            response = await response.handleResponse()
+            response = HandleResponse(response_data, status, chat_id)
+            response = await response.getContent()
 
             return response
 

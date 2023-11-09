@@ -1,5 +1,5 @@
 from bot import dp, bot, types
-from .gen import LexicaAi
+from .generate import LexicaAi
 from .keyboards import buyCreditMenu
 from filters import IsPrivate
 from apps.core.managers import CreditManager
