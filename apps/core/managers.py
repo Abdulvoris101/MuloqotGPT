@@ -93,6 +93,8 @@ class MessageManager:
 
     @classmethod
     def all_messages(cls):
+        import ast
+
         messages = session.query(Message.data).order_by(Message.id).all()
 
         msgs = []
@@ -101,7 +103,7 @@ class MessageManager:
             data_dict = json.loads(data)
 
             if not isinstance(data_dict, dict):
-                msg = {k: v for k, v in eval(data_dict).items() if k != "uz_message"}
+                msg = {k: v for k, v in ast.literal_eval(data_dict).items() if k != "uz_message"}
             else:
                 msg = {k: v for k, v in data_dict.items() if k != "uz_message"}
 
