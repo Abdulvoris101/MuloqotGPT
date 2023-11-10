@@ -66,11 +66,12 @@ class MessageManager:
 
     @classmethod
     def all_tokens(cls):
-        messages = MessageManager.all_messages()
+        messages = MessageManager.get_user_all_messages()
 
         tokens = count_tokens(messages)
 
         return tokens
+
 
     @classmethod
     def all(cls, chat_id):
@@ -104,12 +105,35 @@ class MessageManager:
 
             if not isinstance(data_dict, dict):
                 msg = {k: v for k, v in ast.literal_eval(data_dict).items() if k != "uz_message"}
+
             else:
                 msg = {k: v for k, v in data_dict.items() if k != "uz_message"}
 
-            msgs.append(msg)    
+            msgs.append(msg)
 
         return msgs
+    
+    @classmethod
+    def get_user_all_messages(cls):
+        import ast
+
+        messages = session.query(Message.data).order_by(Message.id).all()
+        
+        decoder = json.JSONDecoder()
+
+        encoded_messages = []
+        
+        for (data,) in messages:
+            encoded_data, _ = decoder.raw_decode(data)
+            data_dict = eval(str(encoded_data))
+
+            data_dict.pop("uz_message", None)
+
+
+            # if data_dict["role"] == "user":
+            #     messages.append(data_dict)
+
+        return messages
     
     @classmethod
     def base_role(cls, chat_id, role, content, uz_message):

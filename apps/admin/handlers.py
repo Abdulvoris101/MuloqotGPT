@@ -147,7 +147,6 @@ async def send_message(message: types.Message, state=FSMContext):
             
         except BaseException as e:
             print(e)
-            print(chat.chat_id)
 
     return await message.answer("Xabar yuborildi!")
 
