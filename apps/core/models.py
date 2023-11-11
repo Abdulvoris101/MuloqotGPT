@@ -17,6 +17,8 @@ class Chat(Base):
     auto_translate = Column(Boolean, default=True)
     last_updated = Column(DateTime, nullable=True)
     messages_count = Column(BigInteger, default=0)
+    output_tokens_count = Column(BigInteger, default=0)
+    input_tokens_count = Column(BigInteger, default=0)
 
     def __init__(self, chat_id, chat_name, username, is_activated=True):
         self.chat_name = chat_name

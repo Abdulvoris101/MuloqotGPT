@@ -197,6 +197,8 @@
                   <th class="border-top-0">Username</th>
                   <th class="border-top-0">Credits</th>
                   <th class="border-top-0">Messaages</th>
+                  <th class="border-top-0">Input Tokens</th>
+                  <th class="border-top-0">Output Tokens</th>
                   <th class="border-top-0">Last Updated</th>
 
                   <th class="border-top-0">
@@ -219,6 +221,8 @@
                             <td>{{ chat.username }}</td>
                             <td>{{ chat.credit }}</td>
                             <td>{{ chat.messages_count }}</td>
+                            <td>{{ chat.input_tokens_count }}</td>
+                            <td>{{ chat.output_tokens_count }}</td>
                             <td>{{ chat.last_updated }}</td>
                             <td>{{ chat.created_at }}</td>
                         </tr>
@@ -236,6 +240,8 @@
                             <td>{{ chat.username }}</td>
                             <td>{{ chat.credit }}</td>
                             <td>{{ chat.messages_count }}</td>
+                            <td>{{ chat.input_tokens_count }}</td>
+                            <td>{{ chat.output_tokens_count }}</td>
                             <td>{{ chat.created_at }}</td>
                         </tr>
                     {% endfor %}

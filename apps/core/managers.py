@@ -1,5 +1,5 @@
 from .models import Chat, Message
-from utils import send_event, count_tokens
+from utils import send_event, count_tokens, count_token_of_message
 from utils.translate import skip_code_translation
 from db.setup import session
 from db.proccessors import MessageProcessor
@@ -63,22 +63,32 @@ class MessageManager:
     
     # Get all data messages
 
+    
+    @classmethod
+    def count_of_all_output_tokens(cls):
+        chats = ChatManager.all()
+        output_tokens_counts = 1
+
+        for chat in chats:
+            
+            if chat.output_tokens_count is not None:
+                output_tokens_counts += chat.output_tokens_count
+
+        return output_tokens_counts
+
 
     @classmethod
     def count_of_all_input_tokens(cls):
-        messages = MessageManager.get_all_messages_of_user_role()
+        chats = ChatManager.all()
+        input_tokens_counts = 1
 
-        tokens = count_tokens(messages)
+        for chat in chats:
+            
+            if chat.input_tokens_count is not None:
+                input_tokens_counts += chat.input_tokens_count
 
-        return tokens
-
-    @classmethod
-    def count_of_all_output_tokens(cls):
-        messages = MessageManager.get_all_messages_of_assistant_role()
-
-        tokens = count_tokens(messages)
-
-        return tokens
+        return input_tokens_counts
+    
 
     @classmethod
     def all(cls, chat_id):
@@ -118,46 +128,6 @@ class MessageManager:
         return encoded_messages
     
     @classmethod
-    def get_all_messages_of_user_role(cls):
-
-        messages = session.query(Message.data).order_by(Message.id).all()
-        
-        decoder = json.JSONDecoder()
-
-        encoded_messages = []
-        
-        for (data,) in messages:
-            encoded_data, _ = decoder.raw_decode(data)
-            data_dict = eval(str(encoded_data))
-
-            data_dict.pop("uz_message", None)
-
-            if data_dict["role"] == "user":
-                encoded_messages.append(data_dict)
-
-        return encoded_messages
-    
-    @classmethod
-    def get_all_messages_of_assistant_role(cls):
-
-        messages = session.query(Message.data).order_by(Message.id).all()
-        
-        decoder = json.JSONDecoder()
-
-        encoded_messages = []
-        
-        for (data,) in messages:
-            encoded_data, _ = decoder.raw_decode(data)
-            data_dict = eval(str(encoded_data))
-
-            data_dict.pop("uz_message", None)
-
-            if data_dict["role"] == "assistant":
-                encoded_messages.append(data_dict)
-
-        return encoded_messages
-    
-    @classmethod
     def base_role(cls, chat_id, role, content, uz_message):
         data = {"role": role, "content": str(content), "uz_message": uz_message}
         obj = Message(data=json.dumps(data, ensure_ascii=False), chat_id=chat_id, created_at=datetime.now())
@@ -172,7 +142,10 @@ class MessageManager:
 
         chat = Chat.get(instance.chat.id)
 
+        input_tokens_count = count_token_of_message(translated_text)
+        
         Chat.update(chat, "last_updated", datetime.now())
+        Chat.update(chat, "input_tokens_count", chat.input_tokens_count +  input_tokens_count)
         Chat.update(chat, "messages_count", chat.messages_count + 1)
 
         del data["uz_message"] # deleting uz_message before it requests to openai
@@ -204,6 +177,12 @@ class MessageManager:
     @classmethod
     def assistant_role(cls, translated_text, instance):
         uz_text = skip_code_translation(translated_text, instance.chat.id) # returns uz text  
+        
+        chat = Chat.get(instance.chat.id)
+        
+        output_tokens_count = count_token_of_message(translated_text)
+        
+        Chat.update(chat, "output_tokens_count",  chat.output_tokens_count + output_tokens_count)
 
         cls.base_role(instance.chat.id, "assistant", translated_text, uz_text)
 

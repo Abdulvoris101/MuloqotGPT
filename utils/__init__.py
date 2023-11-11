@@ -49,6 +49,12 @@ def count_tokens(messages):
     total_tokens = sum(token_counts)
     return total_tokens
 
+def count_token_of_message(message):
+    enc = tiktoken.get_encoding("cl100k_base")
+    total_tokens = len(enc.encode(message))
+    
+    return total_tokens
+
 
 # Extract inline buttons
 
