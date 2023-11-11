@@ -1,5 +1,4 @@
 from aiogram import Bot, Dispatcher, executor, types
-import os
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from utils import constants
 

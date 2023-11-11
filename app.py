@@ -1,7 +1,6 @@
 from fastapi import FastAPI
 from aiogram import types
 from utils import constants
-import os
 from aiogram.dispatcher.dispatcher import Dispatcher, Bot
 import uvicorn
 
@@ -16,7 +15,7 @@ from apps.admin.views import router
 from fastapi.staticfiles import StaticFiles
 from fastapi_pagination import add_pagination
 
-# load_dotenv() 
+# load_dotenv()
 
 app = FastAPI()
 

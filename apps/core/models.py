@@ -1,6 +1,8 @@
 from sqlalchemy import Column, Integer, String, UnicodeText, Boolean, BigInteger, DateTime
 from db.setup import session, Base
 from datetime import datetime
+import json
+
 
 class Chat(Base):
     __tablename__ = 'chat'
@@ -56,11 +58,7 @@ class Chat(Base):
         chat = session.query(Chat).filter_by(chat_id=chat_id).first()
         session.delete(chat)
 
-    
 
-
-
-import json
 
 
 class Message(Base):

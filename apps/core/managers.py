@@ -65,13 +65,20 @@ class MessageManager:
 
 
     @classmethod
-    def all_tokens(cls):
-        messages = MessageManager.get_user_all_messages()
+    def count_of_all_input_tokens(cls):
+        messages = MessageManager.get_all_messages_of_user_role()
 
         tokens = count_tokens(messages)
 
         return tokens
 
+    @classmethod
+    def count_of_all_output_tokens(cls):
+        messages = MessageManager.get_all_messages_of_assistant_role()
+
+        tokens = count_tokens(messages)
+
+        return tokens
 
     @classmethod
     def all(cls, chat_id):
@@ -94,28 +101,24 @@ class MessageManager:
 
     @classmethod
     def all_messages(cls):
-        import ast
-
         messages = session.query(Message.data).order_by(Message.id).all()
 
-        msgs = []
+        decoder = json.JSONDecoder()
+
+        encoded_messages = []
         
         for (data,) in messages:
-            data_dict = json.loads(data)
+            encoded_data, _ = decoder.raw_decode(data)
+            data_dict = eval(str(encoded_data))
 
-            if not isinstance(data_dict, dict):
-                msg = {k: v for k, v in ast.literal_eval(data_dict).items() if k != "uz_message"}
+            data_dict.pop("uz_message", None)
 
-            else:
-                msg = {k: v for k, v in data_dict.items() if k != "uz_message"}
+            encoded_messages.append(data_dict)
 
-            msgs.append(msg)
-
-        return msgs
+        return encoded_messages
     
     @classmethod
-    def get_user_all_messages(cls):
-        import ast
+    def get_all_messages_of_user_role(cls):
 
         messages = session.query(Message.data).order_by(Message.id).all()
         
@@ -129,11 +132,30 @@ class MessageManager:
 
             data_dict.pop("uz_message", None)
 
+            if data_dict["role"] == "user":
+                encoded_messages.append(data_dict)
 
-            # if data_dict["role"] == "user":
-            #     messages.append(data_dict)
+        return encoded_messages
+    
+    @classmethod
+    def get_all_messages_of_assistant_role(cls):
 
-        return messages
+        messages = session.query(Message.data).order_by(Message.id).all()
+        
+        decoder = json.JSONDecoder()
+
+        encoded_messages = []
+        
+        for (data,) in messages:
+            encoded_data, _ = decoder.raw_decode(data)
+            data_dict = eval(str(encoded_data))
+
+            data_dict.pop("uz_message", None)
+
+            if data_dict["role"] == "assistant":
+                encoded_messages.append(data_dict)
+
+        return encoded_messages
     
     @classmethod
     def base_role(cls, chat_id, role, content, uz_message):
