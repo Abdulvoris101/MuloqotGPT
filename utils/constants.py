@@ -15,4 +15,6 @@ DEVICE = os.environ.get("DEVICE")
 AQSHA_COST= os.environ.get("AQSHA_COST")
 WEB_URL= os.environ.get("WEB_URL")
 
+DB_URL= os.environ.get("DB_URL")
+
 

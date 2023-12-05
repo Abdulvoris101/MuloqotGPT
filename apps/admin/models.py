@@ -15,7 +15,19 @@ class Admin(Base):
 
     @classmethod
     def is_admin(self, user_id):
-        admin = session.query(Admin).filter_by(user_id=user_id).first()
+        
+        try:
+            admin = session.query(Admin).filter_by(user_id=user_id).first()
+            session.commit()
+
+        except Exception as e:
+            # If an exception occurs, rollback the transaction
+            session.rollback()
+            raise e
+        finally:
+            # Always close the session
+            session.close()
+
         
         return admin is not None
 
