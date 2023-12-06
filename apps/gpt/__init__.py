@@ -59,7 +59,7 @@ async def request_gpt(messages, chat_id):
     try:
         async with aiohttp.ClientSession() as session:
             
-            print(constants.API_KEY)
+            print(messages)
             
             headers = {
                 "Authorization": f"Bearer {constants.API_KEY}"
@@ -76,6 +76,7 @@ async def request_gpt(messages, chat_id):
 
                 response_data = await response.read()
                 status = response.status
+            
             
             response_data = json.loads(response_data)
             

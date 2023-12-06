@@ -74,6 +74,7 @@ class AIChatHandler:
 
             try:
                 # Send the AI response to the user
+                print(response_uz)
                 await self.reply_or_send(str(response_uz), disable_web_page_preview=True, parse_mode=types.ParseMode.MARKDOWN)
             except Exception as e:
                 await self.reply_or_send(self.ERROR_MESSAGE, disable_web_page_preview=True, parse_mode=types.ParseMode.MARKDOWN)
