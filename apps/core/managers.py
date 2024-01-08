@@ -7,6 +7,8 @@ from sqlalchemy import cast, String, not_, func, desc
 from datetime import datetime, timedelta
 import json
 
+
+
 class ChatManager:
     # Chat db queries and filters
     three_months_ago = datetime.now() - timedelta(days=90)
@@ -265,7 +267,6 @@ class CreditManager:
     
     def increase(self, amount):
         chat = session.query(Chat).filter_by(chat_id=self.chat_id).first()
-        
         
         if chat is None:
             return False

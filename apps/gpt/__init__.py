@@ -28,7 +28,7 @@ class HandleResponse:
             if self.status == 429:
                 await send_error(f"<b>#error</b>\n{errorMessage}\n\n#user {self.chat_id}")
 
-                return "Iltimos 10 sekund dan keyin qayta urinib ko'ring!"
+                return "Iltimos 10 sekunddan keyin qayta urinib ko'ring!"
 
             elif self.status == 500 or self.status == 503:
                 return "Chatgpt javob bermayapti, Iltimos birozdan so'ng yana qayta urinib ko'ring"
@@ -52,14 +52,9 @@ class HandleResponse:
         return await self.handleError()
         
 
-
-
-
 async def request_gpt(messages, chat_id):
     try:
         async with aiohttp.ClientSession() as session:
-            
-            print(messages)
             
             headers = {
                 "Authorization": f"Bearer {constants.API_KEY}"
@@ -68,7 +63,7 @@ async def request_gpt(messages, chat_id):
             data = {
                 "model": "gpt-3.5-turbo",
                 "messages": messages,
-                "max_tokens": 1000
+                "max_tokens": 400
             }
 
 
@@ -91,11 +86,11 @@ async def request_gpt(messages, chat_id):
         print("Exception", e)
 
         await send_error(f"<b>#error</b>\n{e}\n\\n#user {chat_id}")
-        return "Iltimos 10s dan keyin qayta urinib ko'ring!"
+        return "Iltimos 10 sekunddan keyin qayta urinib ko'ring!"
 
     except Exception as e:
         print("Other Exception", e)
         await send_error(f"<b>#error</b>\n{e}\n\\n#user {chat_id}")
-        return "Iltimos 10s dan keyin qayta urinib ko'ring!"
+        return "Serverda xatolik!"
 
 
