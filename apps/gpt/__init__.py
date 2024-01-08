@@ -63,7 +63,7 @@ async def request_gpt(messages, chat_id):
             data = {
                 "model": "gpt-3.5-turbo",
                 "messages": messages,
-                "max_tokens": 400
+                "max_tokens": 200
             }
 
 

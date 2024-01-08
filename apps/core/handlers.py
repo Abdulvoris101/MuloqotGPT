@@ -27,7 +27,7 @@ class AIChatHandler:
             return await self.message.reply(message, *args, **kwargs)
     
     async def check_tokens(self, messages):
-        if count_tokens(messages) >= 2000:
+        if count_tokens(messages) >= 1000:
             return True
 
         return False
@@ -74,7 +74,6 @@ class AIChatHandler:
 
             try:
                 # Send the AI response to the user
-                print(response_uz)
                 await self.reply_or_send(str(response_uz), disable_web_page_preview=True, parse_mode=types.ParseMode.MARKDOWN)
             except Exception as e:
                 await self.reply_or_send(self.ERROR_MESSAGE, disable_web_page_preview=True, parse_mode=types.ParseMode.MARKDOWN)

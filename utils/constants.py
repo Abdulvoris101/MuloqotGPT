@@ -4,6 +4,7 @@ import os
 load_dotenv()
 
 API_KEY = os.environ.get("API_KEY")
+FREE_API_KEY = os.environ.get("FREE_API_KEY")
 BOT_TOKEN = os.environ.get("BOT_TOKEN")
 PASSWORD= os.environ.get("PASSWORD")
 CHANNEL_ID = os.environ.get("CHANNEL_ID")
@@ -15,6 +16,6 @@ DEVICE = os.environ.get("DEVICE")
 AQSHA_COST= os.environ.get("AQSHA_COST")
 WEB_URL= os.environ.get("WEB_URL")
 
-DB_URL= os.environ.get("DB_URL")
+DB_URL=os.environ.get("DB_URL")
 
 

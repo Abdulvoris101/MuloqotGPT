@@ -8,7 +8,7 @@ from apps.core.handlers import dp
 from apps.admin.handlers import dp
 from bot import dp, bot
 from apps.imageai.handlers import dp
-from apps.payment.handlers import dp
+from apps.subscription.handlers import dp
 
 from apps.admin.views import router
 
