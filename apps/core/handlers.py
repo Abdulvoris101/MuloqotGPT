@@ -6,14 +6,15 @@ from .keyboards import joinChannelMenu, settingsMenu
 from filters.core import UserFilter
 from filters import IsReplyFilter
 from utils.translate import translate_message
-from utils import count_tokens
+from utils import count_tokens, count_token_of_message
 import utils.text as text
 import asyncio
-from apps.subscription.managers import SubscriptionManager
+from apps.subscription.managers import SubscriptionManager, PlanManager
 
 class AIChatHandler:
     PROCESSING_MESSAGE = "⏳..."
     ERROR_MESSAGE = "Iltimos boshqatan so'rov yuboring"
+    TOKEN_REACHED = "Savolni qisqartiribroq yozing"
 
     def __init__(self, message):
         self.message = message
@@ -28,7 +29,7 @@ class AIChatHandler:
             return await self.message.reply(message, *args, **kwargs)
     
     async def check_tokens(self, messages):
-        if count_tokens(messages) >= 1000:
+        if count_tokens(messages) >= 200:
             return True
 
         return False
@@ -48,9 +49,15 @@ class AIChatHandler:
 
         return message_en
 
+
     async def handle(self):
 
         await UserFilter.activate(self.message, self.chat_id)
+
+        tokens_of_message = count_token_of_message(self.text)
+        
+        if tokens_of_message >= 200:
+            return await self.reply_or_send(self.TOKEN_REACHED)
 
         proccess_message = await self.reply_or_send(self.PROCESSING_MESSAGE)
         
@@ -82,7 +89,7 @@ class AIChatHandler:
         except Exception as e:
             print("Exception proccess",  e)
             # Handle errors from request_gpt
-            await self.reply_or_send("Iltimos 5s dan keyin qayta urinib ko'ring!")
+            await self.reply_or_send("Iltimos 5 sekund dan keyin qayta urinib ko'ring!")
 
 
 # handly reply and private messages
@@ -94,27 +101,18 @@ async def handle_private_messages(message: types.Message):
     await chat.handle()
 
 
-# @dp.message_handler(IsReplyFilter())
-# async def handle_reply(message: types.Message):
-#     chat = AIChatHandler(message=message)
-
-#     await chat.handle()
-
-
-# Basic commands 
-
-
 @dp.message_handler(commands=['start'])
 async def send_welcome(message: types.Message): 
 
     await message.answer(text.START_COMMAND)
     await message.answer(text.HOW_TO_HELP_TEXT)
     
-    user_subscription = await SubscriptionManager.getByChatId(chat_id=message.from_user.id)
+    user_subscription = SubscriptionManager.getByChatId(chat_id=message.from_user.id)
     
     if user_subscription is None:
+        
         SubscriptionManager.subscribe(
-            plan_id="free_plan_id", # todo: 
+            plan_id=PlanManager.getFreePlanOrCreate(),
             chat_id=message.from_user.id
         )
     
@@ -124,10 +122,6 @@ async def send_welcome(message: types.Message):
 @dp.message_handler(commands=['help'])
 async def help(message: types.Message):
     await message.answer(text.HELP_COMMAND)
-
-# @dp.message_handler(commands=["groupinfo"])
-# async def groupinfo(message: types.Message):
-#     await message.answer(text.GROUP_INFO_COMMAND)
 
 
 @dp.message_handler(commands=['info'])
@@ -141,16 +135,6 @@ async def settings(message: types.Message):
         return await message.answer("Muloqotni boshlash uchun - /start")
 
     await message.answer("⚙️ Sozlamalar", reply_markup=settingsMenu(message.chat.id))
-
-# # Handle calbacks 
-# @dp.callback_query_handler(text="check_subscription")
-# async def check_issubscripted(message: types.Message):
-#     if await UserFilter.is_subscribed(message.message.chat.type, message.message.chat.id):
-#         await ChatManager.activate(message)
-
-#         return await bot.send_message(message.message.chat.id, text.GREETINGS_TEXT)
-
-#     return await message.answer("Afsuski siz kanallarga obuna bo'lmagansiz 😔")
 
 
 # Auto translate
@@ -175,7 +159,7 @@ async def toggle_translate(message: types.Message):
 @dp.callback_query_handler(text="close")
 async def close(message: types.Message):
     await bot.delete_message(chat_id=message.message.chat.id, message_id=message.message.message_id)
-    
+
 
 # New chat event
 @dp.message_handler(content_types=types.ContentType.NEW_CHAT_MEMBERS)

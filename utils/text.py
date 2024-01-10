@@ -53,23 +53,14 @@ Bot ishlashi uchun menga administrator huquqlarini bering
 
 GREETINGS_TEXT = "Assalomu aleykum Men Muloqot AI man sizga qanday yordam bera olaman?"
 
-AQSHA_TEXT = f"""'Aqsha' uchun joriy narxlarimiz quyidagicha:
 
-1 aqsha - {COST} so'm
-200 aqsha - {int(COST) * 200} so'm
-
-Minimum 200 aqsha sotib olishingiz mumkin!
-
-Chatga kerakli miqdordagi aqshani yozing, biz sizga to'lashingiz kerak bo'lgan summa miqdorni ko'rsatamiz."""
-
-
-def buy_text(amount, price, transaction_id):
+def buy_text(price):
         
     BUY_TEXT = f"""
-Buyurtmangiz tafsilotlari:
+To'lov tafsilotlari:
 
-<b>Mahsulot:</b> "Aqsha"
-<b>Miqdori:</b> {amount} aqsha
+<b>Mahsulot:</b> Premium obuna
+<b>1 haftalik obuna narxi:</b> {price} so'm
 <b>Umumiy summa:</b> <b>{price} so'm</b>
 
 Xaridni yakunlash uchun <b>{price}</b> so'm miqdorini quyidagi kartaga oʻtkazing:
@@ -77,33 +68,42 @@ Xaridni yakunlash uchun <b>{price}</b> so'm miqdorini quyidagi kartaga oʻtkazin
 <b>Karta raqami:</b> <code>5614 6814 0539 6512</code>
 <b>Karta egasi</b>: TULKIN XUDAYBERGANOV
 
-Sizning to'lovingiz qo'lda tekshirilib chiqiladi va siz bilan aloqaga chiqiladi.
+To'lov o'tgandan so'ng to'lovingiz qo'lda tekshirilib chiqiladi va sizga obuna taqdim etiladi.
 
-Toʻlov jarayonida biror muammoga duch kelsangiz yoki savollaringiz boʻlsa, bizning @texnosupportuzbot botiga yozing.
+Toʻlov jarayonida biror muammoga duch kelsangiz yoki savollaringiz boʻlsa, bizga murojat qiling - @texnosupportuzbot | @abdulvoris_101
 """
-
     return BUY_TEXT
 
 PAYMENT_STEP1 = """
-Biz xozirda sizning to'lovingizni o'zimiz qo'lda tekshirib chiqamiz,
+Biz xozir sizning to'lovingizni o'zimiz qo'lda tekshirib chiqamiz,
 uning uchun esa bizga yuborgan kartangizdagi ismingizni yozing 👇
 """
 
-FAILED_PAYMENT_STEP2 = """
-Ajoyib! Sizning to'lovingiz 24 soat ichida tekshirilib chiqib, 
-sizning xisobingizga aqsha tushirib beramiz.
+PAYMENT_STEP2 = """
+Ajoyib! Sizning to'lovingiz yaqin soatlar ichida tekshirilib chiqib, 
+sizga premium obuna taqdim etiladi.
 
-Balans - /balance
-
-Agarda biror savolingiz bo'lsa, bizga murojat qiling - @texnosupportuzbot
+Agarda biror savolingiz bo'lsa, bizga murojat qiling - @texnosupportuzbot | @abdulvoris_101
 """
-
-# Agarda biror savolingiz bo'lsa, bizga murojat qiling - @texnosupportuzbot
-# 24 soat ichida
-# sizning xisobingizga aqsha tushirib beramiz.
 
 # Plans
 
-FREE_GPT_PLAN_TEXT = "Bu tekin plan bla bla"
-PREMIUM_GPT_PLAN_TEXT = "Bu premium plan bla bla"
+PLAN_TEXT = """
+Xozirgi obuna quyidagilarni o'z ichiga oladi:
+✅ GPT-3.5 ga har kuni 20 ta so'rov;
+⭐️ AI bilan 5 ta tasvir generatsiya qilish;
+✅ Avtotarjimon funksiyasi;
+⚠️ So’rovlar orasida 10 sekundlik vaqt chegarasi;
+
+Ko'proq kerakmi? 5000 so'm evaziga bir haftalik premium obunaga ega bo'ling.
+
+Premium obuna bilan siz:
+✅ GPT-3.5 ga har kuni 100 ta so'rov;
+⭐️ AI bilan 20 ta tasvir generatsiya qilish;
+✅ Avtotarjimon funksiyasi;
+✅ Reklama yo'q;
+✅ So’rovlar orasida pauza yo’q;
+✅ Javoblar kreativroq.
+"""
+
 

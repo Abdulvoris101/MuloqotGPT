@@ -25,7 +25,6 @@ class SendMessageWithInlineState(StatesGroup):
 
 
 class Payment(StatesGroup):
-    amount_aqsha = State()
     is_success = State()
     full_name = State()
     
