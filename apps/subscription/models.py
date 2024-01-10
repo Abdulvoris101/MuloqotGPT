@@ -1,5 +1,6 @@
 from db.setup import Base, session
-from sqlalchemy import Column, Integer, String, UUID, BigInteger, Boolean, DateTime, Text
+from sqlalchemy import Column, Integer, String, UUID, BigInteger, Boolean, DateTime, Text, ForeignKey
+from sqlalchemy.orm import relationship
 from datetime import datetime
 
 
@@ -41,7 +42,8 @@ class Plan(Base):
     amount_for_week = Column(BigInteger)
     is_free = Column(Boolean)
     weekly_limited_requests = Column(Integer)
-    
+    subscriptions = relationship('subscription', backref='plan')
+
 
 
     def __init__(self, title, description, amount_for_week, is_free, weekly_limited_requests):
@@ -75,7 +77,7 @@ class Subscription(Base):
     __tablename__ = 'subscription'
     
     id = Column(Integer, primary_key=True)
-    plan_id = Column(Integer)
+    plan_id = Column(Integer, ForeignKey('plan.id'))
     current_period_start = Column(DateTime)
     current_period_end = Column(DateTime)
     is_paid = Column(Boolean, default=False)
