@@ -41,20 +41,27 @@ class Plan(Base):
     description = Column(Text, nullable=True)
     amount_for_week = Column(BigInteger)
     is_free = Column(Boolean)
-    weekly_limited_requests = Column(Integer)
+    weekly_limited_imagerequests = Column(Integer)
+    weekly_limited_gptrequests = Column(Integer)
     subscriptions = relationship('subscription', backref='plan')
 
 
 
-    def __init__(self, title, description, amount_for_week, is_free, weekly_limited_requests):
+    def __init__(
+            self, title, description, 
+            amount_for_week, is_free, 
+            weekly_limited_imagerequests, 
+            weekly_limited_gptrequests):
+        
         self.title = title
         self.description = description
         self.amount_for_week = amount_for_week
         self.is_free = is_free
-        self.weekly_limited_requests = weekly_limited_requests
+        self.weekly_limited_imagerequests = weekly_limited_imagerequests
+        self.weekly_limited_gptrequests = weekly_limited_gptrequests
         
-
         super().__init__()
+
 
     def save(self):
         session.add(self)
@@ -69,7 +76,7 @@ class Plan(Base):
 
     @classmethod
     def delete(self, plan_id):
-        chat = session.query(Plan).filter_by(plan_id=plan_id).first()
+        chat = session.query(Plan).filter_by(id=plan_id).first()
         session.delete(chat)
 
 

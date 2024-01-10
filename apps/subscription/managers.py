@@ -46,10 +46,11 @@ class SubscriptionManager:
     ):
         return session.query(Subscription).filter_by(chat_id=chat_id).first()
         
+
 class PlanManager:
     
     @staticmethod
-    def getGptFreePlanOrCreate():
+    def getFreePlanOrCreate():
         plan = session.query(Plan).filter_by(is_free=True)
         
         if plan is None:
@@ -57,9 +58,13 @@ class PlanManager:
                 title="Free plan",
                 description=text.FREE_GPT_PLAN_TEXT,
                 amount_for_week=0,
-                weekly_limited_requests=20
-                
+                weekly_limited_gptrequests=140,
+                weekly_limited_imagerequests=35,
+                is_free=True
             )
+
+            new_plan.save()
+
         
 
                 
