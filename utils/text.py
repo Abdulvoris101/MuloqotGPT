@@ -101,3 +101,9 @@ Agarda biror savolingiz bo'lsa, bizga murojat qiling - @texnosupportuzbot
 # Agarda biror savolingiz bo'lsa, bizga murojat qiling - @texnosupportuzbot
 # 24 soat ichida
 # sizning xisobingizga aqsha tushirib beramiz.
+
+# Plans
+
+FREE_GPT_PLAN_TEXT = "Bu tekin plan bla bla"
+PREMIUM_GPT_PLAN_TEXT = "Bu premium plan bla bla"
+

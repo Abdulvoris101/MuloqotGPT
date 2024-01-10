@@ -55,9 +55,6 @@ class ChatManager:
         current_month_records = session.query(Chat).filter(func.extract('month', Chat.last_updated) == datetime.now().month).count()
 
         return current_month_records
-    
-    
-
 
 
 class MessageManager:
@@ -129,6 +126,7 @@ class MessageManager:
 
         return encoded_messages
     
+    
     @classmethod
     def base_role(cls, chat_id, role, content, uz_message):
         data = {"role": role, "content": str(content), "uz_message": uz_message}
@@ -136,6 +134,7 @@ class MessageManager:
         obj.save()
 
         return data
+    
     
     @classmethod
     def user_role(cls, translated_text, instance):

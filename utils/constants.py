@@ -15,7 +15,8 @@ PASSWORD_PAYME = os.environ.get("PASSWORD_PAYME")
 DEVICE = os.environ.get("DEVICE")
 AQSHA_COST= os.environ.get("AQSHA_COST")
 WEB_URL= os.environ.get("WEB_URL")
-
 DB_URL=os.environ.get("DB_URL")
 
+# PRICE
 
+# GPT_WEEKLY_REQUESTS = 

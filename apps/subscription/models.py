@@ -1,5 +1,5 @@
 from db.setup import Base, session
-from sqlalchemy import Column, Integer, String, UUID, BigInteger, Boolean, DateTime, Enum
+from sqlalchemy import Column, Integer, String, UUID, BigInteger, Boolean, DateTime, Text
 from datetime import datetime
 
 
@@ -37,16 +37,20 @@ class Plan(Base):
 
     id = Column(Integer, primary_key=True)
     title = Column(String)
+    description = Column(Text, nullable=True)
     amount_for_week = Column(BigInteger)
     is_free = Column(Boolean)
-    limited_requests = Column(Integer)
+    weekly_limited_requests = Column(Integer)
+    
 
 
-    def __init__(self, title, amount_for_week, is_free, limited_requests):
+    def __init__(self, title, description, amount_for_week, is_free, weekly_limited_requests):
         self.title = title
+        self.description = description
         self.amount_for_week = amount_for_week
         self.is_free = is_free
-        self.limited_requests = limited_requests
+        self.weekly_limited_requests = weekly_limited_requests
+        
 
         super().__init__()
 
@@ -55,12 +59,45 @@ class Plan(Base):
         session.commit()
 
         return self
+    
+    @classmethod
+    def update(cls, instance, column, value):
+        setattr(instance, column, value)
+        session.commit()
+
+    @classmethod
+    def delete(self, plan_id):
+        chat = session.query(Plan).filter_by(plan_id=plan_id).first()
+        session.delete(chat)
+
 
 class Subscription(Base):
+    __tablename__ = 'subscription'
+    
     id = Column(Integer, primary_key=True)
-    planId = Column(Integer)
-    currentPeriodStart = Column(DateTime)
-    currentPeriodEnd = Column(DateTime)
-    paid = Column(Boolean)
+    plan_id = Column(Integer)
+    current_period_start = Column(DateTime)
+    current_period_end = Column(DateTime)
+    is_paid = Column(Boolean, default=False)
+    chat_id = Column(BigInteger)
+    isCanceled = Column(Boolean, default=False)
+    canceledAt = Column(DateTime, nullable=True)
 
 
+    def __init__(self, plan_id, current_period_start, current_period_end, is_paid, chat_id):
+        self.plan_id = plan_id
+        self.current_period_start = current_period_start
+        self.current_period_end = current_period_end
+        self.is_paid = is_paid
+        self.chat_id = chat_id
+
+        super().__init__()
+
+
+    def save(self):
+        session.add(self)
+        session.commit()
+
+        return self
+    
+    

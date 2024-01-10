@@ -9,6 +9,7 @@ from utils.translate import translate_message
 from utils import count_tokens
 import utils.text as text
 import asyncio
+from apps.subscription.managers import SubscriptionManager
 
 class AIChatHandler:
     PROCESSING_MESSAGE = "⏳..."
@@ -107,9 +108,16 @@ async def handle_private_messages(message: types.Message):
 async def send_welcome(message: types.Message): 
 
     await message.answer(text.START_COMMAND)
-
-
     await message.answer(text.HOW_TO_HELP_TEXT)
+    
+    user_subscription = await SubscriptionManager.getByChatId(chat_id=message.from_user.id)
+    
+    if user_subscription is None:
+        SubscriptionManager.subscribe(
+            plan_id="free_plan_id", # todo: 
+            chat_id=message.from_user.id
+        )
+    
     await ChatManager.activate(message)
 
 
