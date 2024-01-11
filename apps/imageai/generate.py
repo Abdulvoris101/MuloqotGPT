@@ -19,7 +19,6 @@ class LexicaAi:
 
         resp = httpx.post(cls.url, json=data)
         
-
         images = [f"https://image.lexica.art/full_jpg/{ids['id']}" for ids in resp.json()["images"]]
 
         return images

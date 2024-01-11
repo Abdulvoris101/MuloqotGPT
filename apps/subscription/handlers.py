@@ -2,7 +2,6 @@ from bot import dp, bot, types
 from utils import text, constants
 from db.state import Payment
 from aiogram.dispatcher.dispatcher import FSMContext
-from apps.admin.keyboards import cancel_keyboards
 import uuid
 from .keyboards import check_payment_menu
 from aiogram.dispatcher.filters import Text
@@ -14,6 +13,13 @@ from apps.subscription.managers import SubscriptionManager, PlanManager
 
 @dp.callback_query_handler(text="subscribe_premium")
 async def buy_premium(message: types.Message):
+
+    subscription = SubscriptionManager.findByChatIdAndPlanId(message.from_user.id, PlanManager.getPremiumPlanOrCreate())
+
+    if subscription is not None:
+        await message.answer("Siz allaqachon premium obunaga egasiz")
+        return
+    
     await message.answer("Sotib olish")
     
     await bot.send_message(
@@ -59,6 +65,13 @@ async def get_full_name_payment(message: types.Message, state=FSMContext):
     cardholder = message.text
 
     await send_event(f"""#payment check-in\nchatId: {message.from_user.id},\nsubscription_id: {subscription_id},\ncardholder: {cardholder},\nprice: {price},\nsuccess: Inprogress""")
+    
+
+    SubscriptionManager.unsubscribe(
+        plan_id=PlanManager.getFreePlanOrCreate(),
+        chat_id=message.from_user.id
+    )
+
     
     SubscriptionManager.subscribe(
         plan_id=PlanManager.getPremiumPlanOrCreate(),

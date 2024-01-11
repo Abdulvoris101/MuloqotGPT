@@ -2,9 +2,8 @@ from bot import dp, bot, types
 from apps.gpt import request_gpt
 from .models import Chat
 from .managers import ChatManager, MessageManager
-from .keyboards import joinChannelMenu, settingsMenu
+from .keyboards import settingsMenu
 from filters.core import UserFilter
-from filters import IsReplyFilter
 from utils.translate import translate_message
 from utils import count_tokens, count_token_of_message
 import utils.text as text
@@ -110,10 +109,10 @@ async def send_welcome(message: types.Message):
     user_subscription = SubscriptionManager.getByChatId(chat_id=message.from_user.id)
     
     if user_subscription is None:
-        
         SubscriptionManager.subscribe(
             plan_id=PlanManager.getFreePlanOrCreate(),
-            chat_id=message.from_user.id
+            chat_id=message.from_user.id,
+            is_paid=True
         )
     
     await ChatManager.activate(message)

@@ -81,7 +81,7 @@ uning uchun esa bizga yuborgan kartangizdagi ismingizni yozing 👇
 
 PAYMENT_STEP2 = """
 Ajoyib! Sizning to'lovingiz yaqin soatlar ichida tekshirilib chiqib, 
-sizga premium obuna taqdim etiladi.
+sizga premium obuna taqdim etiladi. Bizni tanlaganiz uchun rahmat 🫡
 
 Agarda biror savolingiz bo'lsa, bizga murojat qiling - @texnosupportuzbot | @abdulvoris_101
 """

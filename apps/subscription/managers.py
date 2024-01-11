@@ -10,13 +10,14 @@ class SubscriptionManager:
     def subscribe(
         plan_id,
         chat_id,
-        cardholder=None
+        cardholder=None,
+        is_paid=False
     ):
         subscription = Subscription(
             plan_id=plan_id,
             current_period_start=datetime.datetime.now(),
             current_period_end=datetime.datetime.now() + datetime.timedelta(days=7),
-            is_paid=False,
+            is_paid=is_paid,
             chat_id=chat_id,
             cardholder=cardholder
         )
@@ -44,6 +45,13 @@ class SubscriptionManager:
         
         return True
         
+    @staticmethod
+    def findByChatIdAndPlanId(
+        chat_id,
+        plan_id
+    ):
+        return session.query(Subscription).filter_by(chat_id=chat_id, plan_id=plan_id).first()
+
     
     @staticmethod
     def getByChatId(
