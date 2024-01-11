@@ -3,7 +3,6 @@ import datetime
 from db.setup import session
 from utils import text
 from utils import constants
-import uuid
 
 class SubscriptionManager:
     
@@ -15,10 +14,9 @@ class SubscriptionManager:
     ):
         subscription = Subscription(
             plan_id=plan_id,
-            subscription_id=uuid.uuid4(),
             current_period_start=datetime.datetime.now(),
             current_period_end=datetime.datetime.now() + datetime.timedelta(days=7),
-            is_paid=True,
+            is_paid=False,
             chat_id=chat_id,
             cardholder=cardholder
         )
@@ -44,6 +42,8 @@ class SubscriptionManager:
         session.add(subscription)
         session.commit()
         
+        return True
+        
     
     @staticmethod
     def getByChatId(
@@ -67,7 +67,6 @@ class PlanManager:
         if plan is None:
             new_plan = Plan(
                 title="Free plan",
-                plan_id=uuid.uuid4(),
                 amount_for_week=0,
                 weekly_limited_gptrequests=constants.FREE_GPT_REQUESTS_WEEKLY,
                 weekly_limited_imagerequests=constants.FREE_IMAGEAI_REQUESTS_WEEKLY,
@@ -76,9 +75,9 @@ class PlanManager:
 
             new_plan.save()
             
-            return new_plan.plan_id
+            return new_plan.id
         
-        return plan.plan_id
+        return plan.id
 
 
     @staticmethod
@@ -88,18 +87,17 @@ class PlanManager:
         if plan is None:
             new_plan = Plan(
                 title="Premium plan",
-                plan_id=uuid.uuid4(),
                 amount_for_week=constants.PREMIUM_PRICE,
                 weekly_limited_gptrequests=constants.PREMIUM_GPT_REQUESTS_WEEKLY,
                 weekly_limited_imagerequests=constants.PREMIUM_IMAGEAI_REQUESTS_WEEKLY,
-                is_free=True
+                is_free=False
             )
 
             new_plan.save()
             
-            return new_plan.plan_id
+            return new_plan.id
         
-        return plan.plan_id
+        return plan.id
 
 
     

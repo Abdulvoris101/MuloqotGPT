@@ -2,31 +2,28 @@ from db.setup import Base, session
 from sqlalchemy import Column, Integer, String, UUID, BigInteger, Boolean, DateTime, Text, ForeignKey
 from sqlalchemy.orm import relationship
 from datetime import datetime
-
+import uuid
 
 
 class Plan(Base):
     __tablename__ = 'plan'
 
-    id = Column(Integer, primary_key=True)
-    plan_id = Column(UUID(as_uuid=True), unique=True)
+    id = Column(UUID(as_uuid=True), primary_key=True)
     title = Column(String)
     amount_for_week = Column(BigInteger)
     is_free = Column(Boolean)
     weekly_limited_imagerequests = Column(Integer)
     weekly_limited_gptrequests = Column(Integer)
-    subscriptions = relationship('Subscription.subscription_id', backref='plan')
 
 
     def __init__(
             self, title,
-            plan_id,
             amount_for_week, is_free, 
             weekly_limited_imagerequests, 
             weekly_limited_gptrequests):
         
+        self.id = uuid.uuid4()
         self.title = title
-        self.plan_id = plan_id
         self.amount_for_week = amount_for_week
         self.is_free = is_free
         self.weekly_limited_imagerequests = weekly_limited_imagerequests
@@ -52,24 +49,24 @@ class Plan(Base):
         session.delete(chat)
 
 
+
 class Subscription(Base):
     __tablename__ = 'subscription'
     
-    id = Column(Integer, primary_key=True)
-    subscription_id = Column(UUID(as_uuid=True), unique=True)
-    plan_id = Column(UUID(as_uuid=True), ForeignKey('plan.plan_id'))
+    id = Column(UUID(as_uuid=True), primary_key=True)
+    plan_id = Column(UUID(as_uuid=True), unique=True)
     current_period_start = Column(DateTime)
     current_period_end = Column(DateTime)
     is_paid = Column(Boolean, default=False)
     chat_id = Column(BigInteger)
     cardholder = Column(String, nullable=True)
-    isCanceled = Column(Boolean, default=False)
-    canceledAt = Column(DateTime, nullable=True)
+    is_canceled = Column(Boolean, default=False)
+    canceled_at = Column(DateTime, nullable=True)
 
 
-    def __init__(self, subscription_id, plan_id, cardholder, current_period_start, current_period_end, is_paid, chat_id):
+    def __init__(self, plan_id, cardholder, current_period_start, current_period_end, is_paid, chat_id):
+        self.id = uuid.uuid4()
         self.plan_id = plan_id
-        self.subscription_id = subscription_id
         self.cardholder = cardholder
         self.current_period_start = current_period_start
         self.current_period_end = current_period_end

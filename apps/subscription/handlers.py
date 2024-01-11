@@ -6,7 +6,6 @@ from apps.admin.keyboards import cancel_keyboards
 import uuid
 from .keyboards import check_payment_menu
 from aiogram.dispatcher.filters import Text
-from .models import Transaction
 from utils import send_event
 from apps.imageai.keyboards import buyCreditMenu
 from apps.subscription.managers import SubscriptionManager, PlanManager
@@ -59,7 +58,6 @@ async def get_full_name_payment(message: types.Message, state=FSMContext):
         
     cardholder = message.text
 
-
     await send_event(f"""#payment check-in\nchatId: {message.from_user.id},\nsubscription_id: {subscription_id},\ncardholder: {cardholder},\nprice: {price},\nsuccess: Inprogress""")
     
     SubscriptionManager.subscribe(
@@ -69,6 +67,5 @@ async def get_full_name_payment(message: types.Message, state=FSMContext):
     )
     
     await message.answer(text.PAYMENT_STEP2)
-    
     
     await state.finish()
