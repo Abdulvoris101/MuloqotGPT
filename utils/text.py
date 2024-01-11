@@ -95,7 +95,7 @@ Xozirgi obuna quyidagilarni o'z ichiga oladi:
 ✅ Avtotarjimon funksiyasi;
 ⚠️ So’rovlar orasida 10 sekundlik vaqt chegarasi;
 
-Ko'proq kerakmi? 5000 so'm evaziga bir haftalik premium obunaga ega bo'ling.
+Ko'proq kerakmi? 6000 so'm evaziga bir haftalik premium obunaga ega bo'ling.
 
 Premium obuna bilan siz:
 ✅ GPT-3.5 ga har kuni 100 ta so'rov;
@@ -106,4 +106,7 @@ Premium obuna bilan siz:
 ✅ Javoblar kreativroq.
 """
 
+LIMIT_REACHED = """Afsuski sizning kunlik limitingiz tugadi. 
+Yanada ko'proq so'rov uchun premium tarifga obuna bo'ling
+/premium"""
 

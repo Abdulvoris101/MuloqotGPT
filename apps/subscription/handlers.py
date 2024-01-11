@@ -14,7 +14,7 @@ from apps.subscription.managers import SubscriptionManager, PlanManager
 @dp.callback_query_handler(text="subscribe_premium")
 async def buy_premium(message: types.Message):
 
-    subscription = SubscriptionManager.findByChatIdAndPlanId(message.from_user.id, PlanManager.getPremiumPlanOrCreate())
+    subscription = SubscriptionManager.findByChatIdAndPlanId(message.from_user.id, PlanManager.getPremiumPlanOrCreate().id)
 
     if subscription is not None:
         await message.answer("Siz allaqachon premium obunaga egasiz")
@@ -68,13 +68,12 @@ async def get_full_name_payment(message: types.Message, state=FSMContext):
     
 
     SubscriptionManager.unsubscribe(
-        plan_id=PlanManager.getFreePlanOrCreate(),
+        plan_id=PlanManager.getFreePlanOrCreate().id,
         chat_id=message.from_user.id
     )
 
-    
     SubscriptionManager.subscribe(
-        plan_id=PlanManager.getPremiumPlanOrCreate(),
+        plan_id=PlanManager.getPremiumPlanOrCreate().id,
         chat_id=message.from_user.id,
         cardholder=cardholder
     )

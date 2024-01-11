@@ -47,6 +47,7 @@ class Plan(Base):
     def delete(self, plan_id):
         chat = session.query(Plan).filter_by(id=plan_id).first()
         session.delete(chat)
+        
 
 
 
@@ -54,7 +55,7 @@ class Subscription(Base):
     __tablename__ = 'subscription'
     
     id = Column(UUID(as_uuid=True), primary_key=True)
-    plan_id = Column(UUID(as_uuid=True), unique=True)
+    plan_id = Column(UUID(as_uuid=True))
     current_period_start = Column(DateTime)
     current_period_end = Column(DateTime)
     is_paid = Column(Boolean, default=False)

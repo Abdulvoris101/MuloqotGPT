@@ -89,13 +89,15 @@ class MessageStatManager:
 
         return input_tokens
     
+    @staticmethod
+    def get_todays_message(chat_id):
+        return session.query(MessageStats).filter_by(chat_id=chat_id).first().todays_messages
 
 
 class MessageManager:
     # Message manager
     
     # Get all data messages
-
 
     @classmethod
     def all(cls, chat_id):

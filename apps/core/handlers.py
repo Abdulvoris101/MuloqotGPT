@@ -1,7 +1,7 @@
 from bot import dp, bot, types
 from apps.gpt import request_gpt
 from .models import Chat
-from .managers import ChatManager, MessageManager
+from .managers import ChatManager, MessageManager, MessageStatManager
 from .keyboards import settingsMenu
 from filters.core import UserFilter
 from utils.translate import translate_message
@@ -52,6 +52,10 @@ class AIChatHandler:
     async def handle(self):
 
         await UserFilter.activate(self.message, self.chat_id)
+        
+        if not await self.check_gpt_requests_daily_limit(self.chat_id):
+            await self.reply_or_send(text.LIMIT_REACHED)
+            return 
 
         tokens_of_message = count_token_of_message(self.text)
         
@@ -71,9 +75,19 @@ class AIChatHandler:
         asyncio.create_task(self.process_gpt_request(messages, self.chat_id, proccess_message))
 
 
+    async def check_gpt_requests_daily_limit(self, chat_id):
+        users_plan_limit = SubscriptionManager.getDailyGptLimitOfUser(chat_id)
+        users_used_requests = MessageStatManager.get_todays_message(chat_id)
+        
+        
+        if users_plan_limit > users_used_requests:
+            return True
+        
+        return False
     
     async def process_gpt_request(self, messages, chat_id, proccess_message):
         try:
+            
             response = await request_gpt(messages, chat_id)
             response_uz = MessageManager.assistant_role(translated_text=response, instance=self.message)
 
@@ -110,7 +124,7 @@ async def send_welcome(message: types.Message):
     
     if user_subscription is None:
         SubscriptionManager.subscribe(
-            plan_id=PlanManager.getFreePlanOrCreate(),
+            plan_id=PlanManager.getFreePlanOrCreate().id,
             chat_id=message.from_user.id,
             is_paid=True
         )

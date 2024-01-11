@@ -24,6 +24,8 @@ class SubscriptionManager:
         
         session.add(subscription)
         session.commit()
+        
+        return subscription
     
     
     @staticmethod
@@ -36,9 +38,9 @@ class SubscriptionManager:
         if subscription is None:
             return False
         
-        subscription.canceledAt = datetime.datetime.now()
+        subscription.canceled_at = datetime.datetime.now()
         subscription.is_paid = False
-        subscription.isCanceled = True
+        subscription.is_canceled = True
         
         session.add(subscription)
         session.commit()
@@ -50,7 +52,7 @@ class SubscriptionManager:
         chat_id,
         plan_id
     ):
-        return session.query(Subscription).filter_by(chat_id=chat_id, plan_id=plan_id).first()
+        return session.query(Subscription).filter_by(chat_id=chat_id, plan_id=plan_id, is_paid=True, is_canceled=False).first()
 
     
     @staticmethod
@@ -59,6 +61,69 @@ class SubscriptionManager:
     ):
         return session.query(Subscription).filter_by(chat_id=chat_id).first()
         
+    @classmethod
+    def getDailyGptLimitOfUser(
+        cls,       
+        chat_id
+    ):
+        free_plan = PlanManager.getFreePlanOrCreate()
+        premium_plan = PlanManager.getPremiumPlanOrCreate()
+        
+        premium_subscription = session.query(Subscription).filter_by(
+            chat_id=chat_id, plan_id=premium_plan.id, is_paid=True, is_canceled=False).first()
+        
+        free_subscription = session.query(Subscription).filter_by(
+            chat_id=chat_id, plan_id=free_plan.id, is_paid=True, is_canceled=False).first()
+        
+        
+        if premium_subscription is not None:
+            print("premium")
+            return int(premium_plan.weekly_limited_gptrequests) / 7 # get daily limit requests
+        elif free_subscription is not None:
+            print("free")
+            
+            return int(free_plan.weekly_limited_gptrequests) / 7
+        else:
+            # create free subscription for user
+            print("subscribe")
+            cls.subscribe(
+                free_plan.id,
+                chat_id,
+                is_paid=True
+            )
+            
+            return int(free_plan.weekly_limited_gptrequests) / 7
+        
+    @classmethod
+    def getDailyImageAiLimitOfUser(
+        cls,       
+        chat_id
+    ):
+        free_plan = PlanManager.getFreePlanOrCreate()
+        premium_plan = PlanManager.getPremiumPlanOrCreate()
+        
+        premium_subscription = session.query(Subscription).filter_by(
+            chat_id=chat_id, plan_id=premium_plan.id, is_paid=True).first()
+        
+        free_subscription = session.query(Subscription).filter_by(
+            chat_id=chat_id, plan_id=free_plan.id, is_paid=True).first()
+        
+        
+        if premium_subscription is not None:
+            return int(premium_plan.weekly_limited_imagerequests) / 7 # get daily limit requests
+        elif free_subscription is not None:
+            return int(free_plan.weekly_limited_imagerequests) / 7
+        else:
+            # create free subscription for user
+            cls.subscribe(
+                free_plan.id,
+                chat_id
+            )
+            
+            return int(free_plan.weekly_limited_imagerequests) / 7
+            
+            
+    
 
 class PlanManager:
     
@@ -81,11 +146,12 @@ class PlanManager:
                 is_free=True
             )
 
-            new_plan.save()
+            session.add(new_plan)
+            session.commit()
             
-            return new_plan.id
+            return new_plan
         
-        return plan.id
+        return plan
 
 
     @staticmethod
@@ -101,11 +167,12 @@ class PlanManager:
                 is_free=False
             )
 
-            new_plan.save()
+            session.add(new_plan)
+            session.commit()
             
-            return new_plan.id
+            return new_plan
         
-        return plan.id
+        return plan
 
 
     

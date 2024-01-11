@@ -38,7 +38,7 @@ class Chat(Base):
 
         if chat is not None:
             if chat.auto_translate is None:
-                chat.auto_translate = True
+                chat.auto_translate = False
         
             chat.save()
 

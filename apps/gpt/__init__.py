@@ -70,7 +70,6 @@ async def request_gpt(messages, chat_id):
             async with session.post("https://api.openai.com/v1/chat/completions", headers=headers, json=data) as response:
 
                 response_data = await response.read()
-                print(response_data)
                 status = response.status
             
             
