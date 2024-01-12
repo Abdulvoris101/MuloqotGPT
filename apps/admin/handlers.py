@@ -1,15 +1,16 @@
 from aiogram.dispatcher import FSMContext
 import os
 from bot import dp, types, bot
-from db.state import AdminLoginState, AdminSystemMessageState, SendMessageWithInlineState,  AdminSendMessage, PerformIdState
+from db.state import AdminLoginState, AdminSystemMessageState, SendMessageWithInlineState,  AdminSendMessage, TopupState
 from .models import Admin
-from apps.core.managers import ChatManager, MessageManager
+from apps.core.managers import ChatManager, MessageManager, MessageStatManager
+from apps.core.models import MessageStats
 from .keyboards import admin_keyboards, cancel_keyboards, sendMessageMenu, dynamic_sendMenu
 from aiogram.dispatcher.filters import Text
-from utils import SendAny, extract_inline_buttons, constants
+from utils import SendAny, extract_inline_buttons, constants, text
 from filters import IsAdmin
-from apps.subscription.managers import SubscriptionManager
-import math
+from apps.subscription.managers import SubscriptionManager, PlanManager
+
 
 
 @dp.message_handler(commands=["cancel"], state='*')
@@ -72,6 +73,59 @@ async def get_statistics(message: types.Message):
 async def send_message_command(message: types.Message, state=None):
     return await message.answer("Xabarni turini kiriting", reply_markup=sendMessageMenu)
 
+
+@dp.message_handler(IsAdmin(), Text(equals="🎁 Premium obuna.!"))
+async def subscribe_user(message: types.Message):
+    await TopupState.chat_id.set()
+    return await message.answer("Chat id kiriting", reply_markup=cancel_keyboards)
+
+
+@dp.message_handler(IsAdmin(), state=TopupState.chat_id)
+async def set_chat_id(message: types.Message, state=FSMContext):  
+
+    async with state.proxy() as data:
+        data['chat_id'] = message.text
+
+    premium_subscription = SubscriptionManager.getNotPaidPremiumSubsctiption(
+        chat_id=message.text, plan_id=PlanManager.getPremiumPlanOrCreate().id)
+    
+    if premium_subscription is None:
+        await state.finish()
+        return await message.answer("Foydalanuvchiga premium obuna taqdim etib bo'lmaydi!")
+    
+    await TopupState.next()
+    return await message.answer("Siz rostan ushbu userga premium obuna taqdim etmoqchimisiz? Xa/Yo'q", reply_markup=cancel_keyboards)
+
+
+@dp.message_handler(IsAdmin(), state=TopupState.sure)
+async def subscribe_user(message: types.Message, state=FSMContext):  
+
+    async with state.proxy() as data:
+        chat_id = data['chat_id']
+
+    if message.text != "Xa":
+        await state.finish()
+        return await message.answer("Bekor qilindi!", reply_markup=admin_keyboards)
+ 
+    
+    SubscriptionManager.unsubscribe(
+        PlanManager.getFreePlanOrCreate().id,
+        chat_id=chat_id
+    )
+    
+    messageStat = MessageStats.get(chat_id=chat_id)
+    MessageStats.update(messageStat, "todays_messages", 20 - messageStat.todays_messages)
+
+    
+    SubscriptionManager.subscribe(
+        chat_id=chat_id, plan_id=PlanManager.getPremiumPlanOrCreate().id)
+    
+    await bot.send_message(chat_id, text.PREMIUM_GAVE)
+    
+    await state.finish()
+    return await message.answer("Ushbu foydalanuvchi premium obunaga ega bo'ldi 🎉", reply_markup=admin_keyboards)
+
+
 # without_inline
 
 
@@ -95,8 +149,6 @@ async def send_message(message: types.Message, state=FSMContext):
     sendAny = SendAny(message)
 
     users = SubscriptionManager.getFreePlanUsers()
-
-    print(users)
 
     for user in users:
         try: 
@@ -147,9 +199,6 @@ async def send_message_with_inline(message: types.Message, state=FSMContext):
         sendAny = SendAny(message)
 
         users = SubscriptionManager.getFreePlanUsers()
-
-        print(users)
-
 
         for user in users:
             try: 

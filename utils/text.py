@@ -113,3 +113,5 @@ LIMIT_REACHED = """Afsuski sizning kunlik limitingiz tugadi.
 Yanada ko'proq so'rov uchun premium tarifga obuna bo'ling
 /premium"""
 
+PREMIUM_GAVE = """Tabriklaymiz sizga premium obuna taqdim etildi. Bizni tanlaganiz uchun rahmat 😊🎉"""
+

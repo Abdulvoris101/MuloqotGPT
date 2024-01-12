@@ -1,6 +1,6 @@
 from bot import dp, bot, types
 from utils import text, constants
-from db.state import Payment
+from db.state import PaymentState
 from aiogram.dispatcher.dispatcher import FSMContext
 import uuid
 from .keyboards import check_payment_menu
@@ -14,9 +14,13 @@ from apps.subscription.managers import SubscriptionManager, PlanManager
 @dp.callback_query_handler(text="subscribe_premium")
 async def buy_premium(message: types.Message):
 
-    subscription = SubscriptionManager.findByChatIdAndPlanId(message.from_user.id, PlanManager.getPremiumPlanOrCreate().id)
-
-    if subscription is not None:
+    notPaidSubscription = SubscriptionManager.getNotPaidPremiumSubsctiption(message.from_user.id, PlanManager.getPremiumPlanOrCreate().id)
+    payedSubscription = SubscriptionManager.getNotPaidPremiumSubsctiption(message.from_user.id, PlanManager.getPremiumPlanOrCreate().id)
+    
+    if notPaidSubscription is not None:
+        await message.answer("Siz allaqachon premium obunaga so'rov jonatib bo'ldingiz")
+        return
+    if payedSubscription is not None:
         await message.answer("Siz allaqachon premium obunaga egasiz")
         return
     
@@ -27,7 +31,7 @@ async def buy_premium(message: types.Message):
         text.buy_text(int(constants.PREMIUM_PRICE)), 
         reply_markup=check_payment_menu)
 
-    await Payment.is_success.set()
+    await PaymentState.first_step.set()
 
 
 @dp.message_handler(commands=["premium"])
@@ -39,8 +43,8 @@ async def premium(message: types.Message):
     )
 
 
-@dp.message_handler(Text(equals="Davom etish"), state=Payment.is_success)
-async def check_payment(message: types.Message, state=FSMContext):   
+@dp.message_handler(Text(equals="Davom etish"), state=PaymentState.first_step)
+async def topup_balance(message: types.Message, state=FSMContext):   
      
     async with state.proxy() as data:
         data["price"] = constants.PREMIUM_PRICE
@@ -51,11 +55,11 @@ async def check_payment(message: types.Message, state=FSMContext):
 
     await message.answer(text.PAYMENT_STEP1, reply_markup=types.ReplyKeyboardRemove())
     
-    await Payment.next()
+    await PaymentState.next()
 
 
-@dp.message_handler(state=Payment.full_name)
-async def subscribing(message: types.Message, state=FSMContext):
+@dp.message_handler(state=PaymentState.second_step)
+async def subscription_create(message: types.Message, state=FSMContext):
 
     
     async with state.proxy() as data:
@@ -68,7 +72,7 @@ async def subscribing(message: types.Message, state=FSMContext):
         chat_id=message.from_user.id
     )
 
-    subscription = SubscriptionManager.subscribe(
+    subscription = SubscriptionManager.create_subscription(
         plan_id=PlanManager.getPremiumPlanOrCreate().id,
         chat_id=message.from_user.id,
         cardholder=cardholder,

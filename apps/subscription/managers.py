@@ -4,6 +4,7 @@ from db.setup import session
 from utils import text
 from utils import constants
 from apps.core.managers import MessageStatManager
+from sqlalchemy import not_
 
 class SubscriptionManager:
     
@@ -28,8 +29,9 @@ class SubscriptionManager:
         
         return False
 
+
     @classmethod
-    def subscribe(
+    def create_subscription(
         cls,
         plan_id,
         chat_id,
@@ -39,7 +41,6 @@ class SubscriptionManager:
     ):
         
         if is_free:
-
             is_activated = cls.reactivateFreeSubscription(chat_id)
 
             if is_activated:
@@ -62,42 +63,7 @@ class SubscriptionManager:
         
         return subscription
     
-    @classmethod
-    def reactivateFreeSubscription(cls, chat_id):
-        inactive_subscription = cls.getUsersFreeInactiveSubscription(chat_id)
 
-        if inactive_subscription is not None:
-            inactive_subscription.is_paid = True
-            inactive_subscription.is_canceled = False
-            inactive_subscription.canceled_at = None
-
-            session.add(inactive_subscription) # set active the free subscription
-            session.commit()
-
-            return True
-        
-        return False
-    
-    @classmethod
-    def isPremium(cls, chat_id):
-        subscription = cls.findByChatIdAndPlanId(chat_id=chat_id, 
-                                  plan_id=PlanManager.getPremiumPlanOrCreate().id)
-        users_used_requests = MessageStatManager.get_all_messages_count(chat_id)
-
-        if subscription is not None:
-            return True
-        elif users_used_requests < 10:
-            return True
-
-        return False
-        
-
-    @classmethod
-    def getUsersFreeInactiveSubscription(cls, chat_id):
-        return session.query(Subscription).filter_by(
-            chat_id=chat_id, plan_id=PlanManager.getFreePlanOrCreate().id, is_paid=False, is_canceled=True).first()
-        
-    
     @staticmethod
     def unsubscribe(
         plan_id,
@@ -116,13 +82,92 @@ class SubscriptionManager:
         session.commit()
         
         return True
+    
+    @classmethod
+    def subscribe(
+        cls,
+        plan_id,
+        chat_id
+    ):
+        subscription = cls.getInActivePremiumSubsctiption(
+            chat_id=chat_id,
+            plan_id=plan_id
+        )
+        
+        
+        subscription.is_canceled = False
+        subscription.is_paid = True
+        
+        session.add(subscription)
+        session.commit()
+    
+    @classmethod
+    def reactivateFreeSubscription(cls, chat_id):
+        inactive_subscription = cls.getUsersFreeInactiveSubscription(chat_id)
+
+        if inactive_subscription is not None:
+            inactive_subscription.is_paid = True
+            inactive_subscription.is_canceled = False
+            inactive_subscription.canceled_at = None
+
+            session.add(inactive_subscription) # set active the free subscription
+            session.commit()
+
+            return True
+        
+        return False
+    
+    @classmethod
+    def isPremiumToken(cls, chat_id):
+        subscription = cls.findByChatIdAndPlanId(chat_id=chat_id, 
+                                  plan_id=PlanManager.getPremiumPlanOrCreate().id)
+        users_used_requests = MessageStatManager.get_all_messages_count(chat_id)
+
+        if subscription is not None:
+            return True
+        elif users_used_requests < 10:
+            return True
+
+        return False
+        
+
+    @classmethod
+    def getUsersFreeInactiveSubscription(cls, chat_id):
+        return session.query(Subscription).filter_by(
+            chat_id=chat_id, plan_id=PlanManager.getFreePlanOrCreate().id, is_paid=False, is_canceled=True).first()
+        
+    
         
     @staticmethod
     def findByChatIdAndPlanId(
         chat_id,
         plan_id
     ):
-        return session.query(Subscription).filter_by(chat_id=chat_id, plan_id=plan_id, is_paid=True, is_canceled=False).first()
+        return session.query(Subscription).filter_by(chat_id=chat_id, plan_id=plan_id).first()
+
+
+    @staticmethod
+    def getNotPaidPremiumSubsctiption(
+            chat_id,
+            plan_id
+        ):
+            return session.query(Subscription).filter_by(chat_id=chat_id, plan_id=plan_id, is_canceled=False).first()
+
+
+    @staticmethod
+    def getPremiumSubsctiption(
+            chat_id,
+            plan_id
+        ):
+            return session.query(Subscription).filter_by(chat_id=chat_id, plan_id=plan_id, is_canceled=False, is_paid=True).first()
+
+
+    @staticmethod
+    def getInActivePremiumSubsctiption(
+            chat_id,
+            plan_id
+        ):
+            return session.query(Subscription).filter_by(chat_id=chat_id, plan_id=plan_id, is_paid=False, is_canceled=False).first()
 
     
     @staticmethod
@@ -159,7 +204,7 @@ class SubscriptionManager:
         elif cls.free_subscription is not None:
             return int(cls.free_plan.weekly_limited_gptrequests) / 7
         else:
-            cls.subscribe(
+            cls.create_subscription(
                 plan_id=cls.free_plan.id,
                 chat_id=chat_id,
                 cardholder=None,
@@ -183,7 +228,7 @@ class SubscriptionManager:
         elif cls.free_subscription is not None:
             return int(cls.free_plan.weekly_limited_imagerequests) / 7
         else:
-            cls.subscribe(
+            cls.create_subscription(
                 plan_id=cls.free_plan.id,
                 chat_id=chat_id,
                 cardholder=None,
@@ -196,14 +241,14 @@ class SubscriptionManager:
             
     @staticmethod
     def getFreePlanUsers():
-        premium_plan = PlanManager.getPremiumPlanOrCreate()
+        free_plan = PlanManager.getFreePlanOrCreate()
         
         free_subscription_users = session.query(Subscription).filter(
-            Subscription.plan_id == premium_plan.id, Subscription.is_paid == True).all()
-        print(free_subscription_users[0].chat_id)
+            Subscription.plan_id == free_plan.id, Subscription.is_paid == True, 
+            Subscription.is_canceled==False).all()
+        
         return free_subscription_users
         
-
 
     
 

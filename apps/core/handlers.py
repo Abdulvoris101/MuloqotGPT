@@ -9,6 +9,7 @@ from utils import count_tokens, count_token_of_message, constants
 import utils.text as text
 import asyncio
 from apps.subscription.managers import SubscriptionManager, PlanManager
+
 class AIChatHandler:
     PROCESSING_MESSAGE = "⏳..."
     ERROR_MESSAGE = "Iltimos boshqatan so'rov yuboring"
@@ -77,7 +78,7 @@ class AIChatHandler:
     async def process_gpt_request(self, messages, chat_id, proccess_message):
         try:
             
-            if SubscriptionManager.isPremium(chat_id=chat_id):
+            if SubscriptionManager.isPremiumToken(chat_id=chat_id):
                 response = await request_gpt(messages, chat_id, constants.API_KEY)
             else:
                 response = await request_gpt(messages, chat_id, constants.FREE_API_KEY)
@@ -117,7 +118,7 @@ async def send_welcome(message: types.Message):
     user_subscription = SubscriptionManager.getByChatId(chat_id=message.from_user.id)
     
     if user_subscription is None:
-        SubscriptionManager.subscribe(
+        SubscriptionManager.create_subscription(
             plan_id=PlanManager.getFreePlanOrCreate().id,
             chat_id=message.from_user.id,
             is_paid=True,

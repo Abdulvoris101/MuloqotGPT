@@ -27,6 +27,9 @@ async def handle_art(message: types.Message):
 
     messageStat = MessageStats.get(message.chat.id)
 
+    if messageStat is None:
+        return await message.answer("Iltimos so'rovingizni boshqatan kiriting! ", parse_mode="MARKDOWN")
+ 
     MessageStats.update(messageStat, "todays_images", messageStat.todays_images + 1)
 
     images = LexicaAi.get_random_images(images, 6)
