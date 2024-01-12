@@ -5,11 +5,10 @@ from .managers import ChatManager, MessageManager, MessageStatManager
 from .keyboards import settingsMenu
 from filters.core import UserFilter
 from utils.translate import translate_message
-from utils import count_tokens, count_token_of_message
+from utils import count_tokens, count_token_of_message, constants
 import utils.text as text
 import asyncio
 from apps.subscription.managers import SubscriptionManager, PlanManager
-
 class AIChatHandler:
     PROCESSING_MESSAGE = "⏳..."
     ERROR_MESSAGE = "Iltimos boshqatan so'rov yuboring"
@@ -53,7 +52,7 @@ class AIChatHandler:
 
         await UserFilter.activate(self.message, self.chat_id)
         
-        if not await self.check_gpt_requests_daily_limit(self.chat_id):
+        if not SubscriptionManager.check_gpt_requests_daily_limit(self.chat_id):
             await self.reply_or_send(text.LIMIT_REACHED)
             return 
 
@@ -74,21 +73,16 @@ class AIChatHandler:
 
         asyncio.create_task(self.process_gpt_request(messages, self.chat_id, proccess_message))
 
-
-    async def check_gpt_requests_daily_limit(self, chat_id):
-        users_plan_limit = SubscriptionManager.getDailyGptLimitOfUser(chat_id)
-        users_used_requests = MessageStatManager.get_todays_message(chat_id)
-        
-        
-        if users_plan_limit > users_used_requests:
-            return True
-        
-        return False
     
     async def process_gpt_request(self, messages, chat_id, proccess_message):
         try:
             
-            response = await request_gpt(messages, chat_id)
+            if SubscriptionManager.isPremium(chat_id=chat_id):
+                response = await request_gpt(messages, chat_id, constants.API_KEY)
+            else:
+                response = await request_gpt(messages, chat_id, constants.FREE_API_KEY)
+
+            
             response_uz = MessageManager.assistant_role(translated_text=response, instance=self.message)
 
             await bot.delete_message(chat_id, proccess_message.message_id)

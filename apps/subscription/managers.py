@@ -3,9 +3,31 @@ import datetime
 from db.setup import session
 from utils import text
 from utils import constants
+from apps.core.managers import MessageStatManager
 
 class SubscriptionManager:
     
+
+    @staticmethod
+    def check_gpt_requests_daily_limit(chat_id):
+        users_plan_limit = SubscriptionManager.getDailyGptLimitOfUser(chat_id)
+        users_used_requests = MessageStatManager.get_todays_message(chat_id)
+        
+        if users_plan_limit > users_used_requests:
+            return True
+        
+        return False
+    
+    @staticmethod
+    def check_imageai_requests_daily_limit(chat_id):
+        users_plan_limit = SubscriptionManager.getDailyImageAiLimitOfUser(chat_id)
+        users_used_requests = MessageStatManager.get_todays_images(chat_id)
+        
+        if users_plan_limit > users_used_requests:
+            return True
+        
+        return False
+
     @classmethod
     def subscribe(
         cls,
@@ -17,41 +39,64 @@ class SubscriptionManager:
     ):
         
         if is_free:
-            free_inactive_subscription = cls.getUserFreeInactiveSubscription(chat_id)
-                
-            if free_inactive_subscription is not None:    
-                free_inactive_subscription.is_paid = True
-                free_inactive_subscription.is_canceled = True
-                
-                session.add(free_inactive_subscription) # set active the free subscription
-                session.commit()
-            
+
+            is_activated = cls.reactivateFreeSubscription(chat_id)
+
+            if is_activated:
+                return
         
+        
+        current_period_end = datetime.datetime.now() + datetime.timedelta(days=7)
+
         subscription = Subscription(
             plan_id=plan_id,
             current_period_start=datetime.datetime.now(),
-            current_period_end=datetime.datetime.now() + datetime.timedelta(days=7),
+            current_period_end=None if is_free else current_period_end,
             is_paid=is_paid,
             chat_id=chat_id,
             cardholder=cardholder
         )
-        
-        if is_free:
-            subscription.current_period_end = None
         
         session.add(subscription)
         session.commit()
         
         return subscription
     
+    @classmethod
+    def reactivateFreeSubscription(cls, chat_id):
+        inactive_subscription = cls.getUsersFreeInactiveSubscription(chat_id)
+
+        if inactive_subscription is not None:
+            inactive_subscription.is_paid = True
+            inactive_subscription.is_canceled = False
+            inactive_subscription.canceled_at = None
+
+            session.add(inactive_subscription) # set active the free subscription
+            session.commit()
+
+            return True
+        
+        return False
     
     @classmethod
-    def getUserFreeInactiveSubscription(cls, chat_id):
-        free_inactive_subscription = session.query(Subscription).filter_by(
+    def isPremium(cls, chat_id):
+        subscription = cls.findByChatIdAndPlanId(chat_id=chat_id, 
+                                  plan_id=PlanManager.getPremiumPlanOrCreate().id)
+        users_used_requests = MessageStatManager.get_all_messages_count(chat_id)
+
+        if subscription is not None:
+            return True
+        elif users_used_requests < 10:
+            return True
+
+        return False
+        
+
+    @classmethod
+    def getUsersFreeInactiveSubscription(cls, chat_id):
+        return session.query(Subscription).filter_by(
             chat_id=chat_id, plan_id=PlanManager.getFreePlanOrCreate().id, is_paid=False, is_canceled=True).first()
         
-        
-        return free_inactive_subscription
     
     @staticmethod
     def unsubscribe(
@@ -85,80 +130,81 @@ class SubscriptionManager:
         chat_id
     ):
         return session.query(Subscription).filter_by(chat_id=chat_id).first()
+
+
+    @classmethod
+    def dailyLimitOfUser(cls):
+        cls.free_plan = PlanManager.getFreePlanOrCreate()
+        cls.premium_plan = PlanManager.getPremiumPlanOrCreate()
         
+        cls.premium_subscription = session.query(Subscription).filter_by(
+            chat_id=cls.chat_id, plan_id=cls.premium_plan.id, is_paid=True, is_canceled=False).first()
+        
+        cls.free_subscription = session.query(Subscription).filter_by(
+            chat_id=cls.chat_id, plan_id=cls.free_plan.id, is_paid=True, is_canceled=False).first()
+        
+    
     @classmethod
     def getDailyGptLimitOfUser(
         cls,       
         chat_id
     ):
-        free_plan = PlanManager.getFreePlanOrCreate()
-        premium_plan = PlanManager.getPremiumPlanOrCreate()
+        cls.chat_id = chat_id
         
-        premium_subscription = session.query(Subscription).filter_by(
-            chat_id=chat_id, plan_id=premium_plan.id, is_paid=True, is_canceled=False).first()
-        
-        free_subscription = session.query(Subscription).filter_by(
-            chat_id=chat_id, plan_id=free_plan.id, is_paid=True, is_canceled=False).first()
-        
-        
-        if premium_subscription is not None:
-            return int(premium_plan.weekly_limited_gptrequests) / 7 # get daily limit requests
-        elif free_subscription is not None:
-            
-            return int(free_plan.weekly_limited_gptrequests) / 7
-        else:
-            
-            free_inactive_subscription = session.query(Subscription).filter_by(
-            chat_id=chat_id, plan_id=free_plan.id, is_paid=False, is_canceled=True).first()
-            
-            if free_inactive_subscription is not None:    
-                free_inactive_subscription.is_paid = True
-                free_inactive_subscription.is_canceled = True
-                
-                session.add(free_inactive_subscription) # set active the free subscription
-                session.commit()
-                
-            else: 
-                cls.subscribe(
-                    plan_id=free_plan.id,
-                    chat_id=chat_id,
-                    cardholder=None,
-                    is_paid=True,
-                    is_free=True
-                )
 
-                
-            return int(free_plan.weekly_limited_gptrequests) / 7
+        cls.dailyLimitOfUser()
+
+        if cls.premium_subscription is not None:
+            return int(cls.premium_plan.weekly_limited_gptrequests) / 7 # get daily limit requests
+        elif cls.free_subscription is not None:
+            return int(cls.free_plan.weekly_limited_gptrequests) / 7
+        else:
+            cls.subscribe(
+                plan_id=cls.free_plan.id,
+                chat_id=chat_id,
+                cardholder=None,
+                is_paid=True,
+                is_free=True
+            )
+
+            return int(cls.free_plan.weekly_limited_gptrequests) / 7
         
     @classmethod
     def getDailyImageAiLimitOfUser(
         cls,       
         chat_id
     ):
-        free_plan = PlanManager.getFreePlanOrCreate()
+        cls.chat_id = chat_id
+
+        cls.dailyLimitOfUser()
+        
+        if cls.premium_subscription is not None:
+            return int(cls.premium_plan.weekly_limited_imagerequests) / 7 # get daily limit requests
+        elif cls.free_subscription is not None:
+            return int(cls.free_plan.weekly_limited_imagerequests) / 7
+        else:
+            cls.subscribe(
+                plan_id=cls.free_plan.id,
+                chat_id=chat_id,
+                cardholder=None,
+                is_paid=True,
+                is_free=True
+            )
+
+            return int(cls.free_plan.weekly_limited_imagerequests) / 7
+
+            
+    @staticmethod
+    def getFreePlanUsers():
         premium_plan = PlanManager.getPremiumPlanOrCreate()
         
-        premium_subscription = session.query(Subscription).filter_by(
-            chat_id=chat_id, plan_id=premium_plan.id, is_paid=True).first()
+        free_subscription_users = session.query(Subscription).filter(
+            Subscription.plan_id == premium_plan.id, Subscription.is_paid == True).all()
+        print(free_subscription_users[0].chat_id)
+        return free_subscription_users
         
-        free_subscription = session.query(Subscription).filter_by(
-            chat_id=chat_id, plan_id=free_plan.id, is_paid=True).first()
-        
-        
-        if premium_subscription is not None:
-            return int(premium_plan.weekly_limited_imagerequests) / 7 # get daily limit requests
-        elif free_subscription is not None:
-            return int(free_plan.weekly_limited_imagerequests) / 7
-        else:
-            # create free subscription for user
-            cls.subscribe(
-                free_plan.id,
-                chat_id
-            )
-            
-            return int(free_plan.weekly_limited_imagerequests) / 7
-            
-            
+
+
     
 
 class PlanManager:

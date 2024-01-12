@@ -195,10 +195,10 @@
                   <th class="border-top-0">Chat Id</th>
                   <th class="border-top-0">Chat Name</th>
                   <th class="border-top-0">Username</th>
-                  <th class="border-top-0">Credits</th>
-                  <th class="border-top-0">Messaages</th>
                   <th class="border-top-0">Input Tokens</th>
                   <th class="border-top-0">Output Tokens</th>
+                  <th class="border-top-0">Todays Messages</th>
+                  <th class="border-top-0">All Messages</th>
                   <th class="border-top-0">Last Updated</th>
 
                   <th class="border-top-0">
@@ -219,6 +219,11 @@
                             <td>{{ chat.chat_id }}</td>
                             <td class="txt-oflo">{{ chat.chat_name }}</td>
                             <td>{{ chat.username }}</td>
+                            <td>{{ chat.message_stats.first().input_tokens }}</td>
+                            <td>{{ chat.message_stats.first().output_tokens }}</td>
+                            <td>{{ chat.message_stats.first().todays_messages }}</td>
+                            <td>{{ chat.message_stats.first().all_messages }}</td>
+
                             <td>{{ chat.last_updated }}</td>
                             <td>{{ chat.created_at }}</td>
                         </tr>
@@ -228,12 +233,18 @@
 
                 <tbody class="all-chats" style="display: none;" id="allchats">
                     Allchats
-                    {% for chat in all_chats %}
+                  {% for chat in all_chats %}
                         <tr>
                             <td>{{ chat.id }}</td>
                             <td>{{ chat.chat_id }}</td>
                             <td class="txt-oflo">{{ chat.chat_name }}</td>
                             <td>{{ chat.username }}</td>
+                            <td>{{ chat.message_stats.first().input_tokens }}</td>
+                            <td>{{ chat.message_stats.first().output_tokens }}</td>
+                            <td>{{ chat.message_stats.first().todays_messages }}</td>
+                            <td>{{ chat.message_stats.first().all_messages }}</td>
+
+                            <td>{{ chat.last_updated }}</td>
                             <td>{{ chat.created_at }}</td>
                         </tr>
                     {% endfor %}

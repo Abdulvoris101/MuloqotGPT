@@ -55,31 +55,29 @@ async def check_payment(message: types.Message, state=FSMContext):
 
 
 @dp.message_handler(state=Payment.full_name)
-async def get_full_name_payment(message: types.Message, state=FSMContext):
+async def subscribing(message: types.Message, state=FSMContext):
 
-    subscription_id = uuid.uuid4()
     
     async with state.proxy() as data:
         price = data["price"]
         
     cardholder = message.text
 
-    await send_event(f"""#payment check-in\nchatId: {message.from_user.id},\nsubscription_id: {subscription_id},\ncardholder: {cardholder},\nprice: {price},\nsuccess: Inprogress""")
-    
-
     SubscriptionManager.unsubscribe(
         plan_id=PlanManager.getFreePlanOrCreate().id,
         chat_id=message.from_user.id
     )
 
-    SubscriptionManager.subscribe(
+    subscription = SubscriptionManager.subscribe(
         plan_id=PlanManager.getPremiumPlanOrCreate().id,
         chat_id=message.from_user.id,
         cardholder=cardholder,
         is_paid=False,
         is_free=False
     )
-    
+
+    await send_event(f"""#payment check-in\nchatId: {message.from_user.id},\nsubscription_id: {subscription.id},\ncardholder: {cardholder},\nprice: {price},\nsuccess: Inprogress""")
+
     await message.answer(text.PAYMENT_STEP2)
     
     await state.finish()

@@ -52,12 +52,12 @@ class HandleResponse:
         return await self.handleError()
         
 
-async def request_gpt(messages, chat_id):
+async def request_gpt(messages, chat_id, api_token):
     try:
         async with aiohttp.ClientSession() as session:
             
             headers = {
-                "Authorization": f"Bearer {constants.API_KEY}"
+                "Authorization": f"Bearer {api_token}"
             }
             
             data = {

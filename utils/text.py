@@ -81,7 +81,9 @@ uning uchun esa bizga yuborgan kartangizdagi ismingizni yozing 👇
 
 PAYMENT_STEP2 = """
 Ajoyib! Sizning to'lovingiz yaqin soatlar ichida tekshirilib chiqib, 
-sizga premium obuna taqdim etiladi. Bizni tanlaganiz uchun rahmat 🫡
+sizga premium obuna taqdim etiladi. 
+Yaqin soatlar ichida sizga premium obuna bo'yicha xabar keladi.
+Bizni tanlaganiz uchun rahmat 🫡
 
 Agarda biror savolingiz bo'lsa, bizga murojat qiling - @texnosupportuzbot | @abdulvoris_101
 """
@@ -93,15 +95,16 @@ Xozirgi obuna quyidagilarni o'z ichiga oladi:
 ✅ GPT-3.5 ga har kuni 20 ta so'rov;
 ⭐️ AI bilan 5 ta tasvir generatsiya qilish;
 ✅ Avtotarjimon funksiyasi;
-⚠️ So’rovlar orasida 10 sekundlik vaqt chegarasi;
+✅ Birinchi 10ta so'rov uchun vaqt chegarasi yo'q;
+⚠️ Keyingi so’rovlar orasida 10 sekundlik vaqt chegarasi;
 
-Ko'proq kerakmi? 6000 so'm evaziga bir haftalik premium obunaga ega bo'ling.
+Ko'proq kerakmi? 6000 so'm evaziga bir haftalik premiumga obuna bo'ling.
 
 Premium obuna bilan siz:
 ✅ GPT-3.5 ga har kuni 100 ta so'rov;
 ⭐️ AI bilan 20 ta tasvir generatsiya qilish;
 ✅ Avtotarjimon funksiyasi;
-✅ Reklama yo'q;
+✅ Xechqanday reklama yo'q;
 ✅ So’rovlar orasida pauza yo’q;
 ✅ Javoblar kreativroq.
 """

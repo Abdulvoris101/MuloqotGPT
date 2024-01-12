@@ -2,7 +2,7 @@ from fastapi.templating import Jinja2Templates
 from fastapi import APIRouter, Request, Query, Depends
 from fastapi.responses import HTMLResponse
 from apps.core.models import Message, Chat
-from apps.core.managers import ChatManager, MessageManager
+from apps.core.managers import ChatManager, MessageManager, MessageStatManager
 from db.setup import session
 from sqlalchemy import desc
 
@@ -36,8 +36,8 @@ async def admin_index(request: Request, page: int=Query(1, gt=0)):
         "groups": ChatManager.groups(),
         "messages": Message.count(),
         "active_users": ChatManager.active_users(),
-        "count_of_all_input_tokens": MessageManager.count_of_all_input_tokens(),
-        "count_of_all_output_tokens": MessageManager.count_of_all_output_tokens(),
+        "count_of_all_input_tokens": MessageStatManager.count_of_all_input_tokens(),
+        "count_of_all_output_tokens": MessageStatManager.count_of_all_output_tokens(),
         "request": request,
         "users": ChatManager.users(),
         "all_chats": all_chats,
@@ -56,8 +56,8 @@ async def system_messages(request: Request):
     context = {
         "groups": ChatManager.groups(),
         "messages": Message.count(),
-        "count_of_all_input_tokens": MessageManager.count_of_all_input_tokens(),
-        "count_of_all_output_tokens": MessageManager.count_of_all_output_tokens(),
+        "count_of_all_input_tokens": MessageStatManager.count_of_all_input_tokens(),
+        "count_of_all_output_tokens": MessageStatManager.count_of_all_output_tokens(),
         "active_users": ChatManager.active_users(),
         "request": request,
         "users": ChatManager.users(),

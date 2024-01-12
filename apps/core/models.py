@@ -1,8 +1,8 @@
-from sqlalchemy import Column, Integer, String, UnicodeText, Boolean, BigInteger, DateTime
+from sqlalchemy import Column, Integer, String, UnicodeText, Boolean, BigInteger, DateTime, ForeignKey
 from db.setup import session, Base
 from datetime import datetime
 import json
-
+from sqlalchemy.orm import relationship
 
 class Chat(Base):
     __tablename__ = 'chat'
@@ -11,12 +11,12 @@ class Chat(Base):
     chat_name = Column(String)
     username = Column(String, nullable=True)
     is_activated = Column(Boolean)
-    chat_id = Column(BigInteger)
+    chat_id = Column(BigInteger, unique=True)
     created_at = Column(DateTime, nullable=True)
     auto_translate = Column(Boolean, default=True)
     last_updated = Column(DateTime, nullable=True)
     
-    
+    message_stats = relationship('MessageStats', backref='chat', lazy='dynamic')
 
     def __init__(self, chat_id, chat_name, username, is_activated=True):
         self.chat_name = chat_name
@@ -59,10 +59,11 @@ class MessageStats(Base):
     __tablename__ = 'message_stats'
 
     id = Column(Integer, primary_key=True)
-    chat_id = Column(BigInteger)
+    chat_id = Column(BigInteger, ForeignKey('chat.chat_id'))
     output_tokens = Column(BigInteger, default=0)
     input_tokens = Column(BigInteger, default=0)
     all_messages = Column(BigInteger, default=0)
+    todays_images = Column(BigInteger, default=0)
     todays_messages = Column(BigInteger, default=0)
 
 

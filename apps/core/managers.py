@@ -51,6 +51,7 @@ class ChatManager:
         message_stat = MessageStats.get(tg_user.id)
 
         if message_stat is None:
+
             message_stat = MessageStats(tg_user.id).save()
                     
         MessageProcessor.create_system_messages(tg_user.id, tg_user.type)
@@ -66,7 +67,7 @@ class MessageStatManager:
 
     @classmethod
     def count_of_all_output_tokens(cls):
-        message_stats = MessageStats.all()
+        message_stats = session.query(MessageStats).all()
         output_tokens = 1
 
         for message_stat in message_stats:
@@ -79,7 +80,7 @@ class MessageStatManager:
 
     @classmethod
     def count_of_all_input_tokens(cls):
-        chats = MessageStats.all()
+        chats = session.query(MessageStats).all()
         input_tokens = 1
 
         for chat in chats:
@@ -91,7 +92,33 @@ class MessageStatManager:
     
     @staticmethod
     def get_todays_message(chat_id):
-        return session.query(MessageStats).filter_by(chat_id=chat_id).first().todays_messages
+        messageStat = session.query(MessageStats).filter_by(chat_id=chat_id).first()
+
+        if messageStat is None:
+            return 1
+        
+        else:
+            return messageStat.todays_messages
+
+    @staticmethod
+    def get_todays_images(chat_id):
+        messageStat = session.query(MessageStats).filter_by(chat_id=chat_id).first()
+
+        if messageStat is None:
+            return 1
+        
+        else:
+            return messageStat.todays_images
+
+    @staticmethod
+    def get_all_messages_count(chat_id):
+        messageStat = session.query(MessageStats).filter_by(chat_id=chat_id).first()
+
+        if messageStat is None:
+            return 1
+        
+        else:
+            return messageStat.all_messages
 
 
 class MessageManager:
@@ -214,6 +241,8 @@ class MessageManager:
         return Message.count()
 
     
+
+
     @classmethod
     def get_system_messages(cls):
         chat = session.query(Chat).order_by(desc(Chat.id)).first()

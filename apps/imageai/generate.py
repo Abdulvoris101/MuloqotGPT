@@ -6,6 +6,9 @@ import httpx
 class LexicaAi:
     url = "https://lexica.art/api/infinite-prompts"
 
+
+    
+
     @classmethod
     def generate(cls, prompt):
         prompt = str(translate_message(prompt, chat_id=None, from_='auto', lang='en')).strip()

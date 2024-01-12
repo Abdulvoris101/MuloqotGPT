@@ -1,13 +1,14 @@
 from aiogram.dispatcher import FSMContext
 import os
 from bot import dp, types, bot
-from db.state import AdminLoginState, AdminSystemMessageState, PopupState, SendMessageWithInlineState,  AdminSendMessage, PerformIdState
+from db.state import AdminLoginState, AdminSystemMessageState, SendMessageWithInlineState,  AdminSendMessage, PerformIdState
 from .models import Admin
 from apps.core.managers import ChatManager, MessageManager
 from .keyboards import admin_keyboards, cancel_keyboards, sendMessageMenu, dynamic_sendMenu
 from aiogram.dispatcher.filters import Text
 from utils import SendAny, extract_inline_buttons, constants
 from filters import IsAdmin
+from apps.subscription.managers import SubscriptionManager
 import math
 
 
@@ -64,7 +65,7 @@ async def add_rule(message: types.Message, state=FSMContext):
 
 @dp.message_handler(IsAdmin(), Text(equals="📊 Statistika.!"))
 async def get_statistics(message: types.Message):
-    return await message.answer(f"👤 Foydalanuvchilar - {ChatManager.users()}.\n💥 Aktiv Foydalanuvchilar - {ChatManager.active_users()}\n👥 Guruhlar - {ChatManager.groups()}\n📥Xabarlar - {MessageManager.count()}")
+    return await message.answer(f"👤 Foydalanuvchilar - {ChatManager.users()}.\n💥 Aktiv Foydalanuvchilar - {ChatManager.active_users()}\n📥Xabarlar - {MessageManager.count()}")
     
 
 @dp.message_handler(IsAdmin(), Text(equals="📤 Xabar yuborish.!"))
@@ -93,16 +94,18 @@ async def send_message(message: types.Message, state=FSMContext):
 
     sendAny = SendAny(message)
 
-    chats = ChatManager.all()
+    users = SubscriptionManager.getFreePlanUsers()
 
-    for chat in chats:
+    print(users)
+
+    for user in users:
         try: 
             if message.content_type == "text":
-                await sendAny.send_message(chat.chat_id)
+                await sendAny.send_message(user.chat_id)
             elif message.content_type == "photo":
-                await sendAny.send_photo(chat.chat_id)
+                await sendAny.send_photo(user.chat_id)
             elif message.content_type == "video":
-                await sendAny.send_video(chat.chat_id)
+                await sendAny.send_video(user.chat_id)
             
         except BaseException as e:
             print(e)
@@ -143,20 +146,23 @@ async def send_message_with_inline(message: types.Message, state=FSMContext):
 
         sendAny = SendAny(message)
 
-        chats = ChatManager.all()
+        users = SubscriptionManager.getFreePlanUsers()
 
-        for chat in chats:
+        print(users)
+
+
+        for user in users:
             try: 
                 if message.content_type == "text":
-                    await sendAny.send_message(chat.chat_id, inline_keyboards)
+                    await sendAny.send_message(user.chat_id, inline_keyboards)
                 elif message.content_type == "photo":
-                    await sendAny.send_photo(chat.chat_id, inline_keyboards)
+                    await sendAny.send_photo(user.chat_id, inline_keyboards)
                 elif message.content_type == "video":
-                    await sendAny.send_video(chat.chat_id, inline_keyboards)
+                    await sendAny.send_video(user.chat_id, inline_keyboards)
                 
             except BaseException as e:
                 print(e)
-                print(chat.chat_id)
+                print(user.chat_id)
     
     
     await state.finish()
