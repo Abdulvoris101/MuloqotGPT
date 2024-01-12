@@ -75,7 +75,9 @@ async def get_full_name_payment(message: types.Message, state=FSMContext):
     SubscriptionManager.subscribe(
         plan_id=PlanManager.getPremiumPlanOrCreate().id,
         chat_id=message.from_user.id,
-        cardholder=cardholder
+        cardholder=cardholder,
+        is_paid=False,
+        is_free=False
     )
     
     await message.answer(text.PAYMENT_STEP2)

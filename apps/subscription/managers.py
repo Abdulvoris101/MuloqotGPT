@@ -6,13 +6,27 @@ from utils import constants
 
 class SubscriptionManager:
     
-    @staticmethod
+    @classmethod
     def subscribe(
+        cls,
         plan_id,
         chat_id,
         cardholder=None,
-        is_paid=False
+        is_paid=False,
+        is_free=True
     ):
+        
+        if is_free:
+            free_inactive_subscription = cls.getUserFreeInactiveSubscription(chat_id)
+                
+            if free_inactive_subscription is not None:    
+                free_inactive_subscription.is_paid = True
+                free_inactive_subscription.is_canceled = True
+                
+                session.add(free_inactive_subscription) # set active the free subscription
+                session.commit()
+            
+        
         subscription = Subscription(
             plan_id=plan_id,
             current_period_start=datetime.datetime.now(),
@@ -22,11 +36,22 @@ class SubscriptionManager:
             cardholder=cardholder
         )
         
+        if is_free:
+            subscription.current_period_end = None
+        
         session.add(subscription)
         session.commit()
         
         return subscription
     
+    
+    @classmethod
+    def getUserFreeInactiveSubscription(cls, chat_id):
+        free_inactive_subscription = session.query(Subscription).filter_by(
+            chat_id=chat_id, plan_id=PlanManager.getFreePlanOrCreate().id, is_paid=False, is_canceled=True).first()
+        
+        
+        return free_inactive_subscription
     
     @staticmethod
     def unsubscribe(
@@ -77,21 +102,32 @@ class SubscriptionManager:
         
         
         if premium_subscription is not None:
-            print("premium")
             return int(premium_plan.weekly_limited_gptrequests) / 7 # get daily limit requests
         elif free_subscription is not None:
-            print("free")
             
             return int(free_plan.weekly_limited_gptrequests) / 7
         else:
-            # create free subscription for user
-            print("subscribe")
-            cls.subscribe(
-                free_plan.id,
-                chat_id,
-                is_paid=True
-            )
             
+            free_inactive_subscription = session.query(Subscription).filter_by(
+            chat_id=chat_id, plan_id=free_plan.id, is_paid=False, is_canceled=True).first()
+            
+            if free_inactive_subscription is not None:    
+                free_inactive_subscription.is_paid = True
+                free_inactive_subscription.is_canceled = True
+                
+                session.add(free_inactive_subscription) # set active the free subscription
+                session.commit()
+                
+            else: 
+                cls.subscribe(
+                    plan_id=free_plan.id,
+                    chat_id=chat_id,
+                    cardholder=None,
+                    is_paid=True,
+                    is_free=True
+                )
+
+                
             return int(free_plan.weekly_limited_gptrequests) / 7
         
     @classmethod

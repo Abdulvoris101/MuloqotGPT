@@ -126,7 +126,8 @@ async def send_welcome(message: types.Message):
         SubscriptionManager.subscribe(
             plan_id=PlanManager.getFreePlanOrCreate().id,
             chat_id=message.from_user.id,
-            is_paid=True
+            is_paid=True,
+            is_free=True
         )
     
     await ChatManager.activate(message)

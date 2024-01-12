@@ -57,7 +57,7 @@ class Subscription(Base):
     id = Column(UUID(as_uuid=True), primary_key=True)
     plan_id = Column(UUID(as_uuid=True))
     current_period_start = Column(DateTime)
-    current_period_end = Column(DateTime)
+    current_period_end = Column(DateTime, nullable=True)
     is_paid = Column(Boolean, default=False)
     chat_id = Column(BigInteger)
     cardholder = Column(String, nullable=True)
