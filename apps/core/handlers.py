@@ -5,10 +5,12 @@ from .managers import ChatManager, MessageManager, MessageStatManager
 from .keyboards import settingsMenu
 from filters.core import UserFilter
 from utils.translate import translate_message
-from utils import count_tokens, count_token_of_message, constants
+from utils import count_tokens, count_token_of_message
+from aiogram.dispatcher import FSMContext
 import utils.text as text
 import asyncio
-from apps.subscription.managers import SubscriptionManager, PlanManager
+from apps.subscription.managers import SubscriptionManager, PlanManager, LimitManager, FreeApiKeyManager
+
 
 class AIChatHandler:
     PROCESSING_MESSAGE = "⏳..."
@@ -53,7 +55,7 @@ class AIChatHandler:
 
         await UserFilter.activate(self.message, self.chat_id)
         
-        if not SubscriptionManager.check_gpt_requests_daily_limit(self.chat_id):
+        if not LimitManager.check_gpt_requests_daily_limit(self.chat_id):
             await self.reply_or_send(text.LIMIT_REACHED)
             return 
 
@@ -62,6 +64,7 @@ class AIChatHandler:
         if tokens_of_message >= 200:
             return await self.reply_or_send(self.TOKEN_REACHED)
 
+        
         proccess_message = await self.reply_or_send(self.PROCESSING_MESSAGE)
         
         message_en = await self.get_en_message() # translate message to en
@@ -71,19 +74,20 @@ class AIChatHandler:
         messages = await self.trim_message_tokens()
 
         await self.message.answer_chat_action("typing")
-
+        
         asyncio.create_task(self.process_gpt_request(messages, self.chat_id, proccess_message))
 
-    
+
     async def process_gpt_request(self, messages, chat_id, proccess_message):
         try:
             
             if SubscriptionManager.isPremiumToken(chat_id=chat_id):
-                response = await request_gpt(messages, chat_id, constants.API_KEY)
+                response = await request_gpt(messages, chat_id, True)
             else:
-                response = await request_gpt(messages, chat_id, constants.FREE_API_KEY)
+                response = await request_gpt(messages, chat_id, False)
+                
+                
 
-            
             response_uz = MessageManager.assistant_role(translated_text=response, instance=self.message)
 
             await bot.delete_message(chat_id, proccess_message.message_id)
@@ -102,11 +106,16 @@ class AIChatHandler:
 
 # handly reply and private messages
 @dp.message_handler(lambda message: not message.text.startswith('/') and not message.text.endswith('.!') and not message.text.startswith('✅') and message.chat.type == 'private')
-async def handle_private_messages(message: types.Message):
-    chat = AIChatHandler(message=message)
+async def handle_private_messages(message: types.Message, state: FSMContext):
+    current_state = await state.get_state()
 
+    if current_state is None:
+        chat = AIChatHandler(message=message)
+        await chat.handle()
+        return
     
-    await chat.handle()
+    state.finish()
+    await message.answer("Xatolik ketdi, qayta boshlang")
 
 
 @dp.message_handler(commands=['start'])
@@ -168,14 +177,3 @@ async def toggle_translate(message: types.Message):
 @dp.callback_query_handler(text="close")
 async def close(message: types.Message):
     await bot.delete_message(chat_id=message.message.chat.id, message_id=message.message.message_id)
-
-
-# New chat event
-@dp.message_handler(content_types=types.ContentType.NEW_CHAT_MEMBERS)
-async def handle_chat_member_updated(message: types.Message):
-    new_chat_members = message.new_chat_members
-    bot_id = message.bot.id
-
-    for member in new_chat_members:
-        if member.id == bot_id:
-            await message.answer(text.NEW_MEMBER_TEXT)

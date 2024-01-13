@@ -109,7 +109,7 @@ class MessageStatManager:
         
         else:
             return messageStat.todays_images
-
+        
     @staticmethod
     def get_all_messages_count(chat_id):
         messageStat = session.query(MessageStats).filter_by(chat_id=chat_id).first()
@@ -119,6 +119,70 @@ class MessageStatManager:
         
         else:
             return messageStat.all_messages
+    
+    @staticmethod
+    def clearAllUsersTodaysMessages():
+        messageStats = session.query(MessageStats).all()
+        
+        for messageStat in messageStats:
+            messageStat.todays_messages = 0
+            messageStat.todays_images = 0
+            
+            session.add(messageStat)
+        
+        session.commit()
+
+
+    @staticmethod
+    def cleaTodaysMessages(
+        chat_id
+    ):
+        messageStats = session.query(MessageStats).filter_by(chat_id=chat_id).first()
+        
+        for messageStat in messageStats:
+            messageStat.todays_messages = 0
+            messageStat.todays_images = 0
+            
+            session.add(messageStat)
+        
+        session.commit()
+
+    @staticmethod
+    def increaseMessageStat(chat_id):
+        messageStat = MessageStats.get(chat_id=chat_id)
+        
+        
+        if messageStat is None:
+            MessageStats(chat_id=chat_id).save()
+
+
+        MessageStats.update(messageStat, "all_messages", messageStat.all_messages + 1)
+        MessageStats.update(messageStat, "todays_messages", messageStat.todays_messages + 1)
+
+    @staticmethod
+    def increaseRequestedMessage(chat_id):
+        messageStat = MessageStats.get(chat_id=chat_id)
+        
+        
+        if messageStat is None:
+            MessageStats(chat_id=chat_id).save()
+
+        MessageStats.update(messageStat, "todays_entered_request", messageStat.todays_entered_request + 1)
+
+    @staticmethod
+    def increaseOutputTokens(chat_id, message):
+        messageStat = MessageStats.get(chat_id=chat_id)
+        
+        output_tokens = count_token_of_message(message)
+        
+        
+        if messageStat is None:
+            MessageStats(chat_id=chat_id).save()
+
+
+        MessageStats.update(messageStat, "output_tokens",  messageStat.output_tokens + output_tokens)
+
+
 
 
 class MessageManager:
@@ -180,18 +244,16 @@ class MessageManager:
 
         chat = Chat.get(instance.chat.id)
 
+        Chat.update(chat, "last_updated", datetime.now())
+
         messageStat = MessageStats.get(instance.chat.id)
 
         input_tokens = count_token_of_message(translated_text)
-        
-        Chat.update(chat, "last_updated", datetime.now())
 
         if messageStat is None:
             MessageStats(chat_id=instance.chat.id).save()
 
         MessageStats.update(messageStat, "input_tokens", messageStat.input_tokens + input_tokens)
-        MessageStats.update(messageStat, "all_messages", messageStat.all_messages + 1)
-        MessageStats.update(messageStat, "todays_messages", messageStat.todays_messages + 1)
 
         del data["uz_message"] # deleting uz_message before it requests to openai
     
@@ -202,15 +264,6 @@ class MessageManager:
     def assistant_role(cls, translated_text, instance):
         uz_text = skip_code_translation(translated_text, instance.chat.id) # returns uz text  
         
-        messageStat = MessageStats.get(instance.chat.id)
-        
-        output_tokens = count_token_of_message(translated_text)
-        
-        if messageStat is None:
-            MessageStats(chat_id=instance.chat.id).save()
-            
-        MessageStats.update(messageStat, "output_tokens",  messageStat.output_tokens + output_tokens)
-
         cls.base_role(instance.chat.id, "assistant", translated_text, uz_text)
 
         return uz_text

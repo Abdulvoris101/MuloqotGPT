@@ -18,7 +18,7 @@ async def buy_premium(message: types.Message):
     payedSubscription = SubscriptionManager.getNotPaidPremiumSubsctiption(message.from_user.id, PlanManager.getPremiumPlanOrCreate().id)
     
     if notPaidSubscription is not None:
-        await message.answer("Siz allaqachon premium obunaga so'rov jonatib bo'ldingiz")
+        await message.answer("Sizning premium obunaga so'rovingiz ko'rib chiqilmoqda")
         return
     if payedSubscription is not None:
         await message.answer("Siz allaqachon premium obunaga egasiz")
@@ -80,7 +80,7 @@ async def subscription_create(message: types.Message, state=FSMContext):
         is_free=False
     )
 
-    await send_event(f"""#payment check-in\nchatId: {message.from_user.id},\nsubscription_id: {subscription.id},\ncardholder: {cardholder},\nprice: {price},\nsuccess: Inprogress""")
+    await send_event(f"""#payment check-in\nchatId: {message.from_user.id},\nsubscription_id: {subscription.id},\ncardholder: {cardholder},\nprice: {price}""")
 
     await message.answer(text.PAYMENT_STEP2)
     

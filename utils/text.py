@@ -38,8 +38,6 @@ sizga aniqligi va maqbul javoblarni taklif etishim mumkin.
 
 🧠 Dono: Men doimiy o'rganish va rivojlanishda, yangi ma'lumotlarga va foydalanuvchi bilan bo'lishuvlarga moslashishim mumkin. Aqlli muloqotlarni taklif etishim mumkin.
 
-😄 Xushchaqchaq: Hayot kulguli tabassum bilan yaxshilanadi, va men sizning yuzingizga tabassum olib kelish uchun bu yerga keldim!
-
 🌄 Rassom: Mening yana bir qobilyatlarimdan biri bu rasm generatsiya qila olishim. Men sizga xar qanday turdagi ajoyib rasmlarni generatsiya qilib olib bera olaman
 
 ⚙️ Avtotarjimon: Meni siz bilan o'zbek tilida yanada yahshiroq muloqot qila olishim uchun, avtotarjima funksiyasini ishlataman. Endi siz ingliz tilida qiynalib menga yozishingiz shart emas. Bu funksiya ixtiyoriy xoxlagan paytiz o'chirib qo'yishingiz mumkin."""
@@ -92,17 +90,17 @@ Agarda biror savolingiz bo'lsa, bizga murojat qiling - @texnosupportuzbot | @abd
 
 PLAN_TEXT = """
 Xozirgi obuna quyidagilarni o'z ichiga oladi:
-✅ GPT-3.5 ga har kuni 20 ta so'rov;
-⭐️ AI bilan 5 ta tasvir generatsiya qilish;
+✅ Chatgptga har kuni 20 ta so'rov;
+⭐️ AI bilan 5 ta rasm generatsiya qilish;
 ✅ Avtotarjimon funksiyasi;
 ✅ Birinchi 10ta so'rov uchun vaqt chegarasi yo'q;
-⚠️ Keyingi so’rovlar orasida 10 sekundlik vaqt chegarasi;
+⚠️ Keyingi so’rovlarda vaqt chegarasi mavjud;
 
-Ko'proq kerakmi? 6000 so'm evaziga bir haftalik premiumga obuna bo'ling.
+Ko'proq kerakmi? 6000 so'm evaziga bir haftalik premium tarifga obuna bo'ling.
 
 Premium obuna bilan siz:
-✅ GPT-3.5 ga har kuni 100 ta so'rov;
-⭐️ AI bilan 20 ta tasvir generatsiya qilish;
+✅ Chatgptga turboga har kuni 100 ta so'rov;
+⭐️ AI bilan 20 ta rasm generatsiya qilish;
 ✅ Avtotarjimon funksiyasi;
 ✅ Xechqanday reklama yo'q;
 ✅ So’rovlar orasida pauza yo’q;
@@ -115,3 +113,13 @@ Yanada ko'proq so'rov uchun premium tarifga obuna bo'ling
 
 PREMIUM_GAVE = """Tabriklaymiz sizga premium obuna taqdim etildi. Bizni tanlaganiz uchun rahmat 😊🎉"""
 
+SUBSCRIPTION_END = """🚀 Obunani yangilash vaqti keldi!
+
+Salom Qadrli Foydalanuvchi 👋,
+
+Obunangiz muddati tugadi! Premium imtiyozlardan foydalanishda davom etish uchun “/premium” kommandasini kiriting.
+
+Bizni tanlaganiz uchun tashakkur 🌟
+"""
+     
+    

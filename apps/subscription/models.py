@@ -83,4 +83,29 @@ class Subscription(Base):
 
         return self
     
+class FreeApiKey(Base):
+    __tablename__ = 'freeapikey'
     
+    id = Column(UUID(as_uuid=True), primary_key=True)
+    api_key = Column(String)
+    is_used = Column(Boolean, default=False)
+    
+class Configuration(Base):
+    __tablename__ = "configuration"
+    
+    id = Column(Integer, primary_key=True)
+    freeapikey_position = Column(Integer, default=0)
+    
+    
+    def __init__(self, freeapikey_position):
+        
+        self.freeapikey_position = freeapikey_position
+
+        super().__init__()
+
+
+    def save(self):
+        session.add(self)
+        session.commit()
+
+        return self

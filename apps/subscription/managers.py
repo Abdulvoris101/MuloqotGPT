@@ -1,33 +1,13 @@
-from .models import Subscription, Plan
+from .models import Subscription, Plan, FreeApiKey, Configuration
 import datetime
 from db.setup import session
 from utils import text
 from utils import constants
 from apps.core.managers import MessageStatManager
 from sqlalchemy import not_
+from bot import bot
 
 class SubscriptionManager:
-    
-
-    @staticmethod
-    def check_gpt_requests_daily_limit(chat_id):
-        users_plan_limit = SubscriptionManager.getDailyGptLimitOfUser(chat_id)
-        users_used_requests = MessageStatManager.get_todays_message(chat_id)
-        
-        if users_plan_limit > users_used_requests:
-            return True
-        
-        return False
-    
-    @staticmethod
-    def check_imageai_requests_daily_limit(chat_id):
-        users_plan_limit = SubscriptionManager.getDailyImageAiLimitOfUser(chat_id)
-        users_used_requests = MessageStatManager.get_todays_images(chat_id)
-        
-        if users_plan_limit > users_used_requests:
-            return True
-        
-        return False
 
 
     @classmethod
@@ -101,6 +81,7 @@ class SubscriptionManager:
         session.add(subscription)
         session.commit()
     
+    
     @classmethod
     def reactivateFreeSubscription(cls, chat_id):
         inactive_subscription = cls.getUsersFreeInactiveSubscription(chat_id)
@@ -117,9 +98,32 @@ class SubscriptionManager:
         
         return False
     
+
+    @staticmethod
+    async def cancelExpiredSubscriptions():
+        
+        subscriptions_to_cancel = session.query(Subscription).filter(
+            Subscription.is_paid == True,
+            Subscription.is_canceled == False,
+            Subscription.plan_id == PlanManager.getPremiumPlanOrCreate().id,
+            Subscription.current_period_end < datetime.datetime.now()
+        ).all()
+        
+        for subscription in subscriptions_to_cancel:
+            subscription.is_canceled = True
+            subscription.is_paid = False
+            subscription.canceled_at = datetime.datetime.now()
+            session.add(subscription)
+            
+            await bot.send_message(subscription.chat_id, text.SUBSCRIPTION_END)
+
+        # Commit the changes to the database
+        session.commit()
+        
+    
     @classmethod
     def isPremiumToken(cls, chat_id):
-        subscription = cls.findByChatIdAndPlanId(chat_id=chat_id, 
+        subscription = cls.getPremiumSubsctiption(chat_id=chat_id, 
                                   plan_id=PlanManager.getPremiumPlanOrCreate().id)
         users_used_requests = MessageStatManager.get_all_messages_count(chat_id)
 
@@ -129,7 +133,24 @@ class SubscriptionManager:
             return True
 
         return False
+    
+    @classmethod
+    def rejectPremiumRequest(cls, chat_id):
+        subscription = cls.getInActivePremiumSubsctiption(
+            chat_id=chat_id,
+            plan_id=PlanManager.getPremiumPlanOrCreate().id
+        )
         
+        if subscription is None:
+            return
+
+        subscription.is_canceled = True
+        subscription.canceled_at = datetime.datetime.now()
+        subscription.is_paid = False
+
+        session.add(subscription)
+        session.commit()
+    
 
     @classmethod
     def getUsersFreeInactiveSubscription(cls, chat_id):
@@ -176,6 +197,30 @@ class SubscriptionManager:
     ):
         return session.query(Subscription).filter_by(chat_id=chat_id).first()
 
+        
+
+class LimitManager:
+    
+    
+    @classmethod
+    def check_gpt_requests_daily_limit(cls, chat_id):
+        users_plan_limit = cls.getDailyGptLimitOfUser(chat_id)
+        users_used_requests = MessageStatManager.get_todays_message(chat_id)
+        
+        if users_plan_limit > users_used_requests:
+            return True
+        
+        return False
+    
+    @classmethod
+    def check_imageai_requests_daily_limit(cls, chat_id):
+        users_plan_limit = cls.getDailyImageAiLimitOfUser(chat_id)
+        users_used_requests = MessageStatManager.get_todays_images(chat_id)
+        
+        if users_plan_limit > users_used_requests:
+            return True
+        
+        return False
 
     @classmethod
     def dailyLimitOfUser(cls):
@@ -204,7 +249,7 @@ class SubscriptionManager:
         elif cls.free_subscription is not None:
             return int(cls.free_plan.weekly_limited_gptrequests) / 7
         else:
-            cls.create_subscription(
+            SubscriptionManager.create_subscription(
                 plan_id=cls.free_plan.id,
                 chat_id=chat_id,
                 cardholder=None,
@@ -228,7 +273,7 @@ class SubscriptionManager:
         elif cls.free_subscription is not None:
             return int(cls.free_plan.weekly_limited_imagerequests) / 7
         else:
-            cls.create_subscription(
+            SubscriptionManager.create_subscription(
                 plan_id=cls.free_plan.id,
                 chat_id=chat_id,
                 cardholder=None,
@@ -239,16 +284,6 @@ class SubscriptionManager:
             return int(cls.free_plan.weekly_limited_imagerequests) / 7
 
             
-    @staticmethod
-    def getFreePlanUsers():
-        free_plan = PlanManager.getFreePlanOrCreate()
-        
-        free_subscription_users = session.query(Subscription).filter(
-            Subscription.plan_id == free_plan.id, Subscription.is_paid == True, 
-            Subscription.is_canceled==False).all()
-        
-        return free_subscription_users
-        
 
     
 
@@ -302,6 +337,57 @@ class PlanManager:
         return plan
 
 
+    @staticmethod
+    def getFreePlanUsers():
+        free_plan = PlanManager.getFreePlanOrCreate()
+        
+        free_subscription_users = session.query(Subscription).filter(
+            Subscription.plan_id == free_plan.id, Subscription.is_paid == True, 
+            Subscription.is_canceled==False).all()
+        
+        return free_subscription_users
+
+class FreeApiKeyManager:
+    
+    @staticmethod
+    def getApiKey(num):
+        free_api_keys = session.query(FreeApiKey).filter_by(is_used=False).all()
+                
+        return free_api_keys[num].api_key
+        
+    
+    @staticmethod
+    def getMaxNumber():
+        free_api_keys = session.query(FreeApiKey).filter_by(is_used=False).all()
+        
+        
+        return len(free_api_keys)
+                
+        
+class ConfigurationManager:
+    
+    @staticmethod
+    def getFirst():
+        configuration = session.query(Configuration).first()
+        
+        if configuration is None:
+            configuration = Configuration(freeapikey_position=0)
+            configuration.save()
+        
+        return configuration
+    
+    @staticmethod
+    def updatePosition(
+        number
+    ):
+        print("UPDATE: ", number)
+        configuration = session.query(Configuration).first()
+        
+        configuration.freeapikey_position = number
+        
+        session.add(configuration)
+        session.commit()
+        
+        return configuration
     
 
-                

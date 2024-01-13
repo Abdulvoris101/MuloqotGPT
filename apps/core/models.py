@@ -13,7 +13,7 @@ class Chat(Base):
     is_activated = Column(Boolean)
     chat_id = Column(BigInteger, unique=True)
     created_at = Column(DateTime, nullable=True)
-    auto_translate = Column(Boolean, default=True)
+    auto_translate = Column(Boolean, default=False)
     last_updated = Column(DateTime, nullable=True)
     
     message_stats = relationship('MessageStats', backref='chat', lazy='dynamic')
@@ -126,8 +126,3 @@ class Message(Base):
     def delete(self, chat_id):
         session.query(Message).filter_by(chat_id=chat_id).delete()
 
-
-# Base.metadata.create_all(engine)
-
-# # Commit the changes and close the session
-# session.commit()

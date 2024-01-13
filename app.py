@@ -15,7 +15,15 @@ from apps.admin.views import router
 from fastapi.staticfiles import StaticFiles
 from fastapi_pagination import add_pagination
 
+from celery import Celery
+
 # load_dotenv()
+
+celery = Celery(
+    'tasks',
+    broker=constants.REDIS_URL,
+    backend=constants.REDIS_URL,
+)
 
 app = FastAPI()
 

@@ -31,4 +31,9 @@ class PaymentState(StatesGroup):
 class TopupState(StatesGroup):
     chat_id = State()
     sure = State()
+
+
+class RejectState(StatesGroup):
+    chat_id = State()
+    reason = State()
     

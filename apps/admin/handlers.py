@@ -1,7 +1,7 @@
 from aiogram.dispatcher import FSMContext
 import os
 from bot import dp, types, bot
-from db.state import AdminLoginState, AdminSystemMessageState, SendMessageWithInlineState,  AdminSendMessage, TopupState
+from db.state import AdminLoginState, AdminSystemMessageState, SendMessageWithInlineState,  AdminSendMessage, TopupState, RejectState
 from .models import Admin
 from apps.core.managers import ChatManager, MessageManager, MessageStatManager
 from apps.core.models import MessageStats
@@ -74,6 +74,8 @@ async def send_message_command(message: types.Message, state=None):
     return await message.answer("Xabarni turini kiriting", reply_markup=sendMessageMenu)
 
 
+# Subscribe
+
 @dp.message_handler(IsAdmin(), Text(equals="🎁 Premium obuna.!"))
 async def subscribe_user(message: types.Message):
     await TopupState.chat_id.set()
@@ -126,6 +128,43 @@ async def subscribe_user(message: types.Message, state=FSMContext):
     return await message.answer("Ushbu foydalanuvchi premium obunaga ega bo'ldi 🎉", reply_markup=admin_keyboards)
 
 
+# Reject
+
+@dp.message_handler(IsAdmin(), Text(equals="✖️ Premiumni rad etish.!"))
+async def cancel_subscription(message: types.Message):
+    await RejectState.chat_id.set()
+    return await message.answer("Chat id kiriting", reply_markup=cancel_keyboards)
+
+
+@dp.message_handler(IsAdmin(), state=RejectState.chat_id)
+async def set_chat_id_reject(message: types.Message, state=FSMContext):  
+
+    async with state.proxy() as data:
+        data['chat_id'] = message.text
+
+    await RejectState.next()
+    return await message.answer("Sababni kiriting", reply_markup=cancel_keyboards)
+
+
+@dp.message_handler(IsAdmin(), state=RejectState.reason)
+async def reject_reason(message: types.Message, state=FSMContext):  
+
+    async with state.proxy() as data:
+        chat_id = data['chat_id']
+
+    reason = f"""Afsuski sizning premium obunaga bo'lgan so'rovingiz bekor qilindi.
+Sababi: {message.text}
+"""
+    await bot.send_message(chat_id, reason)
+    
+    SubscriptionManager.rejectPremiumRequest(chat_id)
+    
+    await state.finish()
+    return await message.answer("Premium obuna rad etildi", reply_markup=admin_keyboards)
+
+
+
+
 # without_inline
 
 
@@ -148,7 +187,7 @@ async def send_message(message: types.Message, state=FSMContext):
 
     sendAny = SendAny(message)
 
-    users = SubscriptionManager.getFreePlanUsers()
+    users = PlanManager.getFreePlanUsers()
 
     for user in users:
         try: 
@@ -198,7 +237,7 @@ async def send_message_with_inline(message: types.Message, state=FSMContext):
 
         sendAny = SendAny(message)
 
-        users = SubscriptionManager.getFreePlanUsers()
+        users = PlanManager.getFreePlanUsers()
 
         for user in users:
             try: 

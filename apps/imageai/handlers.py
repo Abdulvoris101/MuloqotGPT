@@ -2,7 +2,7 @@ from bot import dp, bot, types
 from .generate import LexicaAi
 from filters import IsPrivate
 from utils import text
-from apps.subscription.managers import SubscriptionManager
+from apps.subscription.managers import LimitManager
 from apps.core.models import MessageStats
 
 dp.filters_factory.bind(IsPrivate)
@@ -16,7 +16,7 @@ async def handle_art(message: types.Message):
     if not query:
         return await message.answer("Iltimos so'rovingizni kiriting:\n` /art prompt` ", parse_mode="MARKDOWN")
     
-    if not SubscriptionManager.check_imageai_requests_daily_limit(message.from_user.id):
+    if not LimitManager.check_imageai_requests_daily_limit(message.from_user.id):
         return await message.answer(text.LIMIT_REACHED)
 
     sent_message = await bot.send_message(message.chat.id, "...")
