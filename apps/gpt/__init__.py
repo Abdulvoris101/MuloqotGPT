@@ -61,15 +61,9 @@ async def request_gpt(messages, chat_id, is_premium):
             else:
                 config = ConfigurationManager.getFirst()
                 
-                print("Max: ", FreeApiKeyManager.getMaxNumber())
-                                
-                api_key = FreeApiKeyManager.getApiKey(config.freeapikey_position)
+                api_key = FreeApiKeyManager.getApiKey(config.apikey_position)
                 
-                plused = int(config.freeapikey_position) + 1
-                
-                print("freeapikey_position + 1 =", plused)
-                
-                number = 0 if int(config.freeapikey_position) + 1 == FreeApiKeyManager.getMaxNumber() else int(config.freeapikey_position) + 1
+                number = 0 if int(config.apikey_position) + 1 == FreeApiKeyManager.getMaxNumber() else int(config.apikey_position) + 1
                 
                 ConfigurationManager.updatePosition(number)
                 
@@ -93,7 +87,7 @@ async def request_gpt(messages, chat_id, is_premium):
 
                 response_data = await response.read()
                 status = response.status
-                print(response.headers)
+                print(response.headers) #todo: need to check the daily limit is not over if over set to is_used=True
             
             
             response_data = json.loads(response_data)

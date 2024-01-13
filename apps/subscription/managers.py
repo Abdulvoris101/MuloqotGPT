@@ -351,14 +351,14 @@ class FreeApiKeyManager:
     
     @staticmethod
     def getApiKey(num):
-        free_api_keys = session.query(FreeApiKey).filter_by(is_used=False).all()
+        free_api_keys = session.query(FreeApiKey).filter_by(is_expired=False).all()
                 
         return free_api_keys[num].api_key
         
     
     @staticmethod
     def getMaxNumber():
-        free_api_keys = session.query(FreeApiKey).filter_by(is_used=False).all()
+        free_api_keys = session.query(FreeApiKey).filter_by(is_expired=False).all()
         
         
         return len(free_api_keys)
@@ -371,7 +371,7 @@ class ConfigurationManager:
         configuration = session.query(Configuration).first()
         
         if configuration is None:
-            configuration = Configuration(freeapikey_position=0)
+            configuration = Configuration(apikey_position=0)
             configuration.save()
         
         return configuration
@@ -380,10 +380,9 @@ class ConfigurationManager:
     def updatePosition(
         number
     ):
-        print("UPDATE: ", number)
         configuration = session.query(Configuration).first()
         
-        configuration.freeapikey_position = number
+        configuration.apikey_position = number
         
         session.add(configuration)
         session.commit()

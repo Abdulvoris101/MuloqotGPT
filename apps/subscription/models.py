@@ -88,18 +88,18 @@ class FreeApiKey(Base):
     
     id = Column(UUID(as_uuid=True), primary_key=True)
     api_key = Column(String)
-    is_used = Column(Boolean, default=False)
+    is_expired = Column(Boolean, default=False)
     
 class Configuration(Base):
     __tablename__ = "configuration"
     
     id = Column(Integer, primary_key=True)
-    freeapikey_position = Column(Integer, default=0)
+    apikey_position = Column(Integer, default=0)
     
     
-    def __init__(self, freeapikey_position):
+    def __init__(self, apikey_position):
         
-        self.freeapikey_position = freeapikey_position
+        self.apikey_position = apikey_position
 
         super().__init__()
 
