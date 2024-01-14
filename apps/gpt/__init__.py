@@ -56,10 +56,14 @@ class HandleResponse:
 async def request_gpt(messages, chat_id, is_premium):
     try:
         async with aiohttp.ClientSession() as session:
+            
             if is_premium:
-                api_key = constants.API_KEY
+                api_key = constants.API_KEY #premium api key
             else:
-                config = ConfigurationManager.getFirst()
+                
+                # loop each api keys from db on every request
+                
+                config = ConfigurationManager.getFirst() 
                 
                 api_key = FreeApiKeyManager.getApiKey(config.apikey_position)
                 
@@ -87,7 +91,8 @@ async def request_gpt(messages, chat_id, is_premium):
 
                 response_data = await response.read()
                 status = response.status
-                print(response.headers) #todo: need to check the daily limit is not over if over set to is_used=True
+                headers_dict = dict(response.headers)
+                print(headers_dict) #todo: need to check the daily limit is not over if over set to is_used=True
             
             
             response_data = json.loads(response_data)

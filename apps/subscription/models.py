@@ -90,6 +90,7 @@ class FreeApiKey(Base):
     api_key = Column(String)
     is_expired = Column(Boolean, default=False)
     
+    
 class Configuration(Base):
     __tablename__ = "configuration"
     
