@@ -22,4 +22,10 @@ beat_schedule = {
         'task': 'tasks.clearAllTodaysMessages',
         'schedule': crontab(minute=0, hour=0)
     },
+    'clear-expired-keys': {
+        'task': 'tasks.unsetExpiredKeys',
+        'schedule': crontab(minute=0, hour=19)
+    },
+
+    
 }

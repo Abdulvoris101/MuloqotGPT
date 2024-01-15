@@ -1,6 +1,6 @@
 from celery import Celery
 from utils import constants
-from apps.subscription.managers import SubscriptionManager
+from apps.subscription.managers import SubscriptionManager, FreeApiKeyManager
 from apps.core.managers import MessageStatManager
 import asyncio
 
@@ -15,6 +15,13 @@ def cancelExpiredSubscriptions():
     
     loop = asyncio.get_event_loop()
     result = loop.run_until_complete(SubscriptionManager.cancelExpiredSubscriptions())
+    
+    return {"status": True}
+
+
+@celery.task
+def unsetExpiredKeys():
+    FreeApiKeyManager.unExpireKeys()
         
     return {"status": True}
 

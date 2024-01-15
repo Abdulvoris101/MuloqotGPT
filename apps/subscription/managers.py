@@ -353,7 +353,7 @@ class FreeApiKeyManager:
     def getApiKey(num):
         free_api_keys = session.query(FreeApiKey).filter_by(is_expired=False).all()
                 
-        return free_api_keys[num].api_key
+        return free_api_keys[num]
         
     
     @staticmethod
@@ -362,7 +362,39 @@ class FreeApiKeyManager:
         
         
         return len(free_api_keys)
-                
+    
+    @staticmethod
+    def increaseRequest(id):
+        free_api_key = session.query(FreeApiKey).filter_by(id=id).first()
+
+        free_api_key.requests = free_api_key.requests + 1
+
+        session.add(free_api_key)
+        session.commit()
+
+
+    @staticmethod
+    def checkAndExpireKey(id):
+        free_api_key = session.query(FreeApiKey).filter_by(id=id).first()
+
+        if free_api_key.requests == 200:
+            free_api_key.is_expired = True
+
+        session.add(free_api_key)
+        session.commit()
+
+    @staticmethod
+    def unExpireKeys():
+        free_api_keys = session.query(FreeApiKey).all()
+
+        for free_api_key in free_api_keys:
+            free_api_key.is_expired = False
+
+            session.add(free_api_key)
+
+        session.commit()
+
+
         
 class ConfigurationManager:
     

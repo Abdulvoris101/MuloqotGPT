@@ -1,7 +1,6 @@
 from apps.core.managers import MessageStatManager
 from apps.subscription.managers import FreeApiKeyManager, ConfigurationManager
 from utils import send_error, constants
-
 import httpx
 import json
 import aiohttp
@@ -61,11 +60,24 @@ async def request_gpt(messages, chat_id, is_premium):
                 api_key = constants.API_KEY #premium api key
             else:
                 
-                # loop each api keys from db on every request
-                
                 config = ConfigurationManager.getFirst() 
+
+
+                try:
+                    free_api_key = FreeApiKeyManager.getApiKey(config.apikey_position)
+                except IndexError:
+                    number = 0 if int(config.apikey_position) + 1 >= FreeApiKeyManager.getMaxNumber() else int(config.apikey_position) + 1
+                    
+                    ConfigurationManager.updatePosition(number)
+
+                print(free_api_key.id)
+
+                FreeApiKeyManager.increaseRequest(free_api_key.id)
+
+                FreeApiKeyManager.checkAndExpireKey(free_api_key.id)
+
+                api_key = free_api_key.api_key
                 
-                api_key = FreeApiKeyManager.getApiKey(config.apikey_position)
                 
                 number = 0 if int(config.apikey_position) + 1 == FreeApiKeyManager.getMaxNumber() else int(config.apikey_position) + 1
                 
@@ -91,11 +103,10 @@ async def request_gpt(messages, chat_id, is_premium):
 
                 response_data = await response.read()
                 status = response.status
-                headers_dict = dict(response.headers)
-                print(headers_dict) #todo: need to check the daily limit is not over if over set to is_used=True
             
             
             response_data = json.loads(response_data)
+            print(response_data)
             
             # Handle the response using your CleanResponse and handleResponse logic
             response = HandleResponse(response_data, status, chat_id)
@@ -112,6 +123,6 @@ async def request_gpt(messages, chat_id, is_premium):
     except Exception as e:
         print("Other Exception", e)
         await send_error(f"<b>#error</b>\n{e}\n\\n#user {chat_id}")
-        return "Serverda xatolik!"
+        return "Qayta urinib ko'ring!"
 
 

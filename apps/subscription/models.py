@@ -86,9 +86,10 @@ class Subscription(Base):
 class FreeApiKey(Base):
     __tablename__ = 'freeapikey'
     
-    id = Column(UUID(as_uuid=True), primary_key=True)
+    id = Column(Integer, primary_key=True)
     api_key = Column(String)
     is_expired = Column(Boolean, default=False)
+    requests = Column(Integer, default=1)
     
     
 class Configuration(Base):
