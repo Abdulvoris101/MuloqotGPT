@@ -389,6 +389,7 @@ class FreeApiKeyManager:
 
         for free_api_key in free_api_keys:
             free_api_key.is_expired = False
+            free_api_key.requests = 0
 
             session.add(free_api_key)
 
