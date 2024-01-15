@@ -121,7 +121,7 @@ class MessageStatManager:
             return messageStat.all_messages
     
     @staticmethod
-    def clearAllUsersTodaysMessages():
+    def clearAllUsersTodaysMessagesAndImages():
         messageStats = session.query(MessageStats).all()
         
         for messageStat in messageStats:
@@ -131,6 +131,9 @@ class MessageStatManager:
             session.add(messageStat)
         
         session.commit()
+
+
+
 
 
     @staticmethod

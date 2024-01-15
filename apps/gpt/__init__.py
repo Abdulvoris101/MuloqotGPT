@@ -78,7 +78,6 @@ async def request_gpt(messages, chat_id, is_premium):
 
                 api_key = free_api_key.api_key
                 
-                
                 number = 0 if int(config.apikey_position) + 1 == FreeApiKeyManager.getMaxNumber() else int(config.apikey_position) + 1
                 
                 ConfigurationManager.updatePosition(number)
@@ -106,7 +105,6 @@ async def request_gpt(messages, chat_id, is_premium):
             
             
             response_data = json.loads(response_data)
-            print(response_data)
             
             # Handle the response using your CleanResponse and handleResponse logic
             response = HandleResponse(response_data, status, chat_id)

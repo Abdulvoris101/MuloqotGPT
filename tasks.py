@@ -28,7 +28,7 @@ def unsetExpiredKeys():
 
 @celery.task
 def clearAllTodaysMessages():
-    MessageStatManager.clearAllUsersTodaysMessages()
+    MessageStatManager.clearAllUsersTodaysMessagesAndImages()
     
     return {"status": True}
     

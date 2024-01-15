@@ -54,7 +54,7 @@ GREETINGS_TEXT = "Assalomu aleykum Men Muloqot AI man sizga qanday yordam bera o
 
 def buy_text(price):
         
-    BUY_TEXT = f"""
+    BUY_TEXT = f"""1/2
 To'lov tafsilotlari:
 
 <b>Mahsulot:</b> Premium obuna
