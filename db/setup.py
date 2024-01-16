@@ -7,7 +7,6 @@ from utils import constants
 
 
 try:
-   print(constants.DB_URL)
    engine = create_engine(constants.DB_URL)
 
 except Exception as error:

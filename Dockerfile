@@ -1,0 +1,13 @@
+FROM python:3.10
+
+COPY . /app
+WORKDIR /app
+
+RUN pip install -r requirements.txt
+ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=1
+EXPOSE 8005
+
+ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=1
+COPY run.sh /app/
+
+CMD ["bash", "/app/run.sh"]

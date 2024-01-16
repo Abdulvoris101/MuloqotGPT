@@ -1,5 +1,5 @@
 import os
-from bot import bot, types
+from bot import bot
 import tiktoken
 from utils import constants
 import re
