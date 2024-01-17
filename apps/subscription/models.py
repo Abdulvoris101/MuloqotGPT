@@ -91,7 +91,7 @@ class FreeApiKey(Base):
     is_expired = Column(Boolean, default=False)
     requests = Column(Integer, default=1)
     
-    
+
 class Configuration(Base):
     __tablename__ = "configuration"
     
@@ -111,3 +111,5 @@ class Configuration(Base):
         session.commit()
 
         return self
+    
+
