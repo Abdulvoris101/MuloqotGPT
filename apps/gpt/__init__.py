@@ -61,8 +61,7 @@ async def request_gpt(messages, chat_id, is_premium):
             else:
                 
                 config = ConfigurationManager.getFirst() 
-
-
+                
                 try:
                     free_api_key = FreeApiKeyManager.getApiKey(config.apikey_position)
                 except IndexError:
@@ -103,8 +102,12 @@ async def request_gpt(messages, chat_id, is_premium):
                 response_data = await response.read()
                 status = response.status
             
+            print(response_data)
             
             response_data = json.loads(response_data)
+            
+            print(response_data)
+            
             
             # Handle the response using your CleanResponse and handleResponse logic
             response = HandleResponse(response_data, status, chat_id)
