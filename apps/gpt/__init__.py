@@ -54,7 +54,7 @@ class HandleResponse:
 
 async def request_gpt(messages, chat_id, is_premium):
     try:
-        async with aiohttp.ClientSession() as session:
+        async with aiohttp.ClientSession(cookie_jar=aiohttp.CookieJar(unsafe=True)) as session:
             
             if is_premium:
                 api_key = constants.API_KEY #premium api key
@@ -98,9 +98,6 @@ async def request_gpt(messages, chat_id, is_premium):
                 "frequency_penalty": frequency_penalty
             }
 
-            print(headers)
-            print(data)
-            
             async with session.post("https://api.openai.com/v1/chat/completions", headers=headers, json=data) as response:
 
                 response_data = await response.read()
