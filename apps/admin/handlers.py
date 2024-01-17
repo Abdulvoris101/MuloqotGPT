@@ -1,14 +1,16 @@
 from aiogram.dispatcher import FSMContext
 import os
 from bot import dp, types, bot
-from db.state import AdminLoginState, AdminSystemMessageState, PopupState, SendMessageWithInlineState,  AdminSendMessage, PerformIdState
+from db.state import AdminLoginState, AdminSystemMessageState, SendMessageWithInlineState,  AdminSendMessage, TopupState, RejectState
 from .models import Admin
-from apps.core.managers import ChatManager, MessageManager, CreditManager
+from apps.core.managers import ChatManager, MessageManager, MessageStatManager
+from apps.core.models import MessageStats
 from .keyboards import admin_keyboards, cancel_keyboards, sendMessageMenu, dynamic_sendMenu
 from aiogram.dispatcher.filters import Text
-from utils import SendAny, extract_inline_buttons, constants
+from utils import SendAny, extract_inline_buttons, constants, text
 from filters import IsAdmin
-import math
+from apps.subscription.managers import SubscriptionManager, PlanManager
+
 
 
 @dp.message_handler(commands=["cancel"], state='*')
@@ -50,47 +52,6 @@ async def add_rule_command(message: types.Message, state=None):
     return await message.answer("Qoidani faqat ingliz yoki rus tilida kiriting!", reply_markup=cancel_keyboards)
     
 
-@dp.message_handler(IsAdmin(), Text(equals="💎 Aqsha to'ldirish.!"))
-async def add_aqsha(message: types.Message, state=None):        
-    await PopupState.chat_id.set()
-    return await message.answer("Chat id kiriting", reply_markup=cancel_keyboards)
-    
-
-@dp.message_handler(IsAdmin(), state=PopupState.chat_id)
-async def set_chat_id(message: types.Message, state=None):  
-    
-    async with state.proxy() as data:
-        data['chat_id'] = message.text
-          
-    await PopupState.next()
-    return await message.answer("So'mda summani kiriting", reply_markup=cancel_keyboards)
-    
-
-@dp.message_handler(IsAdmin(), state=PopupState.price)
-async def set_price(message: types.Message, state=FSMContext):  
-    
-    async with state.proxy() as data:
-        chat_id = data['chat_id']
-    
-    try:
-        price = math.ceil(float(message.text))
-    except:
-        return await message.answer("Raqamlarda kiriting!")
-
-    amount = price / int(constants.AQSHA_COST)
-
-    is_success = CreditManager(chat_id).increase(amount)
-    
-    await state.finish()
-
-    if is_success == False:
-        return await message.answer("Chat id notog'ri", reply_markup=admin_keyboards)
-
-    return await message.answer("Aqsha to'ldirildi!", reply_markup=admin_keyboards)
-    
-
-
-
 @dp.message_handler(IsAdmin(), state=AdminSystemMessageState.message)
 async def add_rule(message: types.Message, state=FSMContext):    
     async with state.proxy() as data:
@@ -105,12 +66,104 @@ async def add_rule(message: types.Message, state=FSMContext):
 
 @dp.message_handler(IsAdmin(), Text(equals="📊 Statistika.!"))
 async def get_statistics(message: types.Message):
-    return await message.answer(f"👤 Foydalanuvchilar - {ChatManager.users()}.\n💥 Aktiv Foydalanuvchilar - {ChatManager.active_users()}\n👥 Guruhlar - {ChatManager.groups()}\n📥Xabarlar - {MessageManager.count()}")
+    return await message.answer(f"👤 Foydalanuvchilar - {ChatManager.users()}.\n💥 Aktiv Foydalanuvchilar - {ChatManager.active_users()}\n📥Xabarlar - {MessageManager.count()}")
     
 
 @dp.message_handler(IsAdmin(), Text(equals="📤 Xabar yuborish.!"))
 async def send_message_command(message: types.Message, state=None):
     return await message.answer("Xabarni turini kiriting", reply_markup=sendMessageMenu)
+
+
+# Subscribe
+
+@dp.message_handler(IsAdmin(), Text(equals="🎁 Premium obuna.!"))
+async def subscribe_user(message: types.Message):
+    await TopupState.chat_id.set()
+    return await message.answer("Chat id kiriting", reply_markup=cancel_keyboards)
+
+
+@dp.message_handler(IsAdmin(), state=TopupState.chat_id)
+async def set_chat_id(message: types.Message, state=FSMContext):  
+
+    async with state.proxy() as data:
+        data['chat_id'] = message.text
+
+    premium_subscription = SubscriptionManager.getNotPaidPremiumSubsctiption(
+        chat_id=message.text, plan_id=PlanManager.getPremiumPlanOrCreate().id)
+    
+    if premium_subscription is None:
+        await state.finish()
+        return await message.answer("Foydalanuvchiga premium obuna taqdim etib bo'lmaydi!")
+    
+    await TopupState.next()
+    return await message.answer("Siz rostan ushbu userga premium obuna taqdim etmoqchimisiz? Xa/Yo'q", reply_markup=cancel_keyboards)
+
+
+@dp.message_handler(IsAdmin(), state=TopupState.sure)
+async def subscribe_user(message: types.Message, state=FSMContext):  
+
+    async with state.proxy() as data:
+        chat_id = data['chat_id']
+
+    if message.text != "Xa":
+        await state.finish()
+        return await message.answer("Bekor qilindi!", reply_markup=admin_keyboards)
+ 
+    
+    SubscriptionManager.unsubscribe(
+        PlanManager.getFreePlanOrCreate().id,
+        chat_id=chat_id
+    )
+    
+    messageStat = MessageStats.get(chat_id=chat_id)
+    MessageStats.update(messageStat, "todays_messages", 20 - messageStat.todays_messages)
+
+    
+    SubscriptionManager.subscribe(
+        chat_id=chat_id, plan_id=PlanManager.getPremiumPlanOrCreate().id)
+    
+    await bot.send_message(chat_id, text.PREMIUM_GAVE)
+    
+    await state.finish()
+    return await message.answer("Ushbu foydalanuvchi premium obunaga ega bo'ldi 🎉", reply_markup=admin_keyboards)
+
+
+# Reject
+
+@dp.message_handler(IsAdmin(), Text(equals="✖️ Premiumni rad etish.!"))
+async def cancel_subscription(message: types.Message):
+    await RejectState.chat_id.set()
+    return await message.answer("Chat id kiriting", reply_markup=cancel_keyboards)
+
+
+@dp.message_handler(IsAdmin(), state=RejectState.chat_id)
+async def set_chat_id_reject(message: types.Message, state=FSMContext):  
+
+    async with state.proxy() as data:
+        data['chat_id'] = message.text
+
+    await RejectState.next()
+    return await message.answer("Sababni kiriting", reply_markup=cancel_keyboards)
+
+
+@dp.message_handler(IsAdmin(), state=RejectState.reason)
+async def reject_reason(message: types.Message, state=FSMContext):  
+
+    async with state.proxy() as data:
+        chat_id = data['chat_id']
+
+    reason = f"""Afsuski sizning premium obunaga bo'lgan so'rovingiz bekor qilindi.
+Sababi: {message.text}
+"""
+    await bot.send_message(chat_id, reason)
+    
+    SubscriptionManager.rejectPremiumRequest(chat_id)
+    
+    await state.finish()
+    return await message.answer("Premium obuna rad etildi", reply_markup=admin_keyboards)
+
+
+
 
 # without_inline
 
@@ -134,16 +187,16 @@ async def send_message(message: types.Message, state=FSMContext):
 
     sendAny = SendAny(message)
 
-    chats = ChatManager.all()
+    users = PlanManager.getFreePlanUsers()
 
-    for chat in chats:
+    for user in users:
         try: 
             if message.content_type == "text":
-                await sendAny.send_message(chat.chat_id)
+                await sendAny.send_message(user.chat_id)
             elif message.content_type == "photo":
-                await sendAny.send_photo(chat.chat_id)
+                await sendAny.send_photo(user.chat_id)
             elif message.content_type == "video":
-                await sendAny.send_video(chat.chat_id)
+                await sendAny.send_video(user.chat_id)
             
         except BaseException as e:
             print(e)
@@ -184,20 +237,20 @@ async def send_message_with_inline(message: types.Message, state=FSMContext):
 
         sendAny = SendAny(message)
 
-        chats = ChatManager.all()
+        users = PlanManager.getFreePlanUsers()
 
-        for chat in chats:
+        for user in users:
             try: 
                 if message.content_type == "text":
-                    await sendAny.send_message(chat.chat_id, inline_keyboards)
+                    await sendAny.send_message(user.chat_id, inline_keyboards)
                 elif message.content_type == "photo":
-                    await sendAny.send_photo(chat.chat_id, inline_keyboards)
+                    await sendAny.send_photo(user.chat_id, inline_keyboards)
                 elif message.content_type == "video":
-                    await sendAny.send_video(chat.chat_id, inline_keyboards)
+                    await sendAny.send_video(user.chat_id, inline_keyboards)
                 
             except BaseException as e:
                 print(e)
-                print(chat.chat_id)
+                print(user.chat_id)
     
     
     await state.finish()

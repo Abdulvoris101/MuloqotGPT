@@ -24,12 +24,16 @@ class SendMessageWithInlineState(StatesGroup):
 
 
 
-class Payment(StatesGroup):
-    amount_aqsha = State()
-    is_success = State()
-    full_name = State()
+class PaymentState(StatesGroup):
+    first_step = State()
+    second_step = State()
     
-class PopupState(StatesGroup):
+class TopupState(StatesGroup):
     chat_id = State()
-    price = State()
+    sure = State()
+
+
+class RejectState(StatesGroup):
+    chat_id = State()
+    reason = State()
     

@@ -1,0 +1,35 @@
+version: '3'
+services:
+  web:
+    container_name: app
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8005:8005"
+    depends_on:
+      - redis
+      - db
+    restart: always
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    env_file:
+      - .env
+
+  db:
+    container_name: db
+    image: postgres
+    environment:
+      - POSTGRES_DB=muloqotai
+      - POSTGRES_USER=${POSTGRES_DB_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_DB_PASSWORD}
+    ports:
+      - "30032:5432"
+    volumes:
+      - .postgres:/var/lib/postgres/data
+    restart: always
+
+  redis:
+    image: "redis:latest"
+

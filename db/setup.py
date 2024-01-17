@@ -2,7 +2,6 @@ from sqlalchemy import create_engine, Column, Integer, String, Boolean, BigInteg
 from datetime import datetime
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
-# Create the engine and session
 import os
 from utils import constants
 

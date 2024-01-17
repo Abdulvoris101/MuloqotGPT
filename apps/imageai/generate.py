@@ -6,6 +6,9 @@ import httpx
 class LexicaAi:
     url = "https://lexica.art/api/infinite-prompts"
 
+
+    
+
     @classmethod
     def generate(cls, prompt):
         prompt = str(translate_message(prompt, chat_id=None, from_='auto', lang='en')).strip()
@@ -19,7 +22,6 @@ class LexicaAi:
 
         resp = httpx.post(cls.url, json=data)
         
-
         images = [f"https://image.lexica.art/full_jpg/{ids['id']}" for ids in resp.json()["images"]]
 
         return images

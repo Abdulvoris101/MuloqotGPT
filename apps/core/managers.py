@@ -1,4 +1,4 @@
-from .models import Chat, Message
+from .models import Chat, Message, MessageStats
 from utils import send_event, count_tokens, count_token_of_message
 from utils.translate import skip_code_translation
 from db.setup import session
@@ -6,6 +6,8 @@ from db.proccessors import MessageProcessor
 from sqlalchemy import cast, String, not_, func, desc
 from datetime import datetime, timedelta
 import json
+
+
 
 class ChatManager:
     # Chat db queries and filters
@@ -45,7 +47,13 @@ class ChatManager:
         chat.is_activated = True
         session.add(chat)
         session.commit()
-        
+
+        message_stat = MessageStats.get(tg_user.id)
+
+        if message_stat is None:
+
+            message_stat = MessageStats(tg_user.id).save()
+                    
         MessageProcessor.create_system_messages(tg_user.id, tg_user.type)
 
     @classmethod
@@ -53,8 +61,130 @@ class ChatManager:
         current_month_records = session.query(Chat).filter(func.extract('month', Chat.last_updated) == datetime.now().month).count()
 
         return current_month_records
+
+
+class MessageStatManager:
+
+    @classmethod
+    def count_of_all_output_tokens(cls):
+        message_stats = session.query(MessageStats).all()
+        output_tokens = 1
+
+        for message_stat in message_stats:
+            
+            if message_stat.output_tokens is not None:
+                output_tokens += message_stat.output_tokens
+
+        return output_tokens
+
+
+    @classmethod
+    def count_of_all_input_tokens(cls):
+        chats = session.query(MessageStats).all()
+        input_tokens = 1
+
+        for chat in chats:
+            
+            if chat.input_tokens is not None:
+                input_tokens += chat.input_tokens
+
+        return input_tokens
     
+    @staticmethod
+    def get_todays_message(chat_id):
+        messageStat = session.query(MessageStats).filter_by(chat_id=chat_id).first()
+
+        if messageStat is None:
+            return 1
+        
+        else:
+            return messageStat.todays_messages
+
+    @staticmethod
+    def get_todays_images(chat_id):
+        messageStat = session.query(MessageStats).filter_by(chat_id=chat_id).first()
+
+        if messageStat is None:
+            return 1
+        
+        else:
+            return messageStat.todays_images
+        
+    @staticmethod
+    def get_all_messages_count(chat_id):
+        messageStat = session.query(MessageStats).filter_by(chat_id=chat_id).first()
+
+        if messageStat is None:
+            return 1
+        
+        else:
+            return messageStat.all_messages
     
+    @staticmethod
+    def clearAllUsersTodaysMessagesAndImages():
+        messageStats = session.query(MessageStats).all()
+        
+        for messageStat in messageStats:
+            messageStat.todays_messages = 0
+            messageStat.todays_images = 0
+            
+            session.add(messageStat)
+        
+        session.commit()
+
+
+
+
+
+    @staticmethod
+    def cleaTodaysMessages(
+        chat_id
+    ):
+        messageStats = session.query(MessageStats).filter_by(chat_id=chat_id).first()
+        
+        for messageStat in messageStats:
+            messageStat.todays_messages = 0
+            messageStat.todays_images = 0
+            
+            session.add(messageStat)
+        
+        session.commit()
+
+    @staticmethod
+    def increaseMessageStat(chat_id):
+        messageStat = MessageStats.get(chat_id=chat_id)
+        
+        
+        if messageStat is None:
+            MessageStats(chat_id=chat_id).save()
+
+
+        MessageStats.update(messageStat, "all_messages", messageStat.all_messages + 1)
+        MessageStats.update(messageStat, "todays_messages", messageStat.todays_messages + 1)
+
+    @staticmethod
+    def increaseRequestedMessage(chat_id):
+        messageStat = MessageStats.get(chat_id=chat_id)
+        
+        
+        if messageStat is None:
+            MessageStats(chat_id=chat_id).save()
+
+        MessageStats.update(messageStat, "todays_entered_request", messageStat.todays_entered_request + 1)
+
+    @staticmethod
+    def increaseOutputTokens(chat_id, message):
+        messageStat = MessageStats.get(chat_id=chat_id)
+        
+        output_tokens = count_token_of_message(message)
+        
+        
+        if messageStat is None:
+            MessageStats(chat_id=chat_id).save()
+
+
+        MessageStats.update(messageStat, "output_tokens",  messageStat.output_tokens + output_tokens)
+
 
 
 
@@ -62,33 +192,6 @@ class MessageManager:
     # Message manager
     
     # Get all data messages
-
-    
-    @classmethod
-    def count_of_all_output_tokens(cls):
-        chats = ChatManager.all()
-        output_tokens_counts = 1
-
-        for chat in chats:
-            
-            if chat.output_tokens_count is not None:
-                output_tokens_counts += chat.output_tokens_count
-
-        return output_tokens_counts
-
-
-    @classmethod
-    def count_of_all_input_tokens(cls):
-        chats = ChatManager.all()
-        input_tokens_counts = 1
-
-        for chat in chats:
-            
-            if chat.input_tokens_count is not None:
-                input_tokens_counts += chat.input_tokens_count
-
-        return input_tokens_counts
-    
 
     @classmethod
     def all(cls, chat_id):
@@ -127,6 +230,7 @@ class MessageManager:
 
         return encoded_messages
     
+    
     @classmethod
     def base_role(cls, chat_id, role, content, uz_message):
         data = {"role": role, "content": str(content), "uz_message": uz_message}
@@ -135,6 +239,7 @@ class MessageManager:
 
         return data
     
+    
     @classmethod
     def user_role(cls, translated_text, instance):
 
@@ -142,48 +247,26 @@ class MessageManager:
 
         chat = Chat.get(instance.chat.id)
 
-        input_tokens_count = count_token_of_message(translated_text)
-        
         Chat.update(chat, "last_updated", datetime.now())
-        Chat.update(chat, "input_tokens_count", chat.input_tokens_count +  input_tokens_count)
-        Chat.update(chat, "messages_count", chat.messages_count + 1)
+
+        messageStat = MessageStats.get(instance.chat.id)
+
+        input_tokens = count_token_of_message(translated_text)
+
+        if messageStat is None:
+            MessageStats(chat_id=instance.chat.id).save()
+
+        MessageStats.update(messageStat, "input_tokens", messageStat.input_tokens + input_tokens)
 
         del data["uz_message"] # deleting uz_message before it requests to openai
     
         return data
 
-    @classmethod
-    def user_role_for_test(cls, translated_text, text, chat_id):
-
-        data = cls.base_role(chat_id, "user", translated_text, text)
-
-        chat = Chat.get(chat_id)
-
-        Chat.update(chat, "last_updated", datetime.now())
-        Chat.update(chat, "messages_count", chat.messages_count + 1)
-
-        del data["uz_message"] # deleting uz_message before it requests to openai
-    
-        return data
-
-    @classmethod
-    def assistant_role_for_test(cls, translated_text, chat_id):
-        uz_text = skip_code_translation(translated_text, chat_id) # returns uz text  
-
-        cls.base_role(chat_id, "assistant", translated_text, uz_text)
-
-        return uz_text
     
     @classmethod
     def assistant_role(cls, translated_text, instance):
         uz_text = skip_code_translation(translated_text, instance.chat.id) # returns uz text  
         
-        chat = Chat.get(instance.chat.id)
-        
-        output_tokens_count = count_token_of_message(translated_text)
-        
-        Chat.update(chat, "output_tokens_count",  chat.output_tokens_count + output_tokens_count)
-
         cls.base_role(instance.chat.id, "assistant", translated_text, uz_text)
 
         return uz_text
@@ -203,7 +286,7 @@ class MessageManager:
 
     @classmethod
     def delete_by_limit(self, chat_id):
-        messages = session.query(Message).filter_by(chat_id=chat_id).order_by(Message.id).offset(4).limit(3).all()
+        messages = session.query(Message).filter_by(chat_id=chat_id).order_by(Message.id).offset(4).limit(1).all()
         
         for message in messages:
             session.delete(message)
@@ -213,7 +296,9 @@ class MessageManager:
     def count(cls):
         return Message.count()
 
-        
+    
+
+
     @classmethod
     def get_system_messages(cls):
         chat = session.query(Chat).order_by(desc(Chat.id)).first()
@@ -236,42 +321,6 @@ class MessageManager:
                 msgs.append(msg)    
 
         return msgs 
-
-    
-
-class CreditManager:
-    def __init__(self, chat_id):
-        self.chat_id = chat_id
-
-    def get(self):
-        chat = session.query(Chat.credit).filter_by(chat_id=self.chat_id).first()
-        
-        return chat
-
-    def use(self, amount):
-        chat = session.query(Chat).filter_by(chat_id=self.chat_id).first()
-
-        if chat is None:
-            return False
-        
-        if chat.credit < amount:
-            return False
-        
-        chat.credit = chat.credit - amount
-
-        chat.save()
-
-        return True
-    
-    def increase(self, amount):
-        chat = session.query(Chat).filter_by(chat_id=self.chat_id).first()
-        
-        
-        if chat is None:
-            return False
-
-        chat.credit = chat.credit + amount
-        chat.save()
 
     
     

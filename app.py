@@ -8,14 +8,22 @@ from apps.core.handlers import dp
 from apps.admin.handlers import dp
 from bot import dp, bot
 from apps.imageai.handlers import dp
-from apps.payment.handlers import dp
+from apps.subscription.handlers import dp
 
 from apps.admin.views import router
 
 from fastapi.staticfiles import StaticFiles
 from fastapi_pagination import add_pagination
 
+from celery import Celery
+
 # load_dotenv()
+
+celery = Celery(
+    'tasks',
+    broker=constants.REDIS_URL,
+    backend=constants.REDIS_URL,
+)
 
 app = FastAPI()
 
@@ -49,6 +57,8 @@ async def bot_webhook(update: dict):
 
 @app.on_event("shutdown")
 async def on_shutdown():
+    await dp.storage.close()
+
     await bot.delete_webhook()
 
 

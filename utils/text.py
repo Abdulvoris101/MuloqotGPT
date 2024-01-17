@@ -38,8 +38,6 @@ sizga aniqligi va maqbul javoblarni taklif etishim mumkin.
 
 🧠 Dono: Men doimiy o'rganish va rivojlanishda, yangi ma'lumotlarga va foydalanuvchi bilan bo'lishuvlarga moslashishim mumkin. Aqlli muloqotlarni taklif etishim mumkin.
 
-😄 Xushchaqchaq: Hayot kulguli tabassum bilan yaxshilanadi, va men sizning yuzingizga tabassum olib kelish uchun bu yerga keldim!
-
 🌄 Rassom: Mening yana bir qobilyatlarimdan biri bu rasm generatsiya qila olishim. Men sizga xar qanday turdagi ajoyib rasmlarni generatsiya qilib olib bera olaman
 
 ⚙️ Avtotarjimon: Meni siz bilan o'zbek tilida yanada yahshiroq muloqot qila olishim uchun, avtotarjima funksiyasini ishlataman. Endi siz ingliz tilida qiynalib menga yozishingiz shart emas. Bu funksiya ixtiyoriy xoxlagan paytiz o'chirib qo'yishingiz mumkin."""
@@ -53,23 +51,14 @@ Bot ishlashi uchun menga administrator huquqlarini bering
 
 GREETINGS_TEXT = "Assalomu aleykum Men Muloqot AI man sizga qanday yordam bera olaman?"
 
-AQSHA_TEXT = f"""'Aqsha' uchun joriy narxlarimiz quyidagicha:
 
-1 aqsha - {COST} so'm
-200 aqsha - {int(COST) * 200} so'm
-
-Minimum 200 aqsha sotib olishingiz mumkin!
-
-Chatga kerakli miqdordagi aqshani yozing, biz sizga to'lashingiz kerak bo'lgan summa miqdorni ko'rsatamiz."""
-
-
-def buy_text(amount, price, transaction_id):
+def buy_text(price):
         
-    BUY_TEXT = f"""
-Buyurtmangiz tafsilotlari:
+    BUY_TEXT = f"""1/2
+To'lov tafsilotlari:
 
-<b>Mahsulot:</b> "Aqsha"
-<b>Miqdori:</b> {amount} aqsha
+<b>Mahsulot:</b> Premium obuna
+<b>1 haftalik obuna narxi:</b> {price} so'm
 <b>Umumiy summa:</b> <b>{price} so'm</b>
 
 Xaridni yakunlash uchun <b>{price}</b> so'm miqdorini quyidagi kartaga oʻtkazing:
@@ -77,27 +66,59 @@ Xaridni yakunlash uchun <b>{price}</b> so'm miqdorini quyidagi kartaga oʻtkazin
 <b>Karta raqami:</b> <code>5614 6814 0539 6512</code>
 <b>Karta egasi</b>: TULKIN XUDAYBERGANOV
 
-Sizning to'lovingiz qo'lda tekshirilib chiqiladi va siz bilan aloqaga chiqiladi.
+To'lov o'tgandan so'ng to'lovingiz qo'lda tekshirilib chiqiladi va sizga obuna taqdim etiladi.
 
-Toʻlov jarayonida biror muammoga duch kelsangiz yoki savollaringiz boʻlsa, bizning @texnosupportuzbot botiga yozing.
+Toʻlov jarayonida biror muammoga duch kelsangiz yoki savollaringiz boʻlsa, bizga murojat qiling - @texnosupportuzbot | @abdulvoris_101
 """
-
     return BUY_TEXT
 
 PAYMENT_STEP1 = """
-Biz xozirda sizning to'lovingizni o'zimiz qo'lda tekshirib chiqamiz,
+Biz xozir sizning to'lovingizni o'zimiz qo'lda tekshirib chiqamiz,
 uning uchun esa bizga yuborgan kartangizdagi ismingizni yozing 👇
 """
 
-FAILED_PAYMENT_STEP2 = """
-Ajoyib! Sizning to'lovingiz 24 soat ichida tekshirilib chiqib, 
-sizning xisobingizga aqsha tushirib beramiz.
+PAYMENT_STEP2 = """
+Ajoyib! Sizning to'lovingiz yaqin soatlar ichida tekshirilib chiqib, 
+sizga premium obuna taqdim etiladi. 
+Yaqin soatlar ichida sizga premium obuna bo'yicha xabar keladi.
+Bizni tanlaganiz uchun rahmat 🫡
 
-Balans - /balance
-
-Agarda biror savolingiz bo'lsa, bizga murojat qiling - @texnosupportuzbot
+Agarda biror savolingiz bo'lsa, bizga murojat qiling - @texnosupportuzbot | @abdulvoris_101
 """
 
-# Agarda biror savolingiz bo'lsa, bizga murojat qiling - @texnosupportuzbot
-# 24 soat ichida
-# sizning xisobingizga aqsha tushirib beramiz.
+# Plans
+
+PLAN_TEXT = """
+Xozirgi obuna quyidagilarni o'z ichiga oladi:
+✅ Chatgptga har kuni 20 ta so'rov;
+⭐️ AI bilan 5 ta rasm generatsiya qilish;
+✅ Avtotarjimon funksiyasi;
+✅ Birinchi 10ta so'rov uchun vaqt chegarasi yo'q;
+⚠️ Keyingi so’rovlarda vaqt chegarasi mavjud;
+
+Ko'proq kerakmi? 6000 so'm evaziga bir haftalik premium tarifga obuna bo'ling.
+
+Premium obuna bilan siz:
+✅ Chatgptga turboga har kuni 100 ta so'rov;
+⭐️ AI bilan 20 ta rasm generatsiya qilish;
+✅ Avtotarjimon funksiyasi;
+✅ Xechqanday reklama yo'q;
+✅ So’rovlar orasida pauza yo’q;
+✅ Javoblar kreativroq.
+"""
+
+LIMIT_REACHED = """Afsuski sizning kunlik limitingiz tugadi. 
+Yanada ko'proq so'rov uchun premium tarifga obuna bo'ling
+/premium"""
+
+PREMIUM_GAVE = """Tabriklaymiz sizga premium obuna taqdim etildi. Bizni tanlaganiz uchun rahmat 😊🎉"""
+
+SUBSCRIPTION_END = """🚀 Obunani yangilash vaqti keldi!
+
+Salom Qadrli Foydalanuvchi 👋,
+
+Obunangiz muddati tugadi! Premium imtiyozlardan foydalanishda davom etish uchun “/premium” kommandasini kiriting.
+
+Bizni tanlaganiz uchun tashakkur 🌟
+"""
+     
