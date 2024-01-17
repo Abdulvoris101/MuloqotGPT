@@ -122,4 +122,3 @@ Obunangiz muddati tugadi! Premium imtiyozlardan foydalanishda davom etish uchun 
 Bizni tanlaganiz uchun tashakkur 🌟
 """
      
-    
