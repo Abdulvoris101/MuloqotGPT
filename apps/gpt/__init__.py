@@ -69,13 +69,11 @@ async def request_gpt(messages, chat_id, is_premium):
                     
                     ConfigurationManager.updatePosition(number)
 
-                print(free_api_key.id)
 
                 FreeApiKeyManager.increaseRequest(free_api_key.id)
 
                 FreeApiKeyManager.checkAndExpireKey(free_api_key.id)
 
-                print(api_key)
                 
                 api_key = free_api_key.api_key
                 
@@ -103,13 +101,9 @@ async def request_gpt(messages, chat_id, is_premium):
                 response_data = await response.read()
                 status = response.status
             
-            print(api_key)
-            print(response_data)
             
             response_data = json.loads(response_data)
-            
-            print(response_data)
-            
+                        
             
             # Handle the response using your CleanResponse and handleResponse logic
             response = HandleResponse(response_data, status, chat_id)
@@ -126,6 +120,6 @@ async def request_gpt(messages, chat_id, is_premium):
     except Exception as e:
         print("Other Exception", e)
         await send_error(f"<b>#error</b>\n{e}\n\\n#user {chat_id}")
-        return "Qayta urinib ko'ring!"
+        return "Serverda xatolik! Iltimos keyinroq urinib ko'ring"
 
 
