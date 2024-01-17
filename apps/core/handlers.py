@@ -86,7 +86,7 @@ class AIChatHandler:
             else:
                 response = await request_gpt(messages, chat_id, False)
                 
-                
+            
             response_uz = MessageManager.assistant_role(translated_text=response, instance=self.message)
 
             await bot.delete_message(chat_id, proccess_message.message_id)

@@ -75,13 +75,15 @@ async def request_gpt(messages, chat_id, is_premium):
 
                 FreeApiKeyManager.checkAndExpireKey(free_api_key.id)
 
+                print(api_key)
+                
                 api_key = free_api_key.api_key
                 
                 number = 0 if int(config.apikey_position) + 1 == FreeApiKeyManager.getMaxNumber() else int(config.apikey_position) + 1
                 
                 ConfigurationManager.updatePosition(number)
                 
-                
+            
             
             frequency_penalty = 1 if is_premium else 0
             
@@ -96,12 +98,15 @@ async def request_gpt(messages, chat_id, is_premium):
                 "frequency_penalty": frequency_penalty
             }
 
-
+            print(headers)
+            print(data)
+            
             async with session.post("https://api.openai.com/v1/chat/completions", headers=headers, json=data) as response:
 
                 response_data = await response.read()
                 status = response.status
             
+            print(api_key)
             print(response_data)
             
             response_data = json.loads(response_data)

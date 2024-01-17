@@ -8,4 +8,3 @@ storage = RedisStorage2('redis', 6379, db=1, pool_size=10)
 
 
 dp = Dispatcher(bot, storage=storage)
-
