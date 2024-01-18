@@ -23,7 +23,7 @@ async def handle_art(message: types.Message):
 
     await message.answer_chat_action("typing")
 
-    images = LexicaAi.generate(query)
+    images = await LexicaAi.generate(message.chat.id, query)
 
     messageStat = MessageStats.get(message.chat.id)
 

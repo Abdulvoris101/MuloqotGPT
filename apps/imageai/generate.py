@@ -1,7 +1,8 @@
 from utils.translate import translate_message
 import random
-import httpx
-
+import aiohttp
+import asyncio
+from utils.exception import AiogramException
 
 class LexicaAi:
     url = "https://lexica.art/api/infinite-prompts"
@@ -10,20 +11,34 @@ class LexicaAi:
     
 
     @classmethod
-    def generate(cls, prompt):
-        prompt = str(translate_message(prompt, chat_id=None, from_='auto', lang='en')).strip()
-
-        data = {
-            "text": prompt,
-            "searchMode": "images",
-            "source": "search",
-            "model": "lexica-aperture-v2"
-        }
-
-        resp = httpx.post(cls.url, json=data)
+    async def generate(cls, userId, prompt):
         
-        images = [f"https://image.lexica.art/full_jpg/{ids['id']}" for ids in resp.json()["images"]]
+        try:
+            prompt = str(translate_message(prompt, chat_id=None, from_='auto', lang='en')).strip()
 
+            data = {
+                "text": prompt,
+                "searchMode": "images",
+                "source": "search",
+                "model": "lexica-aperture-v2"
+            }
+
+        
+            async with aiohttp.ClientSession() as session:
+                async with session.post(cls.url, json=data, timeout=aiohttp.ClientTimeout(total=30)) as resp:
+                    resp.raise_for_status()
+                    images = [f"https://image.lexica.art/full_jpg/{ids['id']}" for ids in (await resp.json())["images"]]
+
+        except asyncio.TimeoutError as e:
+            raise AiogramException(user_id=userId, message_text="Xozirgi vaqtda rasm generatsiyasi ishlamayapti iltimos keyinroq urinib ko'ring!")
+    
+        except aiohttp.ClientConnectionError as e:
+            raise AiogramException(user_id=userId, message_text="Xozirgi vaqtda rasm generatsiyasi ishlamayapti iltimos keyinroq urinib ko'ring!", original_exception=e)
+
+        except Exception as e:
+            # Handle other exceptions if needed
+            raise AiogramException(user_id=userId, message_text="Rasm generatsiyasi jarayonida xatolik yuz berdi. Iltimos, keyinroq urinib ko'ring.", original_exception=e)
+        
         return images
 
 
