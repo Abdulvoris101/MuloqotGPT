@@ -107,7 +107,7 @@ class AIChatHandler:
 @dp.message_handler(lambda message: not message.text.startswith('/') and not message.text.endswith('.!') and not message.text.startswith('✅') and message.chat.type == 'private')
 async def handle_private_messages(message: types.Message, state: FSMContext):
     current_state = await state.get_state()
-
+    
     if current_state is None:
         chat = AIChatHandler(message=message)
         await chat.handle()
