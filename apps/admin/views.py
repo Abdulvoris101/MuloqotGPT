@@ -11,7 +11,7 @@ templates = Jinja2Templates(directory="layout/templates")
 router = APIRouter()
 
 @router.get("/chats", response_class=HTMLResponse)
-async def admin_index(request: Request, page: int=Query(1, gt=0)):
+async def adminIndex(request: Request, page: int=Query(1, gt=0)):
 
     rows_per_page = 15
 
@@ -33,13 +33,13 @@ async def admin_index(request: Request, page: int=Query(1, gt=0)):
     
     context = {
         "chats": chats,
-        "groups": ChatManager.groups(),
+        "groups": ChatManager.groupsCount(),
         "messages": Message.count(),
-        "active_users": ChatManager.active_users(),
-        "count_of_all_input_tokens": MessageStatManager.count_of_all_input_tokens(),
-        "count_of_all_output_tokens": MessageStatManager.count_of_all_output_tokens(),
+        "activeUsers": ChatManager.activeUsers(),
+        "countOfAllInputTokens": MessageStatManager.countOfAllInputTokens(),
+        "countOfAllOutputTokens": MessageStatManager.countOfAllOutputTokens(),
         "request": request,
-        "users": ChatManager.users(),
+        "users": ChatManager.usersCount(),
         "all_chats": all_chats,
         "total_pages": total_pages,
         "current_page": page
@@ -49,20 +49,20 @@ async def admin_index(request: Request, page: int=Query(1, gt=0)):
 
 
 
-@router.get("/system_messages", response_class=HTMLResponse)
-async def system_messages(request: Request):
-    all_system_messages = MessageManager.get_system_messages()
+@router.get("/systemMessages", response_class=HTMLResponse)
+async def systemMessages(request: Request):
+    all_systemMessages = MessageManager.getSystemMessages()
     
     context = {
-        "groups": ChatManager.groups(),
+        "groups": ChatManager.groupsCount(),
         "messages": Message.count(),
-        "count_of_all_input_tokens": MessageStatManager.count_of_all_input_tokens(),
-        "count_of_all_output_tokens": MessageStatManager.count_of_all_output_tokens(),
-        "active_users": ChatManager.active_users(),
+        "countOfAllInputTokens": MessageStatManager.countOfAllInputTokens(),
+        "countOfAllOutputTokens": MessageStatManager.countOfAllOutputTokens(),
+        "activeUsers": ChatManager.activeUsers(),
         "request": request,
-        "users": ChatManager.users(),
-        "all_system_messages": all_system_messages
+        "users": ChatManager.usersCount(),
+        "all_systemMessages": all_systemMessages
     }
     
-    return templates.TemplateResponse("system_messages.html", context)
+    return templates.TemplateResponse("systemMessages.html", context)
 

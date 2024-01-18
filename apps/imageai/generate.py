@@ -14,7 +14,7 @@ class LexicaAi:
     async def generate(cls, userId, prompt):
         
         try:
-            prompt = str(translate_message(prompt, chat_id=None, from_='auto', lang='en')).strip()
+            prompt = str(translate_message(prompt, chatId=None, from_='auto', lang='en')).strip()
 
             data = {
                 "text": prompt,
@@ -43,7 +43,7 @@ class LexicaAi:
 
 
     @classmethod
-    def get_random_images(cls, images, num_of_images):
+    def getRandomImages(cls, images, num_of_images):
         # Shuffle the array of image sources
         random.shuffle(images)
         

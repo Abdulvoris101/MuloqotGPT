@@ -2,11 +2,11 @@ from deep_translator import GoogleTranslator
 import re
 
 
-def translate_message(message, chat_id, from_='uz', lang='en'):
+def translate_message(message, chatId, from_='uz', lang='en'):
     from apps.core.models import Chat
 
-    if chat_id is not None:
-        is_translate = Chat.get(chat_id).auto_translate
+    if chatId is not None:
+        is_translate = Chat.get(chatId).autoTranslate
     else:
         is_translate = True
     
@@ -21,11 +21,11 @@ def translate_message(message, chat_id, from_='uz', lang='en'):
     return translated_message
 
 
-def skip_code_translation(text, chat_id):
+def skip_code_translation(text, chatId):
     # Define the pattern for identifying code blocks
 
     if text.find("`") == -1:
-        return translate_message(text, chat_id, from_='auto', lang='uz')
+        return translate_message(text, chatId, from_='auto', lang='uz')
 
     code_pattern = r'```.*?```'
 
@@ -37,7 +37,7 @@ def skip_code_translation(text, chat_id):
         text = text.replace(code_block, f'{{{{code_placeholder_{i}}}}}')
 
     # Translate the text outside of code blocks
-    translation = translate_message(text, chat_id, 'ru', 'uz')
+    translation = translate_message(text, chatId, 'ru', 'uz')
     translated_text = translation
 
     # Replace placeholders with the original code blocks

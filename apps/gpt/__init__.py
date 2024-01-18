@@ -1,6 +1,6 @@
 from apps.core.managers import MessageStatManager
 from apps.subscription.managers import FreeApiKeyManager, ConfigurationManager
-from utils import send_error, constants
+from utils import sendError, constants
 import httpx
 import json
 import aiohttp
@@ -11,10 +11,10 @@ import time
 
 
 class HandleResponse:
-    def __init__(self, response, status, chat_id):
+    def __init__(self, response, status, chatId):
         self.status = status
         self.response = response
-        self.chat_id = chat_id
+        self.chatId = chatId
 
     async def handleError(self):
         error = self.response.get("error", False)
@@ -23,7 +23,7 @@ class HandleResponse:
             errorMessage = error['message']
 
             if self.status == 429:
-                await send_error(f"<b>#error</b>\n{errorMessage}\n\n#user {self.chat_id} 429")
+                await sendError(f"<b>#error</b>\n{errorMessage}\n\n#user {self.chatId} 429")
 
                 return "Shoshilmang yana 5 sekund ⏳"
 
@@ -37,14 +37,14 @@ class HandleResponse:
 
 
 
-    async def getContent(self):
+    async def getMessage(self):
     
         choices = self.response.get('choices', False)
 
 
         if choices:
-            MessageStatManager.increaseMessageStat(chat_id=self.chat_id)
-            MessageStatManager.increaseOutputTokens(chat_id=self.chat_id, message=self.response['choices'][0]['message']['content'])
+            MessageStatManager.increaseMessageStat(chatId=self.chatId)
+            MessageStatManager.increaseOutputTokens(chatId=self.chatId, message=self.response['choices'][0]['message']['content'])
             return self.response['choices'][0]['message']['content']
         
 
@@ -52,32 +52,32 @@ class HandleResponse:
 
 
 
-async def request_gpt(messages, chat_id, is_premium):
+async def requestGpt(messages, chatId, is_premium):
     try:
         async with aiohttp.ClientSession(cookie_jar=aiohttp.CookieJar(unsafe=True)) as session:
             
             if is_premium:
-                api_key = constants.API_KEY #premium api key
+                apiKey = constants.API_KEY #premium api key
             else:
                 
                 config = ConfigurationManager.getFirst() 
                 
                 try:
-                    free_api_key = FreeApiKeyManager.getApiKey(config.apikey_position)
+                    free_apiKey = FreeApiKeyManager.getApiKey(config.apikeyPosition)
                 except IndexError:
-                    number = 0 if int(config.apikey_position) + 1 >= FreeApiKeyManager.getMaxNumber() else int(config.apikey_position) + 1
+                    number = 0 if int(config.apikeyPosition) + 1 >= FreeApiKeyManager.getMaxNumber() else int(config.apikeyPosition) + 1
                     
                     ConfigurationManager.updatePosition(number)
 
 
-                FreeApiKeyManager.increaseRequest(free_api_key.id)
+                FreeApiKeyManager.increaseRequest(free_apiKey.id)
 
-                FreeApiKeyManager.checkAndExpireKey(free_api_key.id)
+                FreeApiKeyManager.checkAndExpireKey(free_apiKey.id)
 
                 
-                api_key = free_api_key.api_key
+                apiKey = free_apiKey.apiKey
                 
-                number = 0 if int(config.apikey_position) + 1 == FreeApiKeyManager.getMaxNumber() else int(config.apikey_position) + 1
+                number = 0 if int(config.apikeyPosition) + 1 == FreeApiKeyManager.getMaxNumber() else int(config.apikeyPosition) + 1
                 
                 ConfigurationManager.updatePosition(number)
                 
@@ -86,7 +86,7 @@ async def request_gpt(messages, chat_id, is_premium):
             frequency_penalty = 1 if is_premium else 0
             
             headers = {
-                "Authorization": f"Bearer {api_key}"
+                "Authorization": f"Bearer {apiKey}"
             }
 
             data = {
@@ -106,20 +106,20 @@ async def request_gpt(messages, chat_id, is_premium):
                         
             
             # Handle the response using your CleanResponse and handleResponse logic
-            response = HandleResponse(response_data, status, chat_id)
-            response = await response.getContent()
+            response = HandleResponse(response_data, status, chatId)
+            response = await response.getMessage()
             
             return response
 
     except aiohttp.ClientError as e:
         print("Exception", e)
 
-        await send_error(f"<b>#error</b>\n{e}\n\\n#user {chat_id}")
+        await sendError(f"<b>#error</b>\n{e}\n\\n#user {chatId}")
         return "Shoshilmang yana 5 sekund ⏳"
 
     except Exception as e:
         print("Other Exception", e)
-        await send_error(f"<b>#error</b>\n{e}\n\\n#user {chat_id}")
+        await sendError(f"<b>#error</b>\n{e}\n\\n#user {chatId}")
         return "Serverda xatolik! Iltimos keyinroq urinib ko'ring"
 
 

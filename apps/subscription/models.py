@@ -10,24 +10,24 @@ class Plan(Base):
 
     id = Column(UUID(as_uuid=True), primary_key=True)
     title = Column(String)
-    amount_for_week = Column(BigInteger)
-    is_free = Column(Boolean)
-    weekly_limited_imagerequests = Column(Integer)
-    weekly_limited_gptrequests = Column(Integer)
+    amountForWeek = Column(BigInteger)
+    isFree = Column(Boolean)
+    weeklyLimitedImageRequests = Column(Integer)
+    weeklyLimitedGptrequests = Column(Integer)
 
 
     def __init__(
             self, title,
-            amount_for_week, is_free, 
-            weekly_limited_imagerequests, 
-            weekly_limited_gptrequests):
+            amountForWeek, isFree, 
+            weeklyLimitedImageRequests, 
+            weeklyLimitedGptrequests):
         
         self.id = uuid.uuid4()
         self.title = title
-        self.amount_for_week = amount_for_week
-        self.is_free = is_free
-        self.weekly_limited_imagerequests = weekly_limited_imagerequests
-        self.weekly_limited_gptrequests = weekly_limited_gptrequests
+        self.amountForWeek = amountForWeek
+        self.isFree = isFree
+        self.weeklyLimitedImageRequests = weeklyLimitedImageRequests
+        self.weeklyLimitedGptrequests = weeklyLimitedGptrequests
         
         super().__init__()
 
@@ -44,8 +44,8 @@ class Plan(Base):
         session.commit()
 
     @classmethod
-    def delete(self, plan_id):
-        chat = session.query(Plan).filter_by(id=plan_id).first()
+    def delete(self, planId):
+        chat = session.query(Plan).filter_by(id=planId).first()
         session.delete(chat)
         
 
@@ -55,24 +55,24 @@ class Subscription(Base):
     __tablename__ = 'subscription'
     
     id = Column(UUID(as_uuid=True), primary_key=True)
-    plan_id = Column(UUID(as_uuid=True))
-    current_period_start = Column(DateTime)
-    current_period_end = Column(DateTime, nullable=True)
+    planId = Column(UUID(as_uuid=True))
+    currentPeriodStart = Column(DateTime)
+    currentPeriodEnd = Column(DateTime, nullable=True)
     is_paid = Column(Boolean, default=False)
-    chat_id = Column(BigInteger)
+    chatId = Column(BigInteger)
     cardholder = Column(String, nullable=True)
-    is_canceled = Column(Boolean, default=False)
-    canceled_at = Column(DateTime, nullable=True)
+    isCanceled = Column(Boolean, default=False)
+    canceledAt = Column(DateTime, nullable=True)
 
 
-    def __init__(self, plan_id, cardholder, current_period_start, current_period_end, is_paid, chat_id):
+    def __init__(self, planId, cardholder, currentPeriodStart, currentPeriodEnd, is_paid, chatId):
         self.id = uuid.uuid4()
-        self.plan_id = plan_id
+        self.planId = planId
         self.cardholder = cardholder
-        self.current_period_start = current_period_start
-        self.current_period_end = current_period_end
+        self.currentPeriodStart = currentPeriodStart
+        self.currentPeriodEnd = currentPeriodEnd
         self.is_paid = is_paid
-        self.chat_id = chat_id
+        self.chatId = chatId
 
         super().__init__()
 
@@ -87,8 +87,8 @@ class FreeApiKey(Base):
     __tablename__ = 'freeapikey'
     
     id = Column(Integer, primary_key=True)
-    api_key = Column(String)
-    is_expired = Column(Boolean, default=False)
+    apiKey = Column(String)
+    isExpired = Column(Boolean, default=False)
     requests = Column(Integer, default=1)
     
 
@@ -96,12 +96,12 @@ class Configuration(Base):
     __tablename__ = "configuration"
     
     id = Column(Integer, primary_key=True)
-    apikey_position = Column(Integer, default=0)
+    apikeyPosition = Column(Integer, default=0)
     
     
-    def __init__(self, apikey_position):
+    def __init__(self, apikeyPosition):
         
-        self.apikey_position = apikey_position
+        self.apikeyPosition = apikeyPosition
 
         super().__init__()
 

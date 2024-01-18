@@ -31,11 +31,11 @@ class PaymentState(StatesGroup):
     second_step = State()
     
 class TopupState(StatesGroup):
-    chat_id = State()
+    chatId = State()
     sure = State()
 
 
 class RejectState(StatesGroup):
-    chat_id = State()
+    chatId = State()
     reason = State()
     

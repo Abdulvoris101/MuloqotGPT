@@ -1,11 +1,11 @@
 from bot import dp, bot, types
-from apps.gpt import request_gpt
+from apps.gpt import requestGpt
 from .models import Chat
 from .managers import ChatManager, MessageManager, MessageStatManager
 from .keyboards import settingsMenu
 from filters.core import UserFilter
 from utils.translate import translate_message
-from utils import count_tokens, count_token_of_message
+from utils import countTokens, countTokenOfMessage
 from aiogram.dispatcher import FSMContext
 import utils.text as text
 import asyncio
@@ -19,7 +19,7 @@ class AIChatHandler:
 
     def __init__(self, message):
         self.message = message
-        self.chat_id = message.chat.id
+        self.chatId = message.chat.id
         self.full_name = message.chat.full_name
         self.text = str(message.text)
 
@@ -30,22 +30,22 @@ class AIChatHandler:
             return await self.message.reply(message, *args, **kwargs)
     
     async def check_tokens(self, messages):
-        if count_tokens(messages) >= 200:
+        if countTokens(messages) >= 200:
             return True
 
         return False
 
     async def trim_message_tokens(self):
-        messages = MessageManager.all(self.chat_id)
-
+        messages = MessageManager.all(self.chatId)
+        
         if await self.check_tokens(messages):
-            MessageManager.delete_by_limit(self.chat_id)
+            MessageManager.deleteByLimit(self.chatId)
             return await self.trim_message_tokens()
         
         return messages
 
     async def get_en_message(self):
-        message_en = translate_message(self.text, self.chat_id, lang='en')
+        message_en = translate_message(self.text, self.chatId, lang='en')
         message_en = self.text if message_en is None else message_en
 
         return message_en
@@ -53,13 +53,13 @@ class AIChatHandler:
 
     async def handle(self):
 
-        await UserFilter.activate(self.message, self.chat_id)
+        await UserFilter.activate(self.message, self.chatId)
         
-        if not LimitManager.check_gpt_requests_daily_limit(self.chat_id):
+        if not LimitManager.checkGptRRequestsDailyLimit(self.chatId):
             await self.reply_or_send(text.LIMIT_REACHED)
             return 
 
-        tokens_of_message = count_token_of_message(self.text)
+        tokens_of_message = countTokenOfMessage(self.text)
         
         if tokens_of_message >= 200:
             return await self.reply_or_send(self.TOKEN_REACHED)
@@ -69,27 +69,27 @@ class AIChatHandler:
         
         message_en = await self.get_en_message() # translate message to en
 
-        MessageManager.user_role(translated_text=message_en, instance=self.message)
+        MessageManager.userRole(translated_text=message_en, instance=self.message)
 
         messages = await self.trim_message_tokens()
 
         await self.message.answer_chat_action("typing")
         
-        asyncio.create_task(self.process_gpt_request(messages, self.chat_id, proccess_message))
+        asyncio.create_task(self.process_gpt_request(messages, self.chatId, proccess_message))
 
 
-    async def process_gpt_request(self, messages, chat_id, proccess_message):
+    async def process_gpt_request(self, messages, chatId, proccess_message):
         try:
             
-            if SubscriptionManager.isPremiumToken(chat_id=chat_id):
-                response = await request_gpt(messages, chat_id, True)
+            if SubscriptionManager.isPremiumToken(chatId=chatId):
+                response = await requestGpt(messages, chatId, True)
             else:
-                response = await request_gpt(messages, chat_id, False)
+                response = await requestGpt(messages, chatId, False)
                 
             
-            response_uz = MessageManager.assistant_role(translated_text=response, instance=self.message)
+            response_uz = MessageManager.assistantRole(message=response, instance=self.message)
 
-            await bot.delete_message(chat_id, proccess_message.message_id)
+            await bot.delete_message(chatId, proccess_message.message_id)
 
             try:
                 # Send the AI response to the user
@@ -99,7 +99,7 @@ class AIChatHandler:
        
         except Exception as e:
             print("Exception proccess",  e)
-            # Handle errors from request_gpt
+            # Handle errors from requestGpt
             await self.reply_or_send("Iltimos 5 sekund dan keyin qayta urinib ko'ring!")
 
 
@@ -123,14 +123,14 @@ async def send_welcome(message: types.Message):
     await message.answer(text.START_COMMAND)
     await message.answer(text.HOW_TO_HELP_TEXT)
     
-    user_subscription = SubscriptionManager.getByChatId(chat_id=message.from_user.id)
+    user_subscription = SubscriptionManager.getByChatId(chatId=message.from_user.id)
     
     if user_subscription is None:
-        SubscriptionManager.create_subscription(
-            plan_id=PlanManager.getFreePlanOrCreate().id,
-            chat_id=message.from_user.id,
+        SubscriptionManager.createSubscription(
+            planId=PlanManager.getFreePlanOrCreate().id,
+            chatId=message.from_user.id,
             is_paid=True,
-            is_free=True
+            isFree=True
         )
     
     await ChatManager.activate(message)
@@ -148,7 +148,7 @@ async def ability(message: types.Message):
 
 @dp.message_handler(commands=['settings'])
 async def settings(message: types.Message):
-    if not await UserFilter.is_active(message.chat.id):
+    if not await UserFilter.isActive(message.chat.id):
         return await message.answer("Muloqotni boshlash uchun - /start")
 
     await message.answer("⚙️ Sozlamalar", reply_markup=settingsMenu(message.chat.id))
@@ -159,15 +159,15 @@ async def settings(message: types.Message):
 async def toggle_translate(message: types.Message):
     
     chat = Chat.get(message.message.chat.id)
-    condition = not chat.auto_translate
-    chat.auto_translate = condition
+    condition = not chat.autoTranslate
+    chat.autoTranslate = condition
     chat.save()
 
     text = "Tarjimon Yoqildi" if condition else "Tarjimon O'chirildi"
 
     await bot.edit_message_text(chat_id=message.message.chat.id,
                             message_id=message.message.message_id,
-                            text="⚙️ Sozlamalar", reply_markup=settingsMenu(chat_id=message.message.chat.id))
+                            text="⚙️ Sozlamalar", reply_markup=settingsMenu(chatId=message.message.chat.id))
 
     await message.answer(text)
     
