@@ -16,9 +16,9 @@ joinChannelMenu.add(btnJoin)
 joinChannelMenu.add(btnCheck)
 
 
-def settingsMenu(chat_id):
+def settingsMenu(chatId):
     settingsMenu = InlineKeyboardMarkup(row_width=2)
-    is_translate = Chat.get(chat_id).auto_translate
+    is_translate = Chat.get(chatId).autoTranslate
         
     text = "Tarjimonni o'chirish" if is_translate else "Tarjimonni yoqish"
     

@@ -16,7 +16,7 @@ class IsPrivate(BoundFilter):
 
 class IsAdmin(BoundFilter):
     async def check(self, message: types.Message) -> bool:
-        return  Admin.is_admin(user_id=message.from_user.id)
+        return Admin.isAdmin(userId=message.from_user.id)
 
 
 class IsReplyFilter(BoundFilter):

@@ -6,11 +6,11 @@ import re
 
 # Bot 
 
-async def send_event(text):
+async def sendEvent(text):
     await bot.send_message(constants.EVENT_CHANNEL_ID, text, parse_mode='HTML')
 
 
-async def send_error(text):
+async def sendError(text):
     await bot.send_message(constants.ERROR_CHANNEL_ID, text, parse_mode='HTML')
 
 
@@ -20,36 +20,36 @@ class SendAny:
     def __init__(self, message):
         self.message = message
     
-    async def send_photo(self, chat_id, kb=None):
+    async def sendPhoto(self, chatId, kb=None):
         if kb is None:
-            return await bot.send_photo(chat_id, self.message.photo[-1].file_id, caption=self.message.caption)
+            return await bot.send_photo(chatId, self.message.photo[-1].file_id, caption=self.message.caption)
         
-        return await bot.send_photo(chat_id, self.message.photo[-1].file_id, caption=self.message.caption, reply_markup=kb)
+        return await bot.send_photo(chatId, self.message.photo[-1].file_id, caption=self.message.caption, reply_markup=kb)
     
-    async def send_message(self, chat_id, kb=None):
+    async def send_message(self, chatId, kb=None):
         if kb is None:
-            return await bot.send_message(chat_id, self.message.text)
+            return await bot.send_message(chatId, self.message.text)
         
-        return await bot.send_message(chat_id, self.message.text, reply_markup=kb)
+        return await bot.send_message(chatId, self.message.text, reply_markup=kb)
 
 
-    async def send_video(self, chat_id, kb=None):
+    async def send_video(self, chatId, kb=None):
         if kb is None:
-            return await bot.send_video(chat_id, video=self.message.video.file_id, caption=self.message.caption)
+            return await bot.send_video(chatId, video=self.message.video.file_id, caption=self.message.caption)
 
-        return await bot.send_video(chat_id, video=self.message.video.file_id, caption=self.message.caption, reply_markup=kb)
+        return await bot.send_video(chatId, video=self.message.video.file_id, caption=self.message.caption, reply_markup=kb)
 
 
 
 # Token counter
 
-def count_tokens(messages):
+def countTokens(messages):
     enc = tiktoken.get_encoding("cl100k_base")
     token_counts = [len(enc.encode(message['content'])) for message in messages]
     total_tokens = sum(token_counts)
     return total_tokens
 
-def count_token_of_message(message):
+def countTokenOfMessage(message):
     enc = tiktoken.get_encoding("cl100k_base")
     total_tokens = len(enc.encode(message))
     

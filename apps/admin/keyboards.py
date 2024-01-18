@@ -1,6 +1,6 @@
 from aiogram import types
 
-admin_keyboards = types.ReplyKeyboardMarkup([
+adminKeyboards = types.ReplyKeyboardMarkup([
         [
             types.KeyboardButton("📤 Xabar yuborish.!"),
             types.KeyboardButton("🤖 System xabar yuborish.!")
@@ -16,7 +16,7 @@ admin_keyboards = types.ReplyKeyboardMarkup([
 )
 
 
-cancel_keyboards = types.ReplyKeyboardMarkup([
+cancelKeyboards = types.ReplyKeyboardMarkup([
         [
             types.KeyboardButton("/cancel"),
         ],

@@ -111,7 +111,7 @@
               </div>
             </li>
             <li class="ms-auto">
-              <span class="counter text-info">{{ active_users }}</span>
+              <span class="counter text-info">{{ activeUsers }}</span>
             </li>
           </ul>
         </div>
@@ -146,7 +146,7 @@
               </thead>
 
                 <tbody class="paginated-chats" id="paginated-chats" >
-                    {% for message in all_system_messages %}
+                    {% for message in all_systemMessages %}
                         <tr>
                             <td>{{ message.role }}</td>
                             <td>{{ message.content }}</td>

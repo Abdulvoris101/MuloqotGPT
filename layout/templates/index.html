@@ -111,7 +111,7 @@
               </div>
             </li>
             <li class="ms-auto">
-              <span class="counter text-info">{{ active_users }}</span>
+              <span class="counter text-info">{{ activeUsers }}</span>
             </li>
           </ul>
         </div>
@@ -136,7 +136,7 @@
               </div>
             </li>
             <li class="ms-auto">
-              <span class="counter text-info">{{ count_of_all_input_tokens }}</span>
+              <span class="counter text-info">{{ countOfAllInputTokens }}</span>
             </li>
           </ul>
         </div>
@@ -161,7 +161,7 @@
               </div>
             </li>
             <li class="ms-auto">
-              <span class="counter text-info">{{ count_of_all_output_tokens }}</span>
+              <span class="counter text-info">{{ countOfAllOutputTokens }}</span>
             </li>
           </ul>
         </div>
@@ -216,16 +216,16 @@
                     {% for chat in chats %}
                         <tr>
                             <td>{{ chat.id }}</td>
-                            <td>{{ chat.chat_id }}</td>
-                            <td class="txt-oflo">{{ chat.chat_name }}</td>
+                            <td>{{ chat.chatId }}</td>
+                            <td class="txt-oflo">{{ chat.chatName }}</td>
                             <td>{{ chat.username }}</td>
-                            <td>{{ chat.message_stats.first().input_tokens }}</td>
-                            <td>{{ chat.message_stats.first().output_tokens }}</td>
-                            <td>{{ chat.message_stats.first().todays_messages }}</td>
-                            <td>{{ chat.message_stats.first().all_messages }}</td>
+                            <td>{{ chat.messageStats.first().inputTokens }}</td>
+                            <td>{{ chat.messageStats.first().outputTokens }}</td>
+                            <td>{{ chat.messageStats.first().todaysMessages }}</td>
+                            <td>{{ chat.messageStats.first().allMessages }}</td>
 
-                            <td>{{ chat.last_updated }}</td>
-                            <td>{{ chat.created_at }}</td>
+                            <td>{{ chat.lastUpdated }}</td>
+                            <td>{{ chat.createdAt }}</td>
                         </tr>
                     {% endfor %}
 
@@ -236,16 +236,16 @@
                   {% for chat in all_chats %}
                         <tr>
                             <td>{{ chat.id }}</td>
-                            <td>{{ chat.chat_id }}</td>
-                            <td class="txt-oflo">{{ chat.chat_name }}</td>
+                            <td>{{ chat.chatId }}</td>
+                            <td class="txt-oflo">{{ chat.chatName }}</td>
                             <td>{{ chat.username }}</td>
-                            <td>{{ chat.message_stats.first().input_tokens }}</td>
-                            <td>{{ chat.message_stats.first().output_tokens }}</td>
-                            <td>{{ chat.message_stats.first().todays_messages }}</td>
-                            <td>{{ chat.message_stats.first().all_messages }}</td>
+                            <td>{{ chat.messageStats.first().inputTokens }}</td>
+                            <td>{{ chat.messageStats.first().outputTokens }}</td>
+                            <td>{{ chat.messageStats.first().todaysMessages }}</td>
+                            <td>{{ chat.messageStats.first().allMessages }}</td>
 
-                            <td>{{ chat.last_updated }}</td>
-                            <td>{{ chat.created_at }}</td>
+                            <td>{{ chat.lastUpdated }}</td>
+                            <td>{{ chat.createdAt }}</td>
                         </tr>
                     {% endfor %}
                 </tbody>

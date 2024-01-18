@@ -5,14 +5,14 @@ from aiogram.dispatcher.dispatcher import FSMContext
 import uuid
 from .keyboards import check_payment_menu
 from aiogram.dispatcher.filters import Text
-from utils import send_event
+from utils import sendEvent
 from apps.imageai.keyboards import buyCreditMenu
 from apps.subscription.managers import SubscriptionManager, PlanManager
 
 
 
 @dp.callback_query_handler(text="subscribe_premium")
-async def buy_premium(message: types.Message):
+async def buyPremium(message: types.Message):
 
     notPaidSubscription = SubscriptionManager.getNotPaidPremiumSubsctiption(message.from_user.id, PlanManager.getPremiumPlanOrCreate().id)
     payedSubscription = SubscriptionManager.getNotPaidPremiumSubsctiption(message.from_user.id, PlanManager.getPremiumPlanOrCreate().id)
@@ -44,7 +44,7 @@ async def premium(message: types.Message):
 
 
 @dp.message_handler(Text(equals="Davom etish"), state=PaymentState.first_step)
-async def topup_balance(message: types.Message, state=FSMContext):   
+async def topupBalance(message: types.Message, state=FSMContext):   
      
     async with state.proxy() as data:
         data["price"] = constants.PREMIUM_PRICE
@@ -59,7 +59,7 @@ async def topup_balance(message: types.Message, state=FSMContext):
 
 
 @dp.message_handler(state=PaymentState.second_step)
-async def subscription_create(message: types.Message, state=FSMContext):
+async def subscriptionCreate(message: types.Message, state=FSMContext):
 
     
     async with state.proxy() as data:
@@ -68,19 +68,19 @@ async def subscription_create(message: types.Message, state=FSMContext):
     cardholder = message.text
 
     SubscriptionManager.unsubscribe(
-        plan_id=PlanManager.getFreePlanOrCreate().id,
-        chat_id=message.from_user.id
+        planId=PlanManager.getFreePlanOrCreate().id,
+        chatId=message.from_user.id
     )
 
-    subscription = SubscriptionManager.create_subscription(
-        plan_id=PlanManager.getPremiumPlanOrCreate().id,
-        chat_id=message.from_user.id,
+    subscription = SubscriptionManager.createSubscription(
+        planId=PlanManager.getPremiumPlanOrCreate().id,
+        chatId=message.from_user.id,
         cardholder=cardholder,
         is_paid=False,
-        is_free=False
+        isFree=False
     )
 
-    await send_event(f"""#payment check-in\nchatId: {message.from_user.id},\nsubscription_id: {subscription.id},\ncardholder: {cardholder},\nprice: {price}""")
+    await sendEvent(f"""#payment check-in\nchatId: {message.from_user.id},\nsubscription_id: {subscription.id},\ncardholder: {cardholder},\nprice: {price}""")
 
     await message.answer(text.PAYMENT_STEP2)
     

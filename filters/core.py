@@ -11,18 +11,18 @@ from apps.core.managers import ChatManager
 class UserFilter:
 
     @classmethod
-    async def is_active(cls, chat_id):
-        chat = Chat.get(chat_id)
+    async def isActive(cls, chatId):
+        chat = Chat.get(chatId)
 
         if chat is None:
             return False
 
-        return chat.is_activated
+        return chat.isActivated
     
 
     
     @classmethod
-    async def activate(cls, message, chat_id):
-        if not await cls.is_active(chat_id):
+    async def activate(cls, message, chatId):
+        if not await cls.isActive(chatId):
             await ChatManager.activate(message)
         

@@ -11,13 +11,13 @@ in_rule = """You are my personal positive chatbot to help me and to chatting,  B
 class MessageProcessor:
 
     @classmethod
-    def create_system_messages(cls, chat_id, type_):
+    def createSystemMessages(cls, chatId, type_):
         
-        system_messages = [
-            {"role": "system", "content": gr_rule, "uz_message": "system"}  if type_ != "private" else {"role": "system", "content": in_rule, "uz_message": "system"}
+        systemMessages = [
+            {"role": "system", "content": gr_rule, "uzMessage": "system"}  if type_ != "private" else {"role": "system", "content": in_rule, "uzMessage": "system"}
         ]
 
-        for message in system_messages:
-            Message(chat_id=chat_id, data=message).save()
+        for message in systemMessages:
+            Message(chatId=chatId, role=message["role"], content=message["content"], uzMessage=None).save()
 
 

@@ -10,13 +10,13 @@ dp.filters_factory.bind(IsPrivate)
 
 
 @dp.message_handler(commands=["art"], is_private=True)
-async def handle_art(message: types.Message):
+async def handleArt(message: types.Message):
     query = message.get_args()
 
     if not query:
         return await message.answer("Iltimos so'rovingizni kiriting:\n` /art prompt` ", parse_mode="MARKDOWN")
     
-    if not LimitManager.check_imageai_requests_daily_limit(message.from_user.id):
+    if not LimitManager.checkImageaiRequestsDailyLimit(message.from_user.id):
         return await message.answer(text.LIMIT_REACHED)
 
     sent_message = await bot.send_message(message.chat.id, "...")
@@ -30,9 +30,9 @@ async def handle_art(message: types.Message):
     if messageStat is None:
         return await message.answer("Iltimos so'rovingizni boshqatan kiriting! ", parse_mode="MARKDOWN")
  
-    MessageStats.update(messageStat, "todays_images", messageStat.todays_images + 1)
+    MessageStats.update(messageStat, "todaysImages", messageStat.todaysImages + 1)
 
-    images = LexicaAi.get_random_images(images, 6)
+    images = LexicaAi.getRandomImages(images, 6)
 
     media_group = [types.InputMediaPhoto(media=url) for url in images]
 
