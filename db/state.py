@@ -16,7 +16,9 @@ class PerformIdState(StatesGroup):
     performid = State()
 
 class AdminSendMessage(StatesGroup):
+    type_ = State()
     message = State()
+
 
 class SendMessageWithInlineState(StatesGroup):
     buttons = State()

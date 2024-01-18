@@ -173,9 +173,23 @@ Sababi: {message.text}
 
 @dp.callback_query_handler(text="without_inline")
 async def check_issubscripted(message: types.Message):
-    await AdminSendMessage.message.set()
-    await bot.send_message(message.from_user.id,"Xabar/Rasm/Video kiriting")
-    return await message.answer("Xabar/Rasm/Video kiriting")
+    await AdminSendMessage.type_.set()
+    await bot.send_message(message.from_user.id, "Kimlarga yuborishni tanlang, FREE/ALL")
+    return await message.answer("Kimlarga yuborishni tanlang, FREE/ALL")
+
+
+
+@dp.message_handler(state=AdminSendMessage.type_)
+async def setType(message: types.Message, state=FSMContext):
+
+    async with state.proxy() as data:
+        data["type_"] = message.text
+
+
+    await bot.send_message(message.from_user.id, "Xabar/Rasm/Video kiriting")
+    await AdminSendMessage.next()
+
+
 
 # Send without inline
 
@@ -183,11 +197,20 @@ async def check_issubscripted(message: types.Message):
 @dp.message_handler(state=AdminSendMessage.message, content_types=types.ContentType.ANY)
 async def send_message(message: types.Message, state=FSMContext):
 
-    await state.finish()
+    async with state.proxy() as data:
+        type_ = data["type_"]
 
     sendAny = SendAny(message)
 
-    users = PlanManager.getFreePlanUsers()
+
+    if type_ == "FREE":
+        users = PlanManager.getFreePlanUsers()
+    elif type_ == "ALL":
+        users = ChatManager.all()
+    else:
+        await state.finish()
+        return await message.answer("Bekor qilindi!", reply_markup=admin_keyboards)
+
 
     for user in users:
         try: 
@@ -200,7 +223,9 @@ async def send_message(message: types.Message, state=FSMContext):
             
         except BaseException as e:
             print(e)
+    
 
+    await state.finish()
     return await message.answer("Xabar yuborildi!")
 
 
