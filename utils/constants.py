@@ -17,6 +17,7 @@ AQSHA_COST= os.environ.get("AQSHA_COST")
 WEB_URL= os.environ.get("WEB_URL")
 DB_URL=os.environ.get("DB_URL")
 REDIS_URL = os.environ.get("REDIS_URL")
+REDIS_HOST = os.environ.get("REDIS_HOST")
 # PRICE
 
 FREE_GPT_REQUESTS_MONTHLY=600

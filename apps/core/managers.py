@@ -256,7 +256,15 @@ class MessageManager:
 
     @classmethod
     def deleteByLimit(self, chatId):
-        messages = session.query(Message).filter(and_(Message.chatId == chatId, Message.role == "assistant", Message.role == "system")).order_by(Message.id).offset(1).limit(1).all()
+        max_id_subquery = (
+            session.query(func.max(Message.id))
+            .filter(and_(Message.chatId == chatId))
+            .scalar_subquery()
+        )
+        
+        messages = session.query(Message).filter(and_(Message.chatId == chatId,
+                                                      Message.id != max_id_subquery)).order_by(Message.id).offset(1).limit(1).all()
+        
         for message in messages:
             session.delete(message)
             session.commit()
