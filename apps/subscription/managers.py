@@ -27,7 +27,7 @@ class SubscriptionManager:
                 return
         
         
-        currentPeriodEnd = datetime.datetime.now() + datetime.timedelta(days=7)
+        currentPeriodEnd = datetime.datetime.now() + datetime.timedelta(days=30)
 
         subscription = Subscription(
             planId=planId,
@@ -245,9 +245,9 @@ class LimitManager:
         cls.dailyLimitOfUser()
 
         if cls.premium_subscription is not None:
-            return int(cls.premium_plan.weeklyLimitedGptrequests) / 7 # get daily limit requests
+            return int(cls.premium_plan.monthlyLimitedGptrequests) / 30 # get daily limit requests
         elif cls.free_subscription is not None:
-            return int(cls.free_plan.weeklyLimitedGptrequests) / 7
+            return int(cls.free_plan.monthlyLimitedGptrequests) / 30
         else:
             SubscriptionManager.createSubscription(
                 planId=cls.free_plan.id,
@@ -257,7 +257,7 @@ class LimitManager:
                 isFree=True
             )
 
-            return int(cls.free_plan.weeklyLimitedGptrequests) / 7
+            return int(cls.free_plan.monthlyLimitedGptrequests) / 30
         
     @classmethod
     def getDailyImageAiLimitOfUser(
@@ -269,9 +269,9 @@ class LimitManager:
         cls.dailyLimitOfUser()
         
         if cls.premium_subscription is not None:
-            return int(cls.premium_plan.weeklyLimitedImageRequests) / 7 # get daily limit requests
+            return int(cls.premium_plan.monthlyLimitedImageRequests) / 30 # get daily limit requests
         elif cls.free_subscription is not None:
-            return int(cls.free_plan.weeklyLimitedImageRequests) / 7
+            return int(cls.free_plan.monthlyLimitedImageRequests) / 30
         else:
             SubscriptionManager.createSubscription(
                 planId=cls.free_plan.id,
@@ -281,7 +281,7 @@ class LimitManager:
                 isFree=True
             )
 
-            return int(cls.free_plan.weeklyLimitedImageRequests) / 7
+            return int(cls.free_plan.monthlyLimitedImageRequests) / 30
 
             
 
@@ -302,9 +302,9 @@ class PlanManager:
         if plan is None:
             new_plan = Plan(
                 title="Free plan",
-                amountForWeek=0,
-                weeklyLimitedGptrequests=constants.FREE_GPT_REQUESTS_WEEKLY,
-                weeklyLimitedImageRequests=constants.FREE_IMAGEAI_REQUESTS_WEEKLY,
+                amountForMonth=0,
+                monthlyLimitedGptrequests=constants.FREE_GPT_REQUESTS_MONTHLY,
+                monthlyLimitedImageRequests=constants.FREE_IMAGEAI_REQUESTS_MONTHLY,
                 isFree=True
             )
 
@@ -323,9 +323,9 @@ class PlanManager:
         if plan is None:
             new_plan = Plan(
                 title="Premium plan",
-                amountForWeek=constants.PREMIUM_PRICE,
-                weeklyLimitedGptrequests=constants.PREMIUM_GPT_REQUESTS_WEEKLY,
-                weeklyLimitedImageRequests=constants.PREMIUM_IMAGEAI_REQUESTS_WEEKLY,
+                amountForMonth=constants.PREMIUM_PRICE,
+                monthlyLimitedGptrequests=constants.PREMIUM_GPT_REQUESTS_MONTHLY,
+                monthlyLimitedImageRequests=constants.PREMIUM_IMAGEAI_REQUESTS_MONTHLY,
                 isFree=False
             )
 

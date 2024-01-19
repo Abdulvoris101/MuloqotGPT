@@ -10,24 +10,24 @@ class Plan(Base):
 
     id = Column(UUID(as_uuid=True), primary_key=True)
     title = Column(String)
-    amountForWeek = Column(BigInteger)
+    amountForMonth = Column(BigInteger)
     isFree = Column(Boolean)
-    weeklyLimitedImageRequests = Column(Integer)
-    weeklyLimitedGptrequests = Column(Integer)
+    monthlyLimitedImageRequests = Column(Integer)
+    monthlyLimitedGptrequests = Column(Integer)
 
 
     def __init__(
             self, title,
-            amountForWeek, isFree, 
-            weeklyLimitedImageRequests, 
-            weeklyLimitedGptrequests):
+            amountForMonth, isFree, 
+            monthlyLimitedImageRequests, 
+            monthlyLimitedGptrequests):
         
         self.id = uuid.uuid4()
         self.title = title
-        self.amountForWeek = amountForWeek
+        self.amountForMonth = amountForMonth
         self.isFree = isFree
-        self.weeklyLimitedImageRequests = weeklyLimitedImageRequests
-        self.weeklyLimitedGptrequests = weeklyLimitedGptrequests
+        self.monthlyLimitedImageRequests = monthlyLimitedImageRequests
+        self.monthlyLimitedGptrequests = monthlyLimitedGptrequests
         
         super().__init__()
 

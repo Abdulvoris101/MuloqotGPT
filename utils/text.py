@@ -58,7 +58,7 @@ def buy_text(price):
 To'lov tafsilotlari:
 
 <b>Mahsulot:</b> Premium obuna
-<b>1 haftalik obuna narxi:</b> {price} so'm
+<b>1 oylik obuna narxi:</b> {price} so'm
 <b>Umumiy summa:</b> <b>{price} so'm</b>
 
 Xaridni yakunlash uchun <b>{price}</b> so'm miqdorini quyidagi kartaga oʻtkazing:
@@ -96,7 +96,7 @@ Xozirgi obuna quyidagilarni o'z ichiga oladi:
 ✅ Birinchi 10ta so'rov uchun vaqt chegarasi yo'q;
 ⚠️ Keyingi so’rovlarda vaqt chegarasi mavjud;
 
-Ko'proq kerakmi? 6000 so'm evaziga bir haftalik premium tarifga obuna bo'ling.
+Ko'proq kerakmi? 24.000 so'm evaziga bir oylik premium tarifga obuna bo'ling.
 
 Premium obuna bilan siz:
 ✅ Chatgptga turboga har kuni 100 ta so'rov;
