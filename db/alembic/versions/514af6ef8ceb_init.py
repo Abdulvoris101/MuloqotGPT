@@ -1,8 +1,8 @@
 """INIT
 
-Revision ID: 520bcf9bc779
+Revision ID: 514af6ef8ceb
 Revises: 
-Create Date: 2024-01-19 00:05:20.223892
+Create Date: 2024-01-19 12:12:24.440045
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '520bcf9bc779'
+revision = '514af6ef8ceb'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -59,10 +59,10 @@ def upgrade() -> None:
     op.create_table('plan',
     sa.Column('id', sa.UUID(), nullable=False),
     sa.Column('title', sa.String(), nullable=True),
-    sa.Column('amountForWeek', sa.BigInteger(), nullable=True),
+    sa.Column('amountForMonth', sa.BigInteger(), nullable=True),
     sa.Column('isFree', sa.Boolean(), nullable=True),
-    sa.Column('weeklyLimitedImageRequests', sa.Integer(), nullable=True),
-    sa.Column('weeklyLimitedGptrequests', sa.Integer(), nullable=True),
+    sa.Column('monthlyLimitedImageRequests', sa.Integer(), nullable=True),
+    sa.Column('monthlyLimitedGptrequests', sa.Integer(), nullable=True),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_table('subscription',

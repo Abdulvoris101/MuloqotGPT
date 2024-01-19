@@ -3,7 +3,7 @@ from utils import sendEvent, countTokens, countTokenOfMessage
 from utils.translate import skip_code_translation
 from db.setup import session
 from db.proccessors import MessageProcessor
-from sqlalchemy import cast, String, not_, func, desc
+from sqlalchemy import cast, String, not_, func, desc, and_
 from datetime import datetime, timedelta
 import json
 
@@ -256,8 +256,7 @@ class MessageManager:
 
     @classmethod
     def deleteByLimit(self, chatId):
-        messages = session.query(Message).filter_by(chatId=chatId, role="assistant").order_by(Message.id).offset(1).limit(1).all()
-
+        messages = session.query(Message).filter(and_(Message.chatId == chatId, Message.role == "assistant", Message.role == "system")).order_by(Message.id).offset(1).limit(1).all()
         for message in messages:
             session.delete(message)
             session.commit()

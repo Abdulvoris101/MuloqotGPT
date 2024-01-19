@@ -37,7 +37,7 @@ class AIChatHandler:
 
     async def trim_message_tokens(self):
         messages = MessageManager.all(self.chatId)
-        
+                
         if await self.check_tokens(messages):
             MessageManager.deleteByLimit(self.chatId)
             return await self.trim_message_tokens()
