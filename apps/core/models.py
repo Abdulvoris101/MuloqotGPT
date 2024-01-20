@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Enum, UnicodeText, Boolean, Text, BigInteger, DateTime, ForeignKey
+from sqlalchemy import Column, Integer, String, Enum, Boolean, Text, BigInteger, DateTime, ForeignKey
 from db.setup import session, Base
 from datetime import datetime
 import json
