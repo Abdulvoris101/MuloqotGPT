@@ -17,7 +17,6 @@ from fastapi_pagination import add_pagination
 
 from celery import Celery
 
-# load_dotenv()
 
 celery = Celery(
     'tasks',

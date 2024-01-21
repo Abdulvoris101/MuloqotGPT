@@ -1,34 +1,26 @@
-from utils import constants
+# tasks.py
 from apps.subscription.managers import SubscriptionManager, FreeApiKeyManager
 from apps.core.managers import MessageStatManager
 import asyncio
-from celery import Celery
 
+def say_hello():
+    print("hello")
 
-celery = Celery('tasks', broker=constants.REDIS_URL, backend=constants.REDIS_URL)
-
-celery.autodiscover_tasks()
-
-
-@celery.task
 def cancelExpiredSubscriptions():
-    
     loop = asyncio.get_event_loop()
     loop.run_until_complete(SubscriptionManager.cancelExpiredSubscriptions())
     
-    return {"status": True}
+    print("Canceled Expired Subscriptions!")
 
 
-@celery.task
 def unsetExpiredKeys():
     FreeApiKeyManager.unExpireKeys()
-        
-    return {"status": True}
+    
+    print("unsetExpiredKeys")
 
-
-@celery.task
 def clearAllTodaysMessages():
     MessageStatManager.clearAllUsersTodaysMessagesAndImages()
     
-    return {"status": True}
+
+    print("clearedAllTodaysMessages")
     
