@@ -14,7 +14,7 @@ celery = Celery(
 def cancelExpiredSubscriptions():
     
     loop = asyncio.get_event_loop()
-    result = loop.run_until_complete(SubscriptionManager.cancelExpiredSubscriptions())
+    loop.run_until_complete(SubscriptionManager.cancelExpiredSubscriptions())
     
     return {"status": True}
 

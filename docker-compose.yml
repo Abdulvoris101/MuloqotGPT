@@ -18,6 +18,7 @@ services:
     env_file:
       - .env
 
+
   db:
     container_name: db
     image: postgres
@@ -32,7 +33,7 @@ services:
       - postgres_data:/var/lib/postgresql/data  # Named volume
 
     restart: always
-
+  
   redis:
     image: "redis:latest"
 

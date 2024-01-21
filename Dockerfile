@@ -3,6 +3,7 @@ FROM python:3.10
 COPY . /app
 WORKDIR /app
 
+RUN apt-get update && apt-get install -y curl
 RUN pip install -r requirements.txt
 ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=1
 EXPOSE 8005
