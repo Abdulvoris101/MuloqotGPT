@@ -1,14 +1,14 @@
-from celery import Celery
 from utils import constants
 from apps.subscription.managers import SubscriptionManager, FreeApiKeyManager
 from apps.core.managers import MessageStatManager
 import asyncio
+from celery import Celery
 
-celery = Celery(
-    'tasks',
-    broker=constants.REDIS_URL,
-    backend=constants.REDIS_URL,
-)
+
+celery = Celery('tasks', broker=constants.REDIS_URL, backend=constants.REDIS_URL)
+
+celery.autodiscover_tasks()
+
 
 @celery.task
 def cancelExpiredSubscriptions():

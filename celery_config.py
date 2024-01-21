@@ -1,9 +1,10 @@
 from kombu import Exchange, Queue
 from utils import constants
 from celery.beat import crontab
-from celery.beat import PersistentScheduler
 import os
 from dotenv import load_dotenv
+from celery import Celery
+
 
 load_dotenv()
 
@@ -16,11 +17,21 @@ timezone = 'Asia/Tashkent'
 
 beat_schedule_filename = 'celerybeat-schedule'
 
+
+celery = Celery(
+    'tasks',
+    broker=constants.REDIS_URL,
+    backend=constants.REDIS_URL,
+    include=["tasks"]
+)
+
+celery.autodiscover_tasks()
+
 task_queues = (
     Queue('default', Exchange('default'), routing_key='default'),
 )
 
-beat_schedule = {
+celery.conf.beat_schedule = {
     'run-task-every-day': {
         'task': 'tasks.cancelExpiredSubscriptions',
         'schedule': crontab(minute=0, hour=0)
@@ -39,11 +50,5 @@ postgres_user = os.environ.get("POSTGRES_DB_USER")
 postgres_password = os.environ.get("POSTGRES_DB_PASSWORD")
 
 db_url = f'postgresql+psycopg2://{postgres_user}:{postgres_password}@db:5432/muloqotai'
-
-beat_scheduler = 'celery.beat.PersistentScheduler'
-beat_schedule_options = {
-    'schedule_filename': beat_schedule_filename,
-    'max_interval': 5 * 60,  # 5 minutes (300 seconds)
-    'store': 'sqlalchemy',
-    'url': db_url,  # Adjust accordingly
-}
+celery.conf.beat_scheduler = 'celery.beat.PersistentScheduler'
+celery.conf.beat_schedule_filename = 'celerybeat-schedule'
