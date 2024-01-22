@@ -11,6 +11,7 @@ rq_queue = Queue(connection=redis_conn)
 
 
 schedule.every().day.at("00:00").do(rq_queue.enqueue, tasks.cancelExpiredSubscriptions)
+schedule.every().day.at("20:00").do(rq_queue.enqueue, tasks.cancelExpiredSubscriptions)
 schedule.every().day.at("00:00").do(rq_queue.enqueue, tasks.clearAllTodaysMessages)
 schedule.every().day.at("19:00").do(rq_queue.enqueue, tasks.unsetExpiredKeys)
 
