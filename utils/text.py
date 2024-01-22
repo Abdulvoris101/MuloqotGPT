@@ -38,7 +38,7 @@ To'lov tafsilotlari:
 
 Xaridni yakunlash uchun <b>{price}</b> so'm miqdorini quyidagi kartaga oʻtkazing:
 
-<b>Karta raqami:</b> <code>5614 6814 0539 6512</code>
+<b>Karta raqami:</b> <code>5614 6814 0539 6510</code>
 <b>Karta egasi</b>: TULKIN XUDAYBERGANOV
 
 To'lov o'tgandan so'ng to'lovingiz qo'lda tekshirilib chiqiladi va sizga obuna taqdim etiladi.
