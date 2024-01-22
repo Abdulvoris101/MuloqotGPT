@@ -2,10 +2,10 @@
 
 alembic upgrade head
 
-rq worker &
+nohup rq worker &
 
 # Start scheduler.py in the background
-python3 scheduler.py &
+nohup python3 scheduler.py &
 
 # Start your main Python script in the background
 python3 app.py
