@@ -13,6 +13,8 @@ Buyruqlar:
 /settings - Avtotarjimon sozlamasi
 /premium - Premium obuna
 /help - Foydalanish qo’llanmasi
+
+O'zbek tilida to'liq suxbatlashish uchun avtotarjimani yoqing. Batafsil ma'lumotot uchun - /help
 """
 
 HOW_TO_HELP_TEXT = """Sizga qanday yordam bera olaman?"""
@@ -24,6 +26,7 @@ Rasm generatsiyasi uchun esa ushbu komandani yuboring: /art prompt. Prompt o'rni
 <b>Botning qo'shimcha xususiyatlari</b>:
 🔹<b>Avtotarjima:</b> - bilasiz chatgpt o'zbek tilini  unchalik yahshi tushunmaydi shuning uchun botda avtotarjima xususiyati mavjud, agarda avtotarjimani yoqib qo'ysangiz sizning xar bir so'rovingiz  ingliz tilga  o'tqizilib chatgptga yuboriladi va  kelgan javob esa o'zbekchaga tarjima qilinadi. Bu bilan siz ingliz tilini bilmasdan turib chatgptni to'liqona ishlatishingiz mumkin bo'ladi.
 
+Avtotarjimani yoqish uchun - /settings
 """
 
 
