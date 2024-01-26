@@ -1,7 +1,7 @@
 from bot import dp, bot, types
 from apps.gpt import requestGpt
 from .models import Chat
-from .managers import ChatManager, MessageManager, MessageStatManager
+from .managers import ChatManager, MessageManager
 from .keyboards import settingsMenu
 from filters.core import UserFilter
 from utils.translate import translate_message
@@ -9,7 +9,7 @@ from utils import countTokens, countTokenOfMessage
 from aiogram.dispatcher import FSMContext
 import utils.text as text
 import asyncio
-from apps.subscription.managers import SubscriptionManager, PlanManager, LimitManager, FreeApiKeyManager
+from apps.subscription.managers import SubscriptionManager, PlanManager, LimitManager
 
 
 class AIChatHandler:
@@ -121,7 +121,7 @@ async def handle_private_messages(message: types.Message, state: FSMContext):
 async def send_welcome(message: types.Message): 
 
     await message.answer(text.START_COMMAND)
-    await message.answer(text.HOW_TO_HELP_TEXT)
+    await message.answer(text.getGreetingsText(message.from_user.first_name))
     
     user_subscription = SubscriptionManager.getByChatId(chatId=message.from_user.id)
     

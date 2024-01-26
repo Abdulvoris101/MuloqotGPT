@@ -17,7 +17,8 @@ Buyruqlar:
 O'zbek tilida to'liq suxbatlashish uchun avtotarjimani yoqing. Batafsil ma'lumotot uchun - /help
 """
 
-HOW_TO_HELP_TEXT = """Sizga qanday yordam bera olaman?"""
+def getGreetingsText(firstName):
+    return f"""{firstName}, Sizga qanday yordam bera olaman?"""
 
 HELP_COMMAND = """<b>Botni qanday ishlataman?</b>
 Botda  chatgptni  ishlatish uchun botga shunchaki so'rov yuborish kifoya. 
