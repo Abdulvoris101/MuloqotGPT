@@ -14,7 +14,7 @@ Buyruqlar:
 /premium - Premium obuna
 /help - Foydalanish qo’llanmasi
 
-O'zbek tilida to'liq suxbatlashish uchun avtotarjimani yoqing. Batafsil ma'lumotot uchun - /help
+<b>O'zbek tilida</b> to'liq suxbatlashish uchun avtotarjimani yoqing. Batafsil ma'lumotot uchun - /help
 """
 
 def getGreetingsText(firstName):
@@ -69,7 +69,7 @@ Agarda biror savolingiz bo'lsa, bizga murojat qiling - @texnosupportuzbot | @abd
 
 PLAN_TEXT = """
 Xozirgi obuna quyidagilarni o'z ichiga oladi:
-✅ Chatgptga har kuni 20 ta so'rov;
+✅ Chatgptga har kuni 16 ta so'rov;
 ⭐️ AI bilan 5 ta rasm generatsiya qilish;
 ✅ Avtotarjimon funksiyasi;
 ✅ Birinchi 10ta so'rov uchun vaqt chegarasi yo'q;
@@ -78,7 +78,7 @@ Xozirgi obuna quyidagilarni o'z ichiga oladi:
 Ko'proq kerakmi? 24.000 so'm evaziga bir oylik premium tarifga obuna bo'ling.
 
 Premium obuna bilan siz:
-✅ Chatgptga turboga har kuni 100 ta so'rov;
+✅ Chatgptga turboga har kuni 75 ta so'rov;
 ⭐️ AI bilan 20 ta rasm generatsiya qilish;
 ✅ Avtotarjimon funksiyasi;
 ✅ Xechqanday reklama yo'q;

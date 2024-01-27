@@ -360,7 +360,6 @@ class FreeApiKeyManager:
     def getMaxNumber():
         free_apiKeys = session.query(FreeApiKey).filter_by(isExpired=False).all()
         
-        
         return len(free_apiKeys)
     
     @staticmethod
@@ -396,7 +395,7 @@ class FreeApiKeyManager:
         session.commit()
 
 
-        
+
 class ConfigurationManager:
     
     @staticmethod

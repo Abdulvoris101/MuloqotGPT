@@ -83,7 +83,7 @@ async def requestGpt(messages, chatId, is_premium):
                 
             
             
-            frequency_penalty = 1 if is_premium else 0
+            frequency_penalty = 1.5 if is_premium else 1
             
             headers = {
                 "Authorization": f"Bearer {apiKey}"

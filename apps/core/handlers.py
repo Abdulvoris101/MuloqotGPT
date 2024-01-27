@@ -29,15 +29,15 @@ class AIChatHandler:
         else:
             return await self.message.reply(message, *args, **kwargs)
     
-    async def check_tokens(self, messages):
-        if countTokens(messages) >= 200:
+    async def check_tokens(self, messages):        
+        if countTokens(messages) >= 400:
             return True
 
         return False
 
     async def trim_message_tokens(self):
         messages = MessageManager.all(self.chatId)
-                
+        
         if await self.check_tokens(messages):
             MessageManager.deleteByLimit(self.chatId)
             return await self.trim_message_tokens()
@@ -61,7 +61,7 @@ class AIChatHandler:
 
         tokens_of_message = countTokenOfMessage(self.text)
         
-        if tokens_of_message >= 200:
+        if tokens_of_message >= 400:
             return await self.reply_or_send(self.TOKEN_REACHED)
 
         
