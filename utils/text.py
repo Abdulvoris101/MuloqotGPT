@@ -17,6 +17,15 @@ Buyruqlar:
 <b>O'zbek tilida</b> to'liq suxbatlashish uchun avtotarjimani yoqing. Batafsil ma'lumotot uchun - /help
 """
 
+ABILITY_COMMAND = """💡 Aqlli: Ko'plab mavzularni tushunish va javob berishga tayyorman. Umumiy bilimdan ma'lumotlarni qidirishga qadar, 
+sizga aniqligi va maqbul javoblarni taklif etishim mumkin.
+
+🧠 Dono: Men doimiy o'rganish va rivojlanishda, yangi ma'lumotlarga va foydalanuvchi bilan bo'lishuvlarga moslashishim mumkin. Aqlli muloqotlarni taklif etishim mumkin.
+
+🌄 Rassom: Mening yana bir qobilyatlarimdan biri bu rasm generatsiya qila olishim. Men sizga xar qanday turdagi ajoyib rasmlarni generatsiya qilib olib bera olaman
+
+⚙️ Avtotarjimon: Meni siz bilan o'zbek tilida yanada yahshiroq muloqot qila olishim uchun, avtotarjima funksiyasini ishlataman. Endi siz ingliz tilida qiynalib menga yozishingiz shart emas. Bu funksiya ixtiyoriy xoxlagan paytiz o'chirib qo'yishingiz mumkin."""
+
 def getGreetingsText(firstName):
     return f"""{firstName}, Sizga qanday yordam bera olaman?"""
 

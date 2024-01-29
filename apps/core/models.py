@@ -13,7 +13,6 @@ class Chat(Base):
     isActivated = Column(Boolean)
     chatId = Column(BigInteger, unique=True)
     createdAt = Column(DateTime, nullable=True)
-    autoTranslate = Column(Boolean, default=False)
     lastUpdated = Column(DateTime, nullable=True)
     
     messageStats = relationship('MessageStats', backref='chat', lazy='dynamic')
@@ -36,11 +35,6 @@ class Chat(Base):
     def get(cls, chatId):
         chat = session.query(Chat).filter_by(chatId=chatId).first()
 
-        if chat is not None:
-            if chat.autoTranslate is None:
-                chat.autoTranslate = False
-        
-            chat.save()
 
         return chat
 

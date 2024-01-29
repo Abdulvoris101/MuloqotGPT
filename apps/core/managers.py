@@ -234,8 +234,8 @@ class MessageManager:
 
     
     @classmethod
-    def assistantRole(cls, message, instance):
-        translated_message = skip_code_translation(message, instance.chat.id) # returns uz text  
+    def assistantRole(cls, message, instance, is_translate):
+        translated_message = skip_code_translation(message, instance.chat.id, is_translate) # returns uz text  
         
         cls.saveMessage(instance.chat.id, "assistant", message, translated_message)
 

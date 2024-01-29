@@ -4,7 +4,7 @@ from .models import Chat
 from .managers import ChatManager, MessageManager
 from .keyboards import settingsMenu
 from filters.core import UserFilter
-from utils.translate import translate_message
+from utils.translate import translate_message, detect
 from utils import countTokens, countTokenOfMessage
 from aiogram.dispatcher import FSMContext
 import utils.text as text
@@ -45,7 +45,15 @@ class AIChatHandler:
         return messages
 
     async def get_en_message(self):
-        message_en = translate_message(self.text, self.chatId, lang='en')
+        
+        try:
+            lang_code = detect(self.text)
+        except:
+            lang_code = "en"
+        
+        self.is_translate = True if lang_code == "uz" else False
+        
+        message_en = translate_message(self.text, self.chatId, lang='en', is_translate=self.is_translate)
         message_en = self.text if message_en is None else message_en
 
         return message_en
@@ -63,7 +71,6 @@ class AIChatHandler:
         
         if tokens_of_message >= 400:
             return await self.reply_or_send(self.TOKEN_REACHED)
-
         
         proccess_message = await self.reply_or_send(self.PROCESSING_MESSAGE)
         
@@ -85,9 +92,8 @@ class AIChatHandler:
                 response = await requestGpt(messages, chatId, True)
             else:
                 response = await requestGpt(messages, chatId, False)
-                
-            
-            response_uz = MessageManager.assistantRole(message=response, instance=self.message)
+                            
+            response_uz = MessageManager.assistantRole(message=response, instance=self.message, is_translate=self.is_translate)
 
             await bot.delete_message(chatId, proccess_message.message_id)
 
@@ -144,14 +150,6 @@ async def help(message: types.Message):
 @dp.message_handler(commands=['info'])
 async def ability(message: types.Message):
     await message.answer(text.ABILITY_COMMAND)
-
-
-@dp.message_handler(commands=['settings'])
-async def settings(message: types.Message):
-    if not await UserFilter.isActive(message.chat.id):
-        return await message.answer("Muloqotni boshlash uchun - /start")
-
-    await message.answer("⚙️ Sozlamalar", reply_markup=settingsMenu(message.chat.id))
 
 
 # Auto translate

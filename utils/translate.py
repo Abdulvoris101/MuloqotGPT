@@ -1,15 +1,8 @@
 from deep_translator import GoogleTranslator
 import re
+import pycld2 as cld2
 
-
-def translate_message(message, chatId, from_='uz', lang='en'):
-    from apps.core.models import Chat
-
-    if chatId is not None:
-        is_translate = Chat.get(chatId).autoTranslate
-    else:
-        is_translate = True
-    
+def translate_message(message, chatId, from_='uz', lang='en', is_translate=False):    
     try:
         if is_translate:
             translated_message = GoogleTranslator(source=from_, target=lang).translate(message)
@@ -21,11 +14,13 @@ def translate_message(message, chatId, from_='uz', lang='en'):
     return translated_message
 
 
-def skip_code_translation(text, chatId):
+def skip_code_translation(text, chatId, is_translate=False):
+    from apps.core.models import Chat
+    
     # Define the pattern for identifying code blocks
-
+    
     if text.find("`") == -1:
-        return translate_message(text, chatId, from_='auto', lang='uz')
+        return translate_message(text, chatId, from_='auto', lang='uz', is_translate=is_translate)
 
     code_pattern = r'```.*?```'
 
@@ -37,7 +32,7 @@ def skip_code_translation(text, chatId):
         text = text.replace(code_block, f'{{{{code_placeholder_{i}}}}}')
 
     # Translate the text outside of code blocks
-    translation = translate_message(text, chatId, 'ru', 'uz')
+    translation = translate_message(text, chatId, 'ru', 'uz', is_translate=is_translate)
     translated_text = translation
 
     # Replace placeholders with the original code blocks
@@ -46,3 +41,25 @@ def skip_code_translation(text, chatId):
 
     # Return the translated text
     return translated_text
+
+def detect(text):
+    """Decide which language is used to write the text.
+
+    The method tries first to detect the language with high reliability. If
+    that is not possible, the method switches to best effort strategy.
+
+
+    Args:
+      text (string): A snippet of text, the longer it is the more reliable we
+                     can detect the language used to write the text.
+    """
+    t = text.encode("utf-8")
+    reliable, index, top_3_choices = cld2.detect(t, bestEffort=False)
+
+    if not reliable:
+      reliable = False
+      reliable, index, top_3_choices = cld2.detect(t, bestEffort=True)
+
+    languages = [x for x in top_3_choices]
+    language = languages[0]
+    return language[1]

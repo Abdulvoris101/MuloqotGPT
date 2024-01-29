@@ -14,7 +14,7 @@ class LexicaAi:
     async def generate(cls, userId, prompt):
         
         try:
-            prompt = str(translate_message(prompt, chatId=None, from_='auto', lang='en')).strip()
+            prompt = str(translate_message(prompt, chatId=None, from_='auto', lang='en', is_translate=True)).strip()
 
             data = {
                 "text": prompt,
