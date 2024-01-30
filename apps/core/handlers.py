@@ -125,7 +125,7 @@ async def handle_private_messages(message: types.Message, state: FSMContext):
 
 @dp.message_handler(commands=['start'])
 async def send_welcome(message: types.Message): 
-
+    
     await message.answer(text.START_COMMAND)
     await message.answer(text.getGreetingsText(message.from_user.first_name))
     

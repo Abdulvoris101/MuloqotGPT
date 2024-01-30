@@ -10,7 +10,7 @@ from aiogram.dispatcher.filters import Text
 from utils import SendAny, extract_inline_buttons, constants, text
 from filters import IsAdmin
 from apps.subscription.managers import SubscriptionManager, PlanManager
-
+from aiogram.utils.exceptions import BotBlocked
 
 
 @dp.message_handler(commands=["cancel"], state='*')
@@ -154,9 +154,13 @@ async def rejectReason(message: types.Message, state=FSMContext):
 
     reason = f"""Afsuski sizning premium obunaga bo'lgan so'rovingiz bekor qilindi.
 Sababi: {message.text}
+Biror xatolik ketgan bo'lsa bizga murojat qiling: @texnosupportuzbot
 """
-    await bot.send_message(chatId, reason)
-    
+    try:
+        await bot.send_message(chatId, reason)
+    except BotBlocked:
+        print("Bot blocked!")
+
     SubscriptionManager.rejectPremiumRequest(chatId)
     
     await state.finish()

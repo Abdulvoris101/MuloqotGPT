@@ -5,7 +5,7 @@ from aiogram.dispatcher.dispatcher import FSMContext
 import uuid
 from .keyboards import check_payment_menu
 from aiogram.dispatcher.filters import Text
-from utils import sendEvent
+from utils import sendSubscriptionEvent
 from apps.imageai.keyboards import buyCreditMenu
 from apps.subscription.managers import SubscriptionManager, PlanManager
 
@@ -80,7 +80,7 @@ async def subscriptionCreate(message: types.Message, state=FSMContext):
         isFree=False
     )
 
-    await sendEvent(f"""#payment check-in\nchatId: {message.from_user.id},\nsubscription_id: {subscription.id},\ncardholder: {cardholder},\nprice: {price}""")
+    await sendSubscriptionEvent(f"""#payment check-in\nchatId: {message.from_user.id},\nsubscription_id: {subscription.id},\ncardholder: {cardholder},\nprice: {price}""")
 
     await message.answer(text.PAYMENT_STEP2)
     
