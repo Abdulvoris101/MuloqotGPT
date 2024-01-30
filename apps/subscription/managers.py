@@ -199,7 +199,7 @@ class SubscriptionManager:
 
     @staticmethod
     def getPremiumUsersCount():
-        return session.query(Subscription).filter_by(planId=PlanManager.getPremiumPlanOrCreate().id, isCanceled=False).count()
+        return session.query(Subscription).filter_by(planId=PlanManager.getPremiumPlanOrCreate().id, isCanceled=False, is_paid=True).count()
     
         
 

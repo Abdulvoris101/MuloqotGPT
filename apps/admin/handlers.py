@@ -3,7 +3,7 @@ import os
 from bot import dp, types, bot
 from db.state import AdminLoginState, AdminSystemMessageState, SendMessageWithInlineState,  AdminSendMessage, TopupState, RejectState
 from .models import Admin
-from apps.core.managers import ChatManager, MessageManager
+from apps.core.managers import ChatManager, MessageManager, MessageStatManager
 from apps.core.models import MessageStats, Message
 from .keyboards import adminKeyboards, cancelKeyboards, sendMessageMenu, dynamic_sendMenu
 from aiogram.dispatcher.filters import Text
@@ -68,14 +68,18 @@ async def get_statistics(message: types.Message):
     premiumUsers = SubscriptionManager.getPremiumUsersCount()
     usersCount = ChatManager.usersCount()
     activeUsers = ChatManager.activeUsers()
+    activeUsersOfDay = ChatManager.activeUsersOfDay()
     allMessages = Message.count()
     avgUsersMessagesCount = allMessages / usersCount
+    limitReachedUsers = MessageStatManager.getLimitReachedUsers()
     
     return await message.answer(f"""👤 Foydalanuvchilar - {usersCount}
 💥 Aktiv Foydalanuvchilar - {activeUsers}
+💯 Kunlik Aktiv Foydalanuvchilar - {activeUsersOfDay}
 🎁 Premium Foydalanuvchilar - {premiumUsers}
+🛑 Bugungi limiti tugagan Foydalanuvchilar - {limitReachedUsers}
 📨 Xabarlar - {allMessages}
-📩 User uchun o'rtacha xabarlar - {avgUsersMessagesCount}""")
+📩 User uchun o'rtacha xabar - {avgUsersMessagesCount}""")
 
 
 @dp.message_handler(IsAdmin(), Text(equals="📤 Xabar yuborish.!"))

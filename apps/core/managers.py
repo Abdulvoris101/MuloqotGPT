@@ -59,6 +59,15 @@ class ChatManager:
         currentMonthRecords = session.query(Chat).filter(func.extract('month', Chat.lastUpdated) == datetime.now().month).count()
 
         return currentMonthRecords
+    
+    @classmethod
+    def activeUsersOfDay(cls):
+        currentDayRecords = session.query(Chat).filter(func.extract('day', Chat.lastUpdated) == datetime.now().day).count()
+
+        return currentDayRecords
+    
+    
+
 
 
 class MessageStatManager:
@@ -178,6 +187,11 @@ class MessageStatManager:
         MessageStats.update(messageStat, "outputTokens",  messageStat.outputTokens + outputTokens)
 
 
+    @classmethod
+    def getLimitReachedUsers(cls):
+        limitReachedUsers = session.query(MessageStats).filter_by(todaysMessages=16).count()
+
+        return limitReachedUsers
 
 
 class MessageManager:
