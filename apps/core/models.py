@@ -102,7 +102,8 @@ class Message(Base):
                 
         session.add(self)
         session.commit()
-        
+    
+    
     @classmethod
     def count(cls):
         messageStats = session.query(MessageStats).all()
@@ -118,6 +119,7 @@ class Message(Base):
         totalMessagesCount = msg_counts
 
         return totalMessagesCount
+
 
     
     @classmethod

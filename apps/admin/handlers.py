@@ -4,14 +4,13 @@ from bot import dp, types, bot
 from db.state import AdminLoginState, AdminSystemMessageState, SendMessageWithInlineState,  AdminSendMessage, TopupState, RejectState
 from .models import Admin
 from apps.core.managers import ChatManager, MessageManager
-from apps.core.models import MessageStats
+from apps.core.models import MessageStats, Message
 from .keyboards import adminKeyboards, cancelKeyboards, sendMessageMenu, dynamic_sendMenu
 from aiogram.dispatcher.filters import Text
 from utils import SendAny, extract_inline_buttons, constants, text
 from filters import IsAdmin
 from apps.subscription.managers import SubscriptionManager, PlanManager
 from aiogram.utils.exceptions import BotBlocked
-
 
 @dp.message_handler(commands=["cancel"], state='*')
 async def cancel(message: types.Message, state: FSMContext):   
@@ -66,8 +65,18 @@ async def add_rule(message: types.Message, state=FSMContext):
 
 @dp.message_handler(IsAdmin(), Text(equals="📊 Statistika.!"))
 async def get_statistics(message: types.Message):
-    return await message.answer(f"👤 Foydalanuvchilar - {ChatManager.usersCount()}.\n💥 Aktiv Foydalanuvchilar - {ChatManager.activeUsers()}\n📥Xabarlar - {MessageManager.count()}")
+    premiumUsers = SubscriptionManager.getPremiumUsersCount()
+    usersCount = ChatManager.usersCount()
+    activeUsers = ChatManager.activeUsers()
+    allMessages = Message.count()
+    avgUsersMessagesCount = allMessages / usersCount
     
+    return await message.answer(f"""👤 Foydalanuvchilar - {usersCount}
+💥 Aktiv Foydalanuvchilar - {activeUsers}
+🎁 Premium Foydalanuvchilar - {premiumUsers}
+📨 Xabarlar - {allMessages}
+📩 User uchun o'rtacha xabarlar - {avgUsersMessagesCount}""")
+
 
 @dp.message_handler(IsAdmin(), Text(equals="📤 Xabar yuborish.!"))
 async def sendMessageCommand(message: types.Message, state=None):

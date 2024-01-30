@@ -197,6 +197,10 @@ class SubscriptionManager:
     ):
         return session.query(Subscription).filter_by(chatId=chatId).first()
 
+    @staticmethod
+    def getPremiumUsersCount():
+        return session.query(Subscription).filter_by(planId=PlanManager.getPremiumPlanOrCreate().id, isCanceled=False).count()
+    
         
 
 class LimitManager:

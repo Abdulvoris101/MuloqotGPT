@@ -5,7 +5,6 @@ from db.setup import session
 from db.proccessors import MessageProcessor
 from sqlalchemy import cast, String, not_, func, desc, and_
 from datetime import datetime, timedelta
-import json
 
 
 
@@ -19,7 +18,7 @@ class ChatManager:
 
     @classmethod
     def usersCount(cls):
-        return session.query(Chat).filter(not_(cast(Chat.chatId, String).startswith('-'))).count()
+        return session.query(Chat).count()
 
     @classmethod
     def all(cls):
@@ -269,9 +268,6 @@ class MessageManager:
             session.delete(message)
             session.commit()
 
-    @classmethod
-    def count(cls):
-        return Message.count()
 
     
     @classmethod
