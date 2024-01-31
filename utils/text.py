@@ -13,7 +13,9 @@ Buyruqlar:
 /premium - Premium obuna
 /help - Foydalanish qo’llanmasi
 
-🖼 <b>Rasm generatsiya qilish uchun</b> <b>/art</b> kommandasini yuboring! Batafsil ma'lumotot uchun - /help
+@muloqotai - Ushbu kanalda siz bilmagan va yangi qo’shiladigan funksiyalar haqidagi ma’lumotlar berib boriladi. Kanal a'zolari birinchilardan bo'lib yangi funksiyalarni sinab ko'rishlari mumkin
+
+🖼 <b>Rasm generatsiya qilish uchun</b> <b>/art</b> kommandasini yuboring! Batafsil ma'lumot uchun - /help
 """
 
 ABILITY_COMMAND = """💡 Aqlli: Ko'plab mavzularni tushunish va javob berishga tayyorman. Umumiy bilimdan ma'lumotlarni qidirishga qadar, 
@@ -36,6 +38,8 @@ Rasm generatsiyasi uchun esa ushbu komandani yuboring: /art prompt. Prompt o'rni
 🔹<b>Avtotarjima:</b> - bilasiz chatgpt o'zbek tilini  unchalik yahshi tushunmaydi shuning uchun botda avtotarjima xususiyati mavjud, agarda avtotarjimani yoqib qo'ysangiz sizning xar bir so'rovingiz  ingliz tilga  o'tqizilib chatgptga yuboriladi va  kelgan javob esa o'zbekchaga tarjima qilinadi. Bu bilan siz ingliz tilini bilmasdan turib chatgptni to'liqona ishlatishingiz mumkin bo'ladi.
 
 Qachonki o'zbek tilida so'rov kiritsangiz avtotarjima o'zi avtomatik tarzda yonadi.
+
+Botning rasmiy kanali - @muloqotai
 """
 
 

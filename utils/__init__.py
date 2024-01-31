@@ -3,6 +3,7 @@ from bot import bot
 import tiktoken
 from utils import constants
 import re
+from aiogram.utils.exceptions import BotBlocked
 
 # Bot 
 
@@ -25,24 +26,34 @@ class SendAny:
         self.message = message
     
     async def sendPhoto(self, chatId, kb=None):
-        if kb is None:
-            return await bot.send_photo(chatId, self.message.photo[-1].file_id, caption=self.message.caption)
         
-        return await bot.send_photo(chatId, self.message.photo[-1].file_id, caption=self.message.caption, reply_markup=kb)
-    
+        try:  
+            if kb is None:
+                return await bot.send_photo(chatId, self.message.photo[-1].file_id, caption=self.message.caption)
+            
+            return await bot.send_photo(chatId, self.message.photo[-1].file_id, caption=self.message.caption, reply_markup=kb)
+        except BotBlocked:
+            print("Bot blocked")
+            
     async def send_message(self, chatId, kb=None):
-        if kb is None:
-            return await bot.send_message(chatId, self.message.text)
-        
-        return await bot.send_message(chatId, self.message.text, reply_markup=kb)
+        try:
+                
+            if kb is None:
+                return await bot.send_message(chatId, self.message.text)
+            
+            return await bot.send_message(chatId, self.message.text, reply_markup=kb)
 
+        except BotBlocked:
+            print("Bot blocked")
 
     async def send_video(self, chatId, kb=None):
-        if kb is None:
-            return await bot.send_video(chatId, video=self.message.video.file_id, caption=self.message.caption)
+        try:
+            if kb is None:
+                return await bot.send_video(chatId, video=self.message.video.file_id, caption=self.message.caption)
 
-        return await bot.send_video(chatId, video=self.message.video.file_id, caption=self.message.caption, reply_markup=kb)
-
+            return await bot.send_video(chatId, video=self.message.video.file_id, caption=self.message.caption, reply_markup=kb)
+        except BotBlocked:
+            print("Bot blocked")
 
 
 # Token counter

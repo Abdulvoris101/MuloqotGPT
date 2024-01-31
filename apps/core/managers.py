@@ -5,7 +5,6 @@ from db.setup import session
 from db.proccessors import MessageProcessor
 from sqlalchemy import cast, String, not_, func, desc, and_
 from datetime import datetime, timedelta
-import json
 
 
 
@@ -19,7 +18,7 @@ class ChatManager:
 
     @classmethod
     def usersCount(cls):
-        return session.query(Chat).filter(not_(cast(Chat.chatId, String).startswith('-'))).count()
+        return session.query(Chat).count()
 
     @classmethod
     def all(cls):
@@ -60,6 +59,15 @@ class ChatManager:
         currentMonthRecords = session.query(Chat).filter(func.extract('month', Chat.lastUpdated) == datetime.now().month).count()
 
         return currentMonthRecords
+    
+    @classmethod
+    def activeUsersOfDay(cls):
+        currentDayRecords = session.query(Chat).filter(func.extract('day', Chat.lastUpdated) == datetime.now().day).count()
+
+        return currentDayRecords
+    
+    
+
 
 
 class MessageStatManager:
@@ -179,6 +187,11 @@ class MessageStatManager:
         MessageStats.update(messageStat, "outputTokens",  messageStat.outputTokens + outputTokens)
 
 
+    @classmethod
+    def getLimitReachedUsers(cls):
+        limitReachedUsers = session.query(MessageStats).filter_by(todaysMessages=16).count()
+
+        return limitReachedUsers
 
 
 class MessageManager:
@@ -269,9 +282,6 @@ class MessageManager:
             session.delete(message)
             session.commit()
 
-    @classmethod
-    def count(cls):
-        return Message.count()
 
     
     @classmethod
