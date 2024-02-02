@@ -35,9 +35,8 @@ class SendAny:
         except BotBlocked:
             print("Bot blocked")
             
-    async def send_message(self, chatId, kb=None):
+    async def sendMessage(self, chatId, kb=None):
         try:
-                
             if kb is None:
                 return await bot.send_message(chatId, self.message.text)
             
@@ -46,12 +45,21 @@ class SendAny:
         except BotBlocked:
             print("Bot blocked")
 
-    async def send_video(self, chatId, kb=None):
+    async def sendVideo(self, chatId, kb=None):
         try:
             if kb is None:
                 return await bot.send_video(chatId, video=self.message.video.file_id, caption=self.message.caption)
 
             return await bot.send_video(chatId, video=self.message.video.file_id, caption=self.message.caption, reply_markup=kb)
+        except BotBlocked:
+            print("Bot blocked")
+    
+    async def sendAnimation(self, chatId, kb=None):
+        try:
+            if kb is None:
+                # Use self.message here if it's an instance variable, otherwise replace with the correct reference
+                return await bot.send_animation(chatId, animation=self.message.animation.file_id, caption=self.message.caption)
+            return await bot.send_animation(chatId, animation=self.message.animation.file_id, caption=self.message.caption, reply_markup=kb)
         except BotBlocked:
             print("Bot blocked")
 

@@ -14,8 +14,8 @@ from apps.subscription.managers import SubscriptionManager, PlanManager
 @dp.callback_query_handler(text="subscribe_premium")
 async def buyPremium(message: types.Message):
 
-    notPaidSubscription = SubscriptionManager.getNotPaidPremiumSubsctiption(message.from_user.id, PlanManager.getPremiumPlanOrCreate().id)
-    payedSubscription = SubscriptionManager.getNotPaidPremiumSubsctiption(message.from_user.id, PlanManager.getPremiumPlanOrCreate().id)
+    notPaidSubscription = SubscriptionManager.getNotPaidPremiumSubscription(message.from_user.id, PlanManager.getPremiumPlanOrCreate().id)
+    payedSubscription = SubscriptionManager.getPremiumSubscription(message.from_user.id, PlanManager.getPremiumPlanOrCreate().id)
     
     if notPaidSubscription is not None:
         await message.answer("Sizning premium obunaga so'rovingiz ko'rib chiqilmoqda")
@@ -36,11 +36,12 @@ async def buyPremium(message: types.Message):
 
 @dp.message_handler(commands=["premium"])
 async def premium(message: types.Message):
-    await bot.send_message(
-        message.chat.id, 
-        text.PLAN_TEXT,
-        reply_markup=buyCreditMenu
-    )
+    if message.chat.type == "private":
+        await bot.send_message(
+            message.chat.id, 
+            text.PLAN_TEXT,
+            reply_markup=buyCreditMenu
+        )
 
 
 @dp.message_handler(Text(equals="Davom etish"), state=PaymentState.first_step)

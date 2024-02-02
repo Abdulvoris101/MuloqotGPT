@@ -3,14 +3,13 @@ from apps.gpt import requestGpt
 from .models import Chat
 from .managers import ChatManager, MessageManager
 from .keyboards import settingsMenu
-from filters.core import UserFilter
 from utils.translate import translate_message, detect
-from utils import countTokens, countTokenOfMessage
+from utils import countTokens, countTokenOfMessage, constants
 from aiogram.dispatcher import FSMContext
 import utils.text as text
 import asyncio
 from apps.subscription.managers import SubscriptionManager, PlanManager, LimitManager
-
+from filters.core import IsReplyFilter
 
 class AIChatHandler:
     PROCESSING_MESSAGE = "⏳..."
@@ -58,12 +57,25 @@ class AIChatHandler:
 
         return message_en
 
+    def isChatAllowed(self):
+        chatType = self.message.chat.type
+        
+        if chatType in [types.ChatType.GROUP, types.ChatType.SUPERGROUP]:
+            if self.chatId != constants.HOST_GROUP_ID:
+                return False
 
-    async def handle(self):
+        return True
 
-        await UserFilter.activate(self.message, self.chatId)
+    async def handle(self):    
+            
+        if self.isChatAllowed() == False:
+            return await self.message.answer("Afsuski xozirda bot @muloqotaigr dan boshqa  guruhlarni qo'llab quvatlamaydi!")
         
         if not LimitManager.checkGptRRequestsDailyLimit(self.chatId):
+            if self.chatId == constants.HOST_GROUP_ID:
+                await self.reply_or_send(text.LIMIT_GROUP_REACHED)
+                return
+            
             await self.reply_or_send(text.LIMIT_REACHED)
             return 
 
@@ -123,12 +135,38 @@ async def handle_private_messages(message: types.Message, state: FSMContext):
     await message.answer("Xatolik ketdi, qayta boshlang")
 
 
+@dp.message_handler(IsReplyFilter())
+async def handle_reply(message: types.Message):
+    chat = AIChatHandler(message=message)
+
+    return await chat.handle()
+
+
 @dp.message_handler(commands=['start'])
 async def send_welcome(message: types.Message): 
     
+    status = await ChatManager.activate(message)
+    
+    if status == False:
+        return await message.answer("Afsuski xozirda bot @muloqotaigr dan boshqa  guruhlarni qo'llab quvatlamaydi!")
+    
     await message.answer(text.START_COMMAND)
     await message.answer(text.getGreetingsText(message.from_user.first_name))
+
+
+    if message.chat.id == constants.HOST_GROUP_ID:
+        chat_subscription = SubscriptionManager.getByChatId(chatId=message.chat.id)
     
+        if chat_subscription is None:
+            SubscriptionManager.createSubscription(
+                planId=PlanManager.getHostGroupPlanOrCreate().id,
+                chatId=message.chat.id,
+                is_paid=True,
+                isFree=False
+            )
+            
+        return
+
     user_subscription = SubscriptionManager.getByChatId(chatId=message.from_user.id)
     
     if user_subscription is None:
@@ -139,7 +177,7 @@ async def send_welcome(message: types.Message):
             isFree=True
         )
     
-    await ChatManager.activate(message)
+    
 
 
 @dp.message_handler(commands=['help'])

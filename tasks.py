@@ -1,6 +1,8 @@
 # tasks.py
 from apps.subscription.managers import SubscriptionManager, FreeApiKeyManager
-from apps.core.managers import MessageStatManager
+from apps.core.managers import ChatActivityManager
+
+
 import asyncio
 
 def say_hello():
@@ -19,7 +21,7 @@ def unsetExpiredKeys():
     print("unsetExpiredKeys")
 
 def clearAllTodaysMessages():
-    MessageStatManager.clearAllUsersTodaysMessagesAndImages()
+    ChatActivityManager.clearAllUsersTodaysMessagesAndImages()
     
 
     print("clearedAllTodaysMessages")

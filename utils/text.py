@@ -4,7 +4,7 @@ from utils import constants
 
 COST = constants.AQSHA_COST
 
-START_COMMAND = """🤖 Salom! Men MuloqotAi, sizning shaxsiy 
+START_COMMAND = """✨ Salom! Men MuloqotAi, sizning shaxsiy 
 yordamchingizman. Foydalanish uchun shunchaki savolingizni botga yozish kifoya.
 
 Buyruqlar:
@@ -28,7 +28,7 @@ sizga aniqligi va maqbul javoblarni taklif etishim mumkin.
 ⚙️ Avtotarjimon: Meni siz bilan o'zbek tilida yanada yahshiroq muloqot qila olishim uchun, avtotarjima funksiyasini ishlataman. Endi siz ingliz tilida qiynalib menga yozishingiz shart emas. Bu funksiya ixtiyoriy xoxlagan paytiz o'chirib qo'yishingiz mumkin."""
 
 def getGreetingsText(firstName):
-    return f"""{firstName}, Sizga qanday yordam bera olaman?"""
+    return f"""Salom {firstName}, Men sizning virtual dunyodagi shaxsiy yordamchingizman, Sizga qanday yordam berishim mumkin?"""
 
 HELP_COMMAND = """<b>Botni qanday ishlataman?</b>
 Botda  chatgptni  ishlatish uchun botga shunchaki so'rov yuborish kifoya. 
@@ -44,7 +44,7 @@ Botning rasmiy kanali - @muloqotai
 
 
 def buy_text(price):
-        
+    
     BUY_TEXT = f"""1/2
 To'lov tafsilotlari:
 
@@ -57,13 +57,14 @@ Xaridni yakunlash uchun <b>{price}</b> so'm miqdorini quyidagi kartaga oʻtkazin
 <b>Karta raqami:</b> <code>5614 6814 0539 6510</code>
 <b>Karta egasi</b>: TULKIN XUDAYBERGANOV
 
-To'lov o'tgandan so'ng to'lovingiz qo'lda tekshirilib chiqiladi va sizga obuna taqdim etiladi.
+Ushbu kartaga to'lov qilganingizdan so'ng bizga to'lov skrinshotini yuboring 👇
+Biz sizning to'lovingizni qo'lda tekshirib chiqamiz va sizga obuna taqdim etamiz.
 
 Toʻlov jarayonida biror muammoga duch kelsangiz yoki savollaringiz boʻlsa, bizga murojat qiling - @texnosupportuzbot | @abdulvoris_101
 """
     return BUY_TEXT
 
-PAYMENT_STEP1 = """
+PAYMENT_STEP1 = """1/2
 Biz xozir sizning to'lovingizni o'zimiz qo'lda tekshirib chiqamiz,
 uning uchun esa bizga yuborgan kartangizdagi ismingizni yozing 👇
 """
@@ -100,7 +101,13 @@ Premium obuna bilan siz:
 
 LIMIT_REACHED = """Afsuski sizning kunlik limitingiz tugadi. 
 Yanada ko'proq so'rov uchun premium tarifga obuna bo'ling
+16/16
 /premium"""
+
+LIMIT_GROUP_REACHED = """Afsuski guruhning kunlik limiti tugadi. 
+So'rovlarni ko'paytirish uchun bizga donat qilib yordam berishingiz mumkin
+150/150
+/donate"""
 
 PREMIUM_GAVE = """Tabriklaymiz sizga premium obuna taqdim etildi. Bizni tanlaganiz uchun rahmat 😊🎉"""
 
