@@ -1,11 +1,11 @@
-from .models import Chat, Message, MessageStats
-from utils import sendEvent, countTokens, countTokenOfMessage
+from .models import Chat, Message, ChatActivity
+from utils import sendEvent, countTokenOfMessage, constants
 from utils.translate import skip_code_translation
 from db.setup import session
 from db.proccessors import MessageProcessor
-from sqlalchemy import cast, String, not_, func, desc, and_
+from sqlalchemy import cast, String, func, desc, and_
 from datetime import datetime, timedelta
-
+from aiogram import types
 
 
 class ChatManager:
@@ -30,29 +30,32 @@ class ChatManager:
     
     @classmethod
     async def activate(cls, message):
-        try:
-            tgUser = message.message.chat
-        except:
-            tgUser = message.chat
+    
+        telegramChat = message.chat
 
-        chat = Chat.get(tgUser.id)
+        chat = Chat.get(telegramChat.id)
         
+        chatType = message.chat.type
+        
+        if chatType in [types.ChatType.GROUP, types.ChatType.SUPERGROUP]:
+            if message.chat.id != constants.HOST_GROUP_ID:
+                return False
+
         if chat is None:
-            chat = Chat(tgUser.id, tgUser.full_name, tgUser.username).save()
+            chat = Chat(telegramChat.id, telegramChat.full_name, telegramChat.username).save()
             session.add(chat)
             session.commit()
-            await sendEvent(f"#new\nid: {chat.id}\ntelegramId: {tgUser.id}\nusername: @{tgUser.username}\nname: {tgUser.full_name}\ntype: {tgUser.type}")
+            await sendEvent(f"#new\nid: {telegramChat.id}\ntelegramId: {telegramChat.id}\nusername: @{telegramChat.username}\nname: {telegramChat.full_name}")
         
-        chat.isActivated = True
         session.add(chat)
         session.commit()
 
-        messageStat = MessageStats.get(tgUser.id)
+        chatActivity = ChatActivity.get(telegramChat.id)
 
-        if messageStat is None:
-            messageStat = MessageStats(tgUser.id).save()
-                    
-        MessageProcessor.createSystemMessages(tgUser.id, tgUser.type)
+        if chatActivity is None:
+            chatActivity = ChatActivity(telegramChat.id).save()
+        
+        MessageProcessor.createSystemMessages(telegramChat.id, telegramChat.type)
 
     @classmethod
     def activeUsers(cls):
@@ -70,24 +73,24 @@ class ChatManager:
 
 
 
-class MessageStatManager:
+class ChatActivityManager:
 
     @classmethod
     def countOfAllOutputTokens(cls):
-        messageStats = session.query(MessageStats).all()
+        userActivities = session.query(ChatActivity).all()
         outputTokens = 1
 
-        for messageStat in messageStats:
+        for activity in userActivities:
             
-            if messageStat.outputTokens is not None:
-                outputTokens += messageStat.outputTokens
+            if activity.outputTokens is not None:
+                outputTokens += activity.outputTokens
 
         return outputTokens
 
 
     @classmethod
     def countOfAllInputTokens(cls):
-        chats = session.query(MessageStats).all()
+        chats = session.query(ChatActivity).all()
         inputTokens = 1
 
         for chat in chats:
@@ -99,41 +102,41 @@ class MessageStatManager:
     
     @staticmethod
     def getTodaysMessage(chatId):
-        messageStat = session.query(MessageStats).filter_by(chatId=chatId).first()
+        chatActivity = session.query(ChatActivity).filter_by(chatId=chatId).first()
 
-        if messageStat is None:
+        if chatActivity is None:
             return 1
         
         else:
-            return messageStat.todaysMessages
+            return chatActivity.todaysMessages
 
     @staticmethod
     def getTodaysImages(chatId):
-        messageStat = session.query(MessageStats).filter_by(chatId=chatId).first()
+        chatActivity = session.query(ChatActivity).filter_by(chatId=chatId).first()
 
-        if messageStat is None:
+        if chatActivity is None:
             return 1
         else:
-            return messageStat.todaysImages
+            return chatActivity.todaysImages
         
     @staticmethod
     def getAllMessagesCount(chatId):
-        messageStat = session.query(MessageStats).filter_by(chatId=chatId).first()
+        chatActivity = session.query(ChatActivity).filter_by(chatId=chatId).first()
 
-        if messageStat is None:
+        if chatActivity is None:
             return 1
         else:
-            return messageStat.allMessages
+            return chatActivity.allMessages
     
     @staticmethod
     def clearAllUsersTodaysMessagesAndImages():
-        messageStats = session.query(MessageStats).all()
+        userActivities = session.query(ChatActivity).all()
         
-        for messageStat in messageStats:
-            messageStat.todaysMessages = 0
-            messageStat.todaysImages = 0
+        for chatActivity in userActivities:
+            chatActivity.todaysMessages = 0
+            chatActivity.todaysImages = 0
             
-            session.add(messageStat)
+            session.add(chatActivity)
         
         session.commit()
 
@@ -141,55 +144,54 @@ class MessageStatManager:
     def clearTodaysMessages(
         chatId
     ):
-        messageStats = session.query(MessageStats).filter_by(chatId=chatId).first()
+        userActivities = session.query(ChatActivity).filter_by(chatId=chatId).first()
         
-        for messageStat in messageStats:
-            messageStat.todaysMessages = 0
-            messageStat.todaysImages = 0
+        for chatActivity in userActivities:
+            chatActivity.todaysMessages = 0
+            chatActivity.todaysImages = 0
             
-            session.add(messageStat)
+            session.add(chatActivity)
         
         session.commit()
 
     @staticmethod
     def increaseMessageStat(chatId):
-        messageStat = MessageStats.get(chatId=chatId)
+        chatActivity = ChatActivity.get(chatId=chatId)
         
         
-        if messageStat is None:
-            MessageStats(chatId=chatId).save()
+        if chatActivity is None:
+            ChatActivity(chatId=chatId).save()
 
 
-        MessageStats.update(messageStat, "allMessages", messageStat.allMessages + 1)
-        MessageStats.update(messageStat, "todaysMessages", messageStat.todaysMessages + 1)
+        ChatActivity.update(chatActivity, "allMessages", chatActivity.allMessages + 1)
+        ChatActivity.update(chatActivity, "todaysMessages", chatActivity.todaysMessages + 1)
 
     @staticmethod
     def increaseRequestedMessage(chatId):
-        messageStat = MessageStats.get(chatId=chatId)
+        chatActivity = ChatActivity.get(chatId=chatId)
         
         
-        if messageStat is None:
-            MessageStats(chatId=chatId).save()
+        if chatActivity is None:
+            ChatActivity(chatId=chatId).save()
 
-        MessageStats.update(messageStat, "todays_entered_request", messageStat.todays_entered_request + 1)
+        ChatActivity.update(chatActivity, "todays_entered_request", chatActivity.todays_entered_request + 1)
 
     @staticmethod
     def increaseOutputTokens(chatId, message):
-        messageStat = MessageStats.get(chatId=chatId)
+        chatActivity = ChatActivity.get(chatId=chatId)
         
         outputTokens = countTokenOfMessage(message)
         
-        
-        if messageStat is None:
-            MessageStats(chatId=chatId).save()
+        if chatActivity is None:
+            ChatActivity(chatId=chatId).save()
 
 
-        MessageStats.update(messageStat, "outputTokens",  messageStat.outputTokens + outputTokens)
+        ChatActivity.update(chatActivity, "outputTokens",  chatActivity.outputTokens + outputTokens)
 
 
     @classmethod
     def getLimitReachedUsers(cls):
-        limitReachedUsers = session.query(MessageStats).filter_by(todaysMessages=16).count()
+        limitReachedUsers = session.query(ChatActivity).filter_by(todaysMessages=16).count()
 
         return limitReachedUsers
 
@@ -232,14 +234,16 @@ class MessageManager:
 
         Chat.update(chat, "lastUpdated", datetime.now())
 
-        messageStat = MessageStats.get(instance.chat.id)
+        chatActivity = ChatActivity.get(instance.chat.id)
 
         inputTokens = countTokenOfMessage(translated_text)
 
-        if messageStat is None:
-            MessageStats(chatId=instance.chat.id).save()
+        if chatActivity is None:
+            ChatActivity(chatId=instance.chat.id).save()
+            chatActivity = ChatActivity.get(instance.chat.id)
 
-        MessageStats.update(messageStat, "inputTokens", messageStat.inputTokens + inputTokens)
+
+        ChatActivity.update(chatActivity, "inputTokens", chatActivity.inputTokens + inputTokens)
 
         del data["uzMessage"] # deleting uzMessage before it requests to openai
     

@@ -1,7 +1,5 @@
 from db.setup import Base, session
 from sqlalchemy import Column, Integer, String, UUID, BigInteger, Boolean, DateTime, Text, ForeignKey
-from sqlalchemy.orm import relationship
-from datetime import datetime
 import uuid
 
 
@@ -13,21 +11,24 @@ class Plan(Base):
     amountForMonth = Column(BigInteger)
     isFree = Column(Boolean)
     monthlyLimitedImageRequests = Column(Integer)
-    monthlyLimitedGptrequests = Column(Integer)
-
+    monthlyLimitedGptRequests = Column(Integer)
+    isGroup = Column(Boolean)
+    isHostGroup = Column(Boolean)
 
     def __init__(
             self, title,
             amountForMonth, isFree, 
             monthlyLimitedImageRequests, 
-            monthlyLimitedGptrequests):
+            monthlyLimitedGptRequests, isGroup, isHostGroup):
         
         self.id = uuid.uuid4()
         self.title = title
         self.amountForMonth = amountForMonth
         self.isFree = isFree
         self.monthlyLimitedImageRequests = monthlyLimitedImageRequests
-        self.monthlyLimitedGptrequests = monthlyLimitedGptrequests
+        self.monthlyLimitedGptRequests = monthlyLimitedGptRequests
+        self.isGroup = isGroup
+        self.isHostGroup = isHostGroup
         
         super().__init__()
 
@@ -111,5 +112,36 @@ class Configuration(Base):
         session.commit()
 
         return self
-    
 
+
+class ChatQuota(Base):
+    __tablename__ = 'chat_quota'
+
+    id = Column(Integer, primary_key=True)
+    chatId = Column(BigInteger, ForeignKey('chat.chatId'))
+    additionalGptRequests = Column(BigInteger, default=0)
+    additionalImageRequests = Column(BigInteger, default=0)
+
+    def __init__(self, chatId, additionalGptRequests=0, additionalImageRequests=0):
+        self.chatId = chatId
+        self.additionalGptRequests = additionalGptRequests
+        self.additionalImageRequests = additionalImageRequests
+
+    def save(self):
+        session.add(self)
+        session.commit()
+
+    @classmethod
+    def update(cls, instance, column, value):
+        setattr(instance, column, value)
+        session.commit()
+
+    @classmethod
+    def delete(cls, chatId):
+        chatQuota = session.query(ChatQuota).filter_by(chatId=chatId).first()
+        session.delete(chatQuota)
+
+    @classmethod
+    def get(cls, chatId):
+        chatQuota = session.query(ChatQuota).filter_by(chatId=chatId).first()
+        return chatQuota

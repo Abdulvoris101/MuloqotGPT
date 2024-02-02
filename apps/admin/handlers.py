@@ -3,8 +3,8 @@ import os
 from bot import dp, types, bot
 from db.state import AdminLoginState, AdminSystemMessageState, SendMessageWithInlineState,  AdminSendMessage, TopupState, RejectState
 from .models import Admin
-from apps.core.managers import ChatManager, MessageManager, MessageStatManager
-from apps.core.models import MessageStats, Message
+from apps.core.managers import ChatManager, MessageManager, ChatActivityManager
+from apps.core.models import ChatActivity, Message
 from .keyboards import adminKeyboards, cancelKeyboards, sendMessageMenu, dynamic_sendMenu
 from aiogram.dispatcher.filters import Text
 from utils import SendAny, extract_inline_buttons, constants, text
@@ -71,7 +71,7 @@ async def get_statistics(message: types.Message):
     activeUsersOfDay = ChatManager.activeUsersOfDay()
     allMessages = Message.count()
     avgUsersMessagesCount = allMessages / usersCount
-    limitReachedUsers = MessageStatManager.getLimitReachedUsers()
+    limitReachedUsers = ChatActivityManager.getLimitReachedUsers()
     
     return await message.answer(f"""👤 Foydalanuvchilar - {usersCount}
 💥 Aktiv Foydalanuvchilar - {activeUsers}
@@ -101,7 +101,7 @@ async def setChaId(message: types.Message, state=FSMContext):
     async with state.proxy() as data:
         data['chatId'] = message.text
 
-    premium_subscription = SubscriptionManager.getNotPaidPremiumSubsctiption(
+    premium_subscription = SubscriptionManager.getNotPaidPremiumSubscription(
         chatId=message.text, planId=PlanManager.getPremiumPlanOrCreate().id)
     
     if premium_subscription is None:
@@ -128,8 +128,8 @@ async def subscribeUser(message: types.Message, state=FSMContext):
         chatId=chatId
     )
     
-    messageStat = MessageStats.get(chatId=chatId)
-    MessageStats.update(messageStat, "todaysMessages", 20 - messageStat.todaysMessages)
+    chatActivity = ChatActivity.get(chatId=chatId)
+    ChatActivity.update(chatActivity, "todaysMessages", 20 - chatActivity.todaysMessages)
 
     
     SubscriptionManager.subscribe(
@@ -228,15 +228,17 @@ async def sendToUsersMessage(message: types.Message, state=FSMContext):
         await state.finish()
         return await message.answer("Bekor qilindi!", reply_markup=adminKeyboards)
 
-
+    
     for user in users:
         try: 
             if message.content_type == "text":
-                await sendAny.send_message(user.chatId)
+                await sendAny.sendMessage(user.chatId)
             elif message.content_type == "photo":
                 await sendAny.sendPhoto(user.chatId)
             elif message.content_type == "video":
-                await sendAny.send_video(user.chatId)
+                await sendAny.sendVideo(user.chatId)
+            elif message.content_type == "animation":
+                await sendAny.sendAnimation(user.chatId)
             
         except BaseException as e:
             print(e)
@@ -284,11 +286,13 @@ async def sendMessageWithInline(message: types.Message, state=FSMContext):
         for user in users:
             try: 
                 if message.content_type == "text":
-                    await sendAny.send_message(user.chatId, inline_keyboards)
+                    await sendAny.sendMessage(user.chatId, inline_keyboards)
                 elif message.content_type == "photo":
                     await sendAny.sendPhoto(user.chatId, inline_keyboards)
                 elif message.content_type == "video":
-                    await sendAny.send_video(user.chatId, inline_keyboards)
+                    await sendAny.sendVideo(user.chatId, inline_keyboards)
+                elif message.content_type == "animation":
+                    await sendAny.sendAnimation(user.chatId, inline_keyboards)
                 
             except BaseException as e:
                 print(e)

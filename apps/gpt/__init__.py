@@ -1,4 +1,4 @@
-from apps.core.managers import MessageStatManager
+from apps.core.managers import ChatActivityManager
 from apps.subscription.managers import FreeApiKeyManager, ConfigurationManager
 from utils import sendError, constants
 import httpx
@@ -43,8 +43,8 @@ class HandleResponse:
 
 
         if choices:
-            MessageStatManager.increaseMessageStat(chatId=self.chatId)
-            MessageStatManager.increaseOutputTokens(chatId=self.chatId, message=self.response['choices'][0]['message']['content'])
+            ChatActivityManager.increaseMessageStat(chatId=self.chatId)
+            ChatActivityManager.increaseOutputTokens(chatId=self.chatId, message=self.response['choices'][0]['message']['content'])
             return self.response['choices'][0]['message']['content']
         
 
