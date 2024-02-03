@@ -7,8 +7,3 @@ regenerateBtn = InlineKeyboardButton(text="🔄", callback_data="regenerate")
 refreshMenu.insert(regenerateBtn)
 
 
-
-buyCreditMenu = InlineKeyboardMarkup(row_width=2)
-buyCreditBtn = InlineKeyboardButton(text="💎 Sotib olish", callback_data="subscribe_premium")
-
-buyCreditMenu.insert(buyCreditBtn)

@@ -122,7 +122,7 @@ class AIChatHandler:
 
 
 # handly reply and private messages
-@dp.message_handler(lambda message: not message.text.startswith('/') and not message.text.endswith('.!') and not message.text.startswith('✅') and message.chat.type == 'private')
+@dp.message_handler(lambda message: not message.text.startswith('/') and not message.text.endswith('.!') and not message.text.startswith('✅') and not message.text.startswith("Bekor qilish") and message.chat.type == 'private')
 async def handle_private_messages(message: types.Message, state: FSMContext):
     current_state = await state.get_state()
     

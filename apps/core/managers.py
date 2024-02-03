@@ -279,12 +279,19 @@ class MessageManager:
             .scalar_subquery()
         )
         
+        system_messages = session.query(Message).filter_by(role="system", chatId=chatId).all()
+        
+        for i, message in enumerate(system_messages):
+            if i != 0:
+                session.delete(message)
+        
         messages = session.query(Message).filter(and_(Message.chatId == chatId,
-                                                      Message.id != max_id_subquery)).order_by(Message.id).offset(1).limit(1).all()
+                                                      Message.id != max_id_subquery), Message.role != "system").order_by(Message.id).offset(1).limit(1).all()
         
         for message in messages:
             session.delete(message)
-            session.commit()
+        
+        session.commit()
 
 
     

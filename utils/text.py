@@ -57,16 +57,15 @@ Xaridni yakunlash uchun <b>{price}</b> so'm miqdorini quyidagi kartaga oʻtkazin
 <b>Karta raqami:</b> <code>5614 6814 0539 6510</code>
 <b>Karta egasi</b>: TULKIN XUDAYBERGANOV
 
-Ushbu kartaga to'lov qilganingizdan so'ng bizga to'lov skrinshotini yuboring 👇
+⚠️ Ushbu kartaga to'lov qilganingizdan so'ng bizga to'lov skrinshotini yuboring
 Biz sizning to'lovingizni qo'lda tekshirib chiqamiz va sizga obuna taqdim etamiz.
 
 Toʻlov jarayonida biror muammoga duch kelsangiz yoki savollaringiz boʻlsa, bizga murojat qiling - @texnosupportuzbot | @abdulvoris_101
 """
     return BUY_TEXT
 
-PAYMENT_STEP1 = """1/2
-Biz xozir sizning to'lovingizni o'zimiz qo'lda tekshirib chiqamiz,
-uning uchun esa bizga yuborgan kartangizdagi ismingizni yozing 👇
+PAYMENT_STEP1 = """2/2
+To'lovni tasdiqlash uchun bizga to'lov skrinshotini yuboring 👇
 """
 
 PAYMENT_STEP2 = """

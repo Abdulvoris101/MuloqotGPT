@@ -179,7 +179,7 @@ class SubscriptionManager:
             chatId,
             planId
         ):
-            return session.query(Subscription).filter_by(chatId=chatId, planId=planId, isPaid=False, isCanceled=False).first()
+            return session.query(Subscription).filter_by(chatId=chatId, planId=planId, is_paid=False, isCanceled=False).first()
 
 
     @staticmethod
