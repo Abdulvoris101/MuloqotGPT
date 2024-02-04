@@ -6,7 +6,7 @@ from db.proccessors import MessageProcessor
 from sqlalchemy import cast, String, func, desc, and_
 from datetime import datetime, timedelta
 from aiogram import types
-
+from apps.subscription.models import ChatQuota
 
 class ChatManager:
     # Chat db queries and filters
@@ -54,6 +54,15 @@ class ChatManager:
 
         if chatActivity is None:
             chatActivity = ChatActivity(telegramChat.id).save()
+        
+        chatQuota = ChatQuota.get(telegramChat.id)
+
+        if chatQuota is None:
+            chatQuota = ChatQuota(
+                telegramChat.id, additionalGptRequests=0,
+                additionalImageRequests=0).save()
+            
+            chatQuota = ChatQuota.get(telegramChat.id)
         
         MessageProcessor.createSystemMessages(telegramChat.id, telegramChat.type)
 
@@ -290,7 +299,7 @@ class MessageManager:
         
         for message in messages:
             session.delete(message)
-        
+
         session.commit()
 
 
