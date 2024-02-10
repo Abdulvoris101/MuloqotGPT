@@ -4,8 +4,8 @@ from utils import constants
 
 COST = constants.AQSHA_COST
 
-START_COMMAND = """✨ Salom! Men MuloqotAi, sizning shaxsiy 
-yordamchingizman. Foydalanish uchun shunchaki savolingizni botga yozish kifoya.
+START_COMMAND = """✨ Salom! Men MuloqotAi.
+Foydalanish uchun shunchaki savolingizni botga yozish kifoya.
 
 Buyruqlar:
 /start - Botni qayta ishga tushirish
@@ -13,9 +13,12 @@ Buyruqlar:
 /premium - Premium obuna
 /help - Foydalanish qo’llanmasi
 
-@muloqotai - Ushbu kanalda siz bilmagan va yangi qo’shiladigan funksiyalar haqidagi ma’lumotlar berib boriladi. Kanal a'zolari birinchilardan bo'lib yangi funksiyalarni sinab ko'rishlari mumkin
+Botning rasmiy <b>kanali</b> - @muloqotai
+Botning rasmiy <b>guruhi</b> - @muloqotaigr
 
-🖼 <b>Rasm generatsiya qilish uchun</b> <b>/art</b> kommandasini yuboring! Batafsil ma'lumot uchun - /help
+Batafsil ma'lumot uchun - /help
+
+🖼 <b>Rasm generatsiya qilish uchun</b> <b>/art</b> kommandasini yuboring!
 """
 
 ABILITY_COMMAND = """💡 Aqlli: Ko'plab mavzularni tushunish va javob berishga tayyorman. Umumiy bilimdan ma'lumotlarni qidirishga qadar, 
@@ -34,11 +37,19 @@ HELP_COMMAND = """<b>Botni qanday ishlataman?</b>
 Botda  chatgptni  ishlatish uchun botga shunchaki so'rov yuborish kifoya. 
 Rasm generatsiyasi uchun esa ushbu komandani yuboring: /art prompt. Prompt o'rniga o'zingizni so'rovingizni yuboring. 
 
+<b>Bot bilan guruhda qanday yozishaman?</b>
+Chatbot guruhga xabar yuborganda, bot xabari ostidagi “reply" tugmasini bosing va javobingizni kiriting yokida Xabaringizni boshida muloqotai ni nomi bilan boshlang
+
+Misol uchun:
+Muloqotai  salom, menga ....
+@muloqatai salom, menga ....
+
 <b>Botning qo'shimcha xususiyatlari</b>:
-🔹<b>Avtotarjima:</b> - bilasiz chatgpt o'zbek tilini  unchalik yahshi tushunmaydi shuning uchun botda avtotarjima xususiyati mavjud, agarda avtotarjimani yoqib qo'ysangiz sizning xar bir so'rovingiz  ingliz tilga  o'tqizilib chatgptga yuboriladi va  kelgan javob esa o'zbekchaga tarjima qilinadi. Bu bilan siz ingliz tilini bilmasdan turib chatgptni to'liqona ishlatishingiz mumkin bo'ladi.
+🔹<b>Avtotarjima:</b> - bilasiz chatgpt o'zbek tilini  unchalik yahshi tushunmaydi shuning uchun botda avtotarjima xususiyati mavjud, agarda avtotarjimani yoqib qo'ysangiz sizning xar bir so'rovingiz  ingliz tilga  o'tqizilib chatgptga yuboriladi va  kelgan javob esa o'zbekchaga tarjima qilinadi
 
 Qachonki o'zbek tilida so'rov kiritsangiz avtotarjima o'zi avtomatik tarzda yonadi.
 
+Botning rasmiy guruhi - @muloqotaigr
 Botning rasmiy kanali - @muloqotai
 """
 

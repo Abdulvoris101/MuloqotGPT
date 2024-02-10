@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Enum, Boolean, Text, BigInteger, DateTime, ForeignKey
+from sqlalchemy import Column, Integer, desc, String, Enum, Boolean, Text, BigInteger, DateTime, ForeignKey
 from db.setup import session, Base
 from datetime import datetime
 from sqlalchemy.orm import relationship
@@ -98,19 +98,10 @@ class Message(Base):
     
     @classmethod
     def count(cls):
-        userActivities = session.query(ChatActivity).all()
-        msg_counts = 1
+        last_message = session.query(Message).order_by(desc(Message.createdAt)).first()
 
-        for chatActivity in userActivities:
-            messages_count = chatActivity.allMessages
-            
-            if messages_count is not None:
-                msg_counts += messages_count
-
-        # Calculate the total count of messages from all chats
-        totalMessagesCount = msg_counts
-
-        return totalMessagesCount
+        return int(last_message.id)
+    
     
     @classmethod
     def delete(self, chatId):
