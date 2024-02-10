@@ -93,3 +93,7 @@ async def subscriptionCreate(message: types.Message, state=FSMContext):
     await message.answer(text.PAYMENT_STEP2, reply_markup=types.ReplyKeyboardRemove())
     
     await state.finish()
+
+@dp.message_handler(commands=["donate"])
+async def donate(message: types.Message):
+    return await message.reply(text.DONATE)

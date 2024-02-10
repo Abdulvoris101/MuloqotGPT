@@ -108,6 +108,22 @@ So'rovlarni ko'paytirish uchun bizga donat qilib yordam berishingiz mumkin
 150/150
 /donate"""
 
+
+    
+DONATE = f"""
+🌟 Bizga donat qilayotganiz uchun katta rahmat! 
+Sizning donatingiz juda qadrlanadi va mazmunli o'zgarishlarga olib keladi.
+
+Donat uchun karta informatsiyasi:
+
+<b>Karta raqami:</b> <code>5614 6814 0539 6510</code>
+<b>Karta egasi</b>: TULKIN XUDAYBERGANOV
+
+Har qanday to'lov o'tgandan so'ng biz zudlik bilan guruh uchun qo'shimcha chatgpt va rasm generatsiya so'rovlarini sotib olib sizlarga taqdim etamiz
+
+Savol va takliflar uchun - @texnosupportuzbot
+"""
+
 PREMIUM_GAVE = """Tabriklaymiz sizga premium obuna taqdim etildi. Bizni tanlaganiz uchun rahmat 😊🎉"""
 
 SUBSCRIPTION_END = """🚀 Obunani yangilash vaqti keldi!
