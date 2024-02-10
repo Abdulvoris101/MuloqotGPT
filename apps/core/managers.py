@@ -36,9 +36,9 @@ class ChatManager:
         chat = Chat.get(telegramChat.id)
         
         chatType = message.chat.type
-        
+                
         if chatType in [types.ChatType.GROUP, types.ChatType.SUPERGROUP]:
-            if message.chat.id != constants.HOST_GROUP_ID:
+            if int(message.chat.id) != int(constants.HOST_GROUP_ID):
                 return False
 
         if chat is None:
