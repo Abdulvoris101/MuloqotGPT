@@ -11,7 +11,7 @@ dp.filters_factory.bind(IsPrivate)
 def isChatAllowed(chatType, chatId):
     
     if chatType in [types.ChatType.GROUP, types.ChatType.SUPERGROUP]:
-        if chatId != constants.HOST_GROUP_ID:
+        if int(chatId) != int(constants.HOST_GROUP_ID):
             return False
 
     return True

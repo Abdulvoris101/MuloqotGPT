@@ -19,7 +19,7 @@ WEB_URL= os.environ.get("WEB_URL")
 DB_URL=os.environ.get("DB_URL")
 REDIS_URL = os.environ.get("REDIS_URL")
 REDIS_HOST = os.environ.get("REDIS_HOST")
-HOST_GROUP_ID = os.environ.get("HOST_GROUP_ID")
+HOST_GROUP_ID = int(os.environ.get("HOST_GROUP_ID"))
 
 # PRICE
 
