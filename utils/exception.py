@@ -18,7 +18,7 @@ async def on_error(event, e):
         await handle_custom_exception(e, event.message)
     elif isinstance(e, BotBlocked):
         # Handle specific aiogram exceptions
-        print(f"Bot blocked by user: {event.from_user.id}")
+        print("Bot blocked by user")
     else:
         # Handle other exceptions or log them
         print(f"Unhandled exception: {type(e).__name__}, {e}")

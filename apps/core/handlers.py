@@ -65,7 +65,7 @@ class AIChatHandler:
         chatType = self.message.chat.type
         
         if chatType in [types.ChatType.GROUP, types.ChatType.SUPERGROUP]:
-            if self.chatId != constants.HOST_GROUP_ID:
+            if int(self.chatId) != int(constants.HOST_GROUP_ID):
                 return False
 
         return True
