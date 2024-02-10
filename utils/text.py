@@ -57,16 +57,15 @@ Xaridni yakunlash uchun <b>{price}</b> so'm miqdorini quyidagi kartaga oʻtkazin
 <b>Karta raqami:</b> <code>5614 6814 0539 6510</code>
 <b>Karta egasi</b>: TULKIN XUDAYBERGANOV
 
-Ushbu kartaga to'lov qilganingizdan so'ng bizga to'lov skrinshotini yuboring 👇
+⚠️ Ushbu kartaga to'lov qilganingizdan so'ng bizga to'lov skrinshotini yuboring
 Biz sizning to'lovingizni qo'lda tekshirib chiqamiz va sizga obuna taqdim etamiz.
 
 Toʻlov jarayonida biror muammoga duch kelsangiz yoki savollaringiz boʻlsa, bizga murojat qiling - @texnosupportuzbot | @abdulvoris_101
 """
     return BUY_TEXT
 
-PAYMENT_STEP1 = """1/2
-Biz xozir sizning to'lovingizni o'zimiz qo'lda tekshirib chiqamiz,
-uning uchun esa bizga yuborgan kartangizdagi ismingizni yozing 👇
+PAYMENT_STEP1 = """2/2
+To'lovni tasdiqlash uchun bizga to'lov skrinshotini yuboring 👇
 """
 
 PAYMENT_STEP2 = """
@@ -108,6 +107,22 @@ LIMIT_GROUP_REACHED = """Afsuski guruhning kunlik limiti tugadi.
 So'rovlarni ko'paytirish uchun bizga donat qilib yordam berishingiz mumkin
 150/150
 /donate"""
+
+
+    
+DONATE = f"""
+🌟 Bizga donat qilayotganiz uchun katta rahmat! 
+Sizning donatingiz juda qadrlanadi va mazmunli o'zgarishlarga olib keladi.
+
+Donat uchun karta informatsiyasi:
+
+<b>Karta raqami:</b> <code>5614 6814 0539 6510</code>
+<b>Karta egasi</b>: TULKIN XUDAYBERGANOV
+
+Har qanday to'lov o'tgandan so'ng biz zudlik bilan guruh uchun qo'shimcha chatgpt va rasm generatsiya so'rovlarini sotib olib sizlarga taqdim etamiz
+
+Savol va takliflar uchun - @texnosupportuzbot
+"""
 
 PREMIUM_GAVE = """Tabriklaymiz sizga premium obuna taqdim etildi. Bizni tanlaganiz uchun rahmat 😊🎉"""
 

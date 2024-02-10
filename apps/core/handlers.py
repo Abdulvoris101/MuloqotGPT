@@ -10,6 +10,7 @@ import utils.text as text
 import asyncio
 from apps.subscription.managers import SubscriptionManager, PlanManager, LimitManager
 from filters.core import IsReplyFilter
+from aiogram.utils.exceptions import BadRequest
 
 class AIChatHandler:
     PROCESSING_MESSAGE = "⏳..."
@@ -26,8 +27,11 @@ class AIChatHandler:
         if self.message.chat.type == "private":
             return await self.message.answer(message, *args,  **kwargs)
         else:
-            return await self.message.reply(message, *args, **kwargs)
-    
+            try:
+                return await self.message.reply(message, *args, **kwargs)
+            except BadRequest:
+                return await self.message.answer(message, *args, **kwargs) 
+            
     async def check_tokens(self, messages):        
         if countTokens(messages) >= 400:
             return True
@@ -122,7 +126,7 @@ class AIChatHandler:
 
 
 # handly reply and private messages
-@dp.message_handler(lambda message: not message.text.startswith('/') and not message.text.endswith('.!') and not message.text.startswith('✅') and message.chat.type == 'private')
+@dp.message_handler(lambda message: not message.text.startswith('/') and not message.text.endswith('.!') and not message.text.startswith('✅') and not message.text.startswith("Bekor qilish") and message.chat.type == 'private')
 async def handle_private_messages(message: types.Message, state: FSMContext):
     current_state = await state.get_state()
     
@@ -177,7 +181,7 @@ async def send_welcome(message: types.Message):
             isFree=True
         )
     
-    
+
 
 
 @dp.message_handler(commands=['help'])
