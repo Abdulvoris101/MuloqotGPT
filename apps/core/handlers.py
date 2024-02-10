@@ -76,7 +76,7 @@ class AIChatHandler:
             return await self.message.answer("Afsuski xozirda bot @muloqotaigr dan boshqa  guruhlarni qo'llab quvatlamaydi!")
         
         if not LimitManager.checkGptRRequestsDailyLimit(self.chatId):
-            if self.chatId == constants.HOST_GROUP_ID:
+            if int(self.chatId) == int(constants.HOST_GROUP_ID):
                 await self.reply_or_send(text.LIMIT_GROUP_REACHED)
                 return
             
@@ -158,7 +158,7 @@ async def send_welcome(message: types.Message):
     await message.answer(text.getGreetingsText(message.from_user.first_name))
 
 
-    if message.chat.id == constants.HOST_GROUP_ID:
+    if int(message.chat.id) == int(constants.HOST_GROUP_ID):
         chat_subscription = SubscriptionManager.getByChatId(chatId=message.chat.id)
     
         if chat_subscription is None:
@@ -170,17 +170,17 @@ async def send_welcome(message: types.Message):
             )
             
         return
-
-    user_subscription = SubscriptionManager.getByChatId(chatId=message.from_user.id)
-    
-    if user_subscription is None:
-        SubscriptionManager.createSubscription(
-            planId=PlanManager.getFreePlanOrCreate().id,
-            chatId=message.from_user.id,
-            is_paid=True,
-            isFree=True
-        )
-    
+    else:
+        user_subscription = SubscriptionManager.getByChatId(chatId=message.from_user.id)
+        
+        if user_subscription is None:
+            SubscriptionManager.createSubscription(
+                planId=PlanManager.getFreePlanOrCreate().id,
+                chatId=message.from_user.id,
+                is_paid=True,
+                isFree=True
+            )
+        
 
 
 
