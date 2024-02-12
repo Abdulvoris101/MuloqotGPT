@@ -27,6 +27,9 @@ async def handleArt(message: types.Message):
     if not query:
         return await message.answer("Iltimos so'rovingizni kiriting:\n` /art prompt` ", parse_mode="MARKDOWN")
     
+    if message.chat.id == constants.HOST_GROUP_ID:
+        return await message.answer("Bu guruhda rasm generatsiya qilib bo'lmaydi!")
+    
     if not LimitManager.checkImageaiRequestsDailyLimit(message.chat.id):
         if message.chat.id == constants.HOST_GROUP_ID:
             return await message.answer(text.LIMIT_GROUP_REACHED)

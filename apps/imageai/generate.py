@@ -22,6 +22,7 @@ class LexicaAi:
                 "source": "search",
                 "model": "lexica-aperture-v2"
             }
+            
 
             async with aiohttp.ClientSession() as session:
                 async with session.post(cls.url, json=data, timeout=aiohttp.ClientTimeout(total=30)) as resp:
