@@ -90,6 +90,7 @@ Agarda biror savolingiz bo'lsa, bizga murojat qiling - @texnosupportuzbot | @abd
 
 # Plans
 
+
 PLAN_TEXT = """
 Xozirgi obuna quyidagilarni o'z ichiga oladi:
 ✅ Chatgptga har kuni 16 ta so'rov;
@@ -146,3 +147,38 @@ Obunangiz muddati tugadi! Premium imtiyozlardan foydalanishda davom etish uchun 
 Bizni tanlaganiz uchun tashakkur 🌟
 """
      
+def getProfileText(
+        planType,
+        todaysGptRequests,
+        todaysImageRequests,
+
+):
+    
+    availableGptRequests = "75" if planType == "Premium" else "16"
+    availableImageAiRequests = "20" if planType == "Premium" else "5"
+    
+    isFree = True if planType == "Free" else False
+
+    premiumText = """Ko’proq so’rovlar kerakmi? Unda oylik Premium obunani ulang va yanada ko’proq foydalaning!
+
+Premium obunaga nimalar kiradi?
+
+✅ Chatgptga turboga har kuni 75 ta so'rov;
+⭐️ AI bilan 20 ta rasm generatsiya qilish;
+✅ Avtotarjimon funksiyasi;
+✅ Xechqanday reklama yo'q;
+✅ So’rovlar orasida pauza yo’q;
+✅ Javoblar kreativroq..
+
+Premium obunani ulash uchun /premium bo’limiga o’ting."""
+
+
+    return f"""⚡️ Obuna turi: {planType}
+🤖 GPT modeli: gpt-3.5-turbo
+
+Limitlar: 
+• GPT-3.5 bugungi so’rovlar: {todaysGptRequests}/{availableGptRequests}
+• Rasm generatsiya: {todaysImageRequests}/{availableImageAiRequests}
+
+{premiumText if isFree else ''}
+"""

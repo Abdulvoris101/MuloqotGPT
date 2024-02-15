@@ -288,8 +288,6 @@ class LimitManager:
         cls.chatId = chatId
         
         cls.dailyLimitOfUser()
-
-        print(cls.premium_subscription)
         
         if cls.premium_subscription is not None:
             print(int(cls.premium_plan.monthlyLimitedGptRequests) / 30)
