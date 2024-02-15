@@ -270,8 +270,6 @@ class LimitManager:
         cls.premium_plan = PlanManager.getPremiumPlanOrCreate()
         cls.host_group_plan = PlanManager.getHostGroupPlanOrCreate()
         
-        print(cls.premium_plan.id)
-        
         cls.premium_subscription = session.query(Subscription).filter_by(
             chatId=cls.chatId, planId=cls.premium_plan.id, is_paid=True, isCanceled=False).first()
         
@@ -289,14 +287,10 @@ class LimitManager:
     ):
         cls.chatId = int(chatId)
         
-        print(cls.chatId)
         
         cls.dailyLimitOfUser()
-
-        print(cls.premium_subscription)
         
         if cls.premium_subscription is not None:
-            print(int(cls.premium_plan.monthlyLimitedGptRequests) / 30)
             return int(cls.premium_plan.monthlyLimitedGptRequests) / 30 # get daily limit requests
         elif cls.free_subscription is not None:
             return int(cls.free_plan.monthlyLimitedGptRequests) / 30
