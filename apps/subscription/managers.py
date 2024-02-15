@@ -6,6 +6,7 @@ from utils import constants
 from apps.core.managers import ChatActivityManager
 from sqlalchemy import not_
 from bot import bot
+from apps.core.models import Chat
 
 class SubscriptionManager:
 
@@ -218,27 +219,27 @@ class SubscriptionManager:
         
 
 class LimitManager:
-    
-    
+     
     @classmethod
     def checkGptRRequestsDailyLimit(cls, chatId):
         chat_plan_limit = cls.getDailyGptLimitOfUser(chatId)
         chat_used_requests = ChatActivityManager.getTodaysMessage(chatId)
         chat_quota = ChatQuota.get(chatId)
+        chatRecord = Chat.get(chatId)
         
         if chat_quota is None:
-            ChatQuota(
-                chatId=chatId, additionalGptRequests=0,
-                additionalImageRequests=0).save()
+            if chatRecord is not None:
+                ChatQuota(
+                    chatId=chatId, additionalGptRequests=0,
+                    additionalImageRequests=0).save()
         
         chatQuota = ChatQuota.get(chatId)
         
         if chat_plan_limit > chat_used_requests:
             return True
         elif chatQuota.additionalGptRequests > 1:
-            
-            ChatQuota.update(chatQuota, "additionalGptRequests", chatQuota.additionalGptRequests - 1)
-            
+            if chatRecord is not None:
+                ChatQuota.update(chatQuota, "additionalGptRequests", chatQuota.additionalGptRequests - 1)
             return True
         
         return False
@@ -290,7 +291,6 @@ class LimitManager:
         cls.dailyLimitOfUser()
         
         if cls.premium_subscription is not None:
-            print(int(cls.premium_plan.monthlyLimitedGptRequests) / 30)
             return int(cls.premium_plan.monthlyLimitedGptRequests) / 30 # get daily limit requests
         elif cls.free_subscription is not None:
             return int(cls.free_plan.monthlyLimitedGptRequests) / 30

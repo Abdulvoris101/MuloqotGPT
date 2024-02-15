@@ -71,6 +71,7 @@ class AIChatHandler:
         return True
 
     async def handle(self):    
+        await ChatManager.activate(self.message)
             
         if self.isChatAllowed() == False:
             return await self.message.answer("Afsuski xozirda bot @muloqotaigr dan boshqa  guruhlarni qo'llab quvatlamaydi!")
