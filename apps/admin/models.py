@@ -23,7 +23,6 @@ class Admin(Base):
 
         except Exception as e:
             # If an exception occurs, rollback the transaction
-            session.rollback()
             raise e
         finally:
             # Always close the session

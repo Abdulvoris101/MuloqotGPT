@@ -1,7 +1,7 @@
 from bot import dp, bot, types
 from apps.gpt import requestGpt
 from .models import Chat
-from .managers import ChatManager, MessageManager
+from .managers import ChatManager, MessageManager, ChatActivityManager
 from .keyboards import settingsMenu
 from utils.translate import translate_message, detect
 from utils import countTokens, countTokenOfMessage, constants
@@ -71,6 +71,7 @@ class AIChatHandler:
         return True
 
     async def handle(self):    
+        await ChatManager.activate(self.message)
             
         if self.isChatAllowed() == False:
             return await self.message.answer("Afsuski xozirda bot @muloqotaigr dan boshqa  guruhlarni qo'llab quvatlamaydi!")
@@ -181,6 +182,23 @@ async def send_welcome(message: types.Message):
                 isFree=True
             )
         
+
+
+@dp.message_handler(commands=['profile'])
+async def profile(message: types.Message):
+    chatId = message.chat.id
+
+    premium = SubscriptionManager.findByChatIdAndPlanId(
+        chatId=chatId,                                            
+        planId=PlanManager.getPremiumPlanOrCreate().id)
+
+
+    await message.answer(text.getProfileText(
+        "Premium" if premium is not None else "Free",
+        ChatActivityManager.getTodaysMessage(chatId),
+        ChatActivityManager.getTodaysImages(chatId)
+    ))
+
 
 
 
