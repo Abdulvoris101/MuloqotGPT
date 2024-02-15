@@ -150,6 +150,8 @@ async def handle_reply(message: types.Message):
 @dp.message_handler(commands=['start'])
 async def send_welcome(message: types.Message): 
     
+    print("START")
+    
     status = await ChatManager.activate(message)
     
     if status == False:
