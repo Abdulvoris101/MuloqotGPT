@@ -45,7 +45,7 @@ class ChatManager:
             chat = Chat(telegramChat.id, telegramChat.full_name, telegramChat.username).save()
             session.add(chat)
             session.commit()
-            await sendEvent(f"#new\nid: {telegramChat.id}\ntelegramId: {telegramChat.id}\nusername: @{telegramChat.username}\nname: {telegramChat.full_name}")
+            await sendEvent(f"#new\nid: {chat.id}\ntelegramId: {telegramChat.id}\nusername: @{telegramChat.username}\nname: {telegramChat.full_name}")
         
         session.add(chat)
         session.commit()
