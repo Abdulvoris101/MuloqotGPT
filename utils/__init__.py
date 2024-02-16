@@ -25,43 +25,57 @@ class SendAny:
     def __init__(self, message):
         self.message = message
     
-    async def sendPhoto(self, chatId, kb=None):
+    async def sendPhoto(self, chatId, blockedUsersCount, kb=None):
         
         try:  
             if kb is None:
-                return await bot.send_photo(chatId, self.message.photo[-1].file_id, caption=self.message.caption)
-            
-            return await bot.send_photo(chatId, self.message.photo[-1].file_id, caption=self.message.caption, reply_markup=kb)
+                await bot.send_photo(chatId, self.message.photo[-1].file_id, caption=self.message.caption)
+            else:
+                await bot.send_photo(chatId, self.message.photo[-1].file_id, caption=self.message.caption, reply_markup=kb)
+
+            return 0
+        
         except BotBlocked:
-            print("Bot blocked")
+            blockedUsersCount = blockedUsersCount + 1
+            return blockedUsersCount
             
-    async def sendMessage(self, chatId, kb=None):
+    async def sendMessage(self, chatId, blockedUsersCount, kb=None):
         try:
             if kb is None:
-                return await bot.send_message(chatId, self.message.text)
-            
-            return await bot.send_message(chatId, self.message.text, reply_markup=kb)
+                await bot.send_message(chatId, self.message.text)
+            else:
+                await bot.send_message(chatId, self.message.text, reply_markup=kb)
 
+            return 0
         except BotBlocked:
-            print("Bot blocked")
+            
+            blockedUsersCount = blockedUsersCount + 1
 
-    async def sendVideo(self, chatId, kb=None):
+            return blockedUsersCount
+
+    async def sendVideo(self, chatId, blockedUsersCount, kb=None):
         try:
             if kb is None:
-                return await bot.send_video(chatId, video=self.message.video.file_id, caption=self.message.caption)
-
-            return await bot.send_video(chatId, video=self.message.video.file_id, caption=self.message.caption, reply_markup=kb)
+                await bot.send_video(chatId, video=self.message.video.file_id, caption=self.message.caption)
+            else:
+                await bot.send_video(chatId, video=self.message.video.file_id, caption=self.message.caption, reply_markup=kb)
+            return 0
+        
         except BotBlocked:
-            print("Bot blocked")
+            blockedUsersCount = blockedUsersCount + 1
+            return blockedUsersCount
     
-    async def sendAnimation(self, chatId, kb=None):
+    async def sendAnimation(self, chatId, blockedUsersCount, kb=None):
         try:
             if kb is None:
-                # Use self.message here if it's an instance variable, otherwise replace with the correct reference
-                return await bot.send_animation(chatId, animation=self.message.animation.file_id, caption=self.message.caption)
-            return await bot.send_animation(chatId, animation=self.message.animation.file_id, caption=self.message.caption, reply_markup=kb)
+                await bot.send_animation(chatId, animation=self.message.animation.file_id, caption=self.message.caption)
+            else:
+                await bot.send_animation(chatId, animation=self.message.animation.file_id, caption=self.message.caption, reply_markup=kb)
+            return 0
+        
         except BotBlocked:
-            print("Bot blocked")
+            blockedUsersCount = blockedUsersCount + 1
+            return blockedUsersCount
 
 
 # Token counter

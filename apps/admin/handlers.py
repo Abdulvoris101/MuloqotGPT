@@ -7,7 +7,7 @@ from apps.core.managers import ChatManager, MessageManager, ChatActivityManager
 from apps.core.models import ChatActivity, Message
 from .keyboards import adminKeyboards, cancelKeyboards, sendMessageMenu, dynamic_sendMenu
 from aiogram.dispatcher.filters import Text
-from utils import SendAny, extract_inline_buttons, constants, text
+from utils import SendAny, extract_inline_buttons, constants, text, sendError
 from filters import IsAdmin
 from apps.subscription.managers import SubscriptionManager, PlanManager
 from aiogram.utils.exceptions import BotBlocked
@@ -228,21 +228,28 @@ async def sendToUsersMessage(message: types.Message, state=FSMContext):
         await state.finish()
         return await message.answer("Bekor qilindi!", reply_markup=adminKeyboards)
 
+    blockedUsersCount = 0
     
     for user in users:
         try: 
+
             if message.content_type == "text":
-                await sendAny.sendMessage(user.chatId)
+                resp = await sendAny.sendMessage(user.chatId, blockedUsersCount)
+                blockedUsersCount = blockedUsersCount + resp
             elif message.content_type == "photo":
-                await sendAny.sendPhoto(user.chatId)
+                resp = await sendAny.sendPhoto(user.chatId, blockedUsersCount)
+                blockedUsersCount = blockedUsersCount + resp
             elif message.content_type == "video":
-                await sendAny.sendVideo(user.chatId)
+                resp = await sendAny.sendVideo(user.chatId, blockedUsersCount)
+                blockedUsersCount = blockedUsersCount + resp
             elif message.content_type == "animation":
-                await sendAny.sendAnimation(user.chatId)
+                resp = await sendAny.sendAnimation(user.chatId, blockedUsersCount)
+                blockedUsersCount = blockedUsersCount + resp
             
         except BaseException as e:
             print(e)
     
+    await sendError(f"Bot was blocked by {blockedUsersCount} users")
 
     await state.finish()
     return await message.answer("Xabar yuborildi!")
@@ -283,21 +290,24 @@ async def sendMessageWithInline(message: types.Message, state=FSMContext):
 
         users = PlanManager.getFreePlanUsers()
 
+        blockedUsersCount = 0
+
         for user in users:
             try: 
                 if message.content_type == "text":
-                    await sendAny.sendMessage(user.chatId, inline_keyboards)
+                    await sendAny.sendMessage(user.chatId, blockedUsersCount, inline_keyboards)
                 elif message.content_type == "photo":
-                    await sendAny.sendPhoto(user.chatId, inline_keyboards)
+                    await sendAny.sendPhoto(user.chatId, blockedUsersCount, inline_keyboards)
                 elif message.content_type == "video":
-                    await sendAny.sendVideo(user.chatId, inline_keyboards)
+                    await sendAny.sendVideo(user.chatId, blockedUsersCount, inline_keyboards)
                 elif message.content_type == "animation":
-                    await sendAny.sendAnimation(user.chatId, inline_keyboards)
+                    await sendAny.sendAnimation(user.chatId, blockedUsersCount, inline_keyboards)
                 
             except BaseException as e:
-                print(e)
-                print(user.chatId)
+                print(e)    
     
+
+    await sendError(f"Bot was blocked by {blockedUsersCount} users")
     
     await state.finish()
 

@@ -192,14 +192,11 @@ async def profile(message: types.Message):
         chatId=chatId,                                            
         planId=PlanManager.getPremiumPlanOrCreate().id)
 
-
     await message.answer(text.getProfileText(
         "Premium" if premium is not None else "Free",
         ChatActivityManager.getTodaysMessage(chatId),
         ChatActivityManager.getTodaysImages(chatId)
     ))
-
-
 
 
 @dp.message_handler(commands=['help'])
