@@ -110,7 +110,8 @@ Premium obuna bilan siz:
 ✅ Javoblar kreativroq.
 """
 
-LIMIT_REACHED = """Afsuski sizning kunlik limitingiz tugadi. 
+LIMIT_REACHED = """Afsuski sizning kunlik limitingiz tugadi,
+ruxsat etilgan maksimal bepul foydalanishga erishdingiz. ChatGPT-ni abadiy bepul taqdim etish biz uchun qimmat.
 Yanada ko'proq so'rov uchun premium tarifga obuna bo'ling
 16/16
 /premium"""
