@@ -11,13 +11,14 @@ Men dunyodagi eng ilg'or Sun'iy intellektman
 Men sizga ko'p vazifalarni hal qilishda yordam bera olaman. Masalan:
 - ijtimoiy tarmoqlar uchun post, insho xabarini yozish
 - kodni yozish/to'g'rilash
-- /art komandasi bilan rasm chizish
+- rasm chizish
 – matnni istalgan tilga Google Translator’dan yaxshiroq tarjima qilish
 - uy vazifasini bajarish
 - xattoki men sizning shaxsiy psixologingiz bo'lishim xam mumkin
 
 Botning rasmiy <b>guruhi</b> - @muloqotaigr
 
+🖼 Rasm chizish uchun so'rov boshiga ushbu so'zlarni qo'shishingiz kerak - generate yokida imagine
 Batafsil ma'lumot uchun - /help
 """
 
@@ -33,7 +34,7 @@ sizga aniqligi va maqbul javoblarni taklif etishim mumkin.
 
 HELP_COMMAND = """<b>Botni qanday ishlataman?</b>
 Botda  chatgptni  ishlatish uchun botga shunchaki so'rov yuborish kifoya. 
-Rasm generatsiyasi uchun esa ushbu komandani yuboring: /art prompt. Prompt o'rniga o'zingizni so'rovingizni yuboring. 
+🖼 Rasm chizish uchun so'rov boshiga ushbu so'zlarni qo'shishingiz kerak - generate yokida imagine. 
 
 <b>Bot bilan guruhda qanday yozishaman?</b>
 Chatbot guruhga xabar yuborganda, bot xabari ostidagi “reply" tugmasini bosing va javobingizni kiriting yokida Xabaringizni boshida muloqotai ni nomi bilan boshlang

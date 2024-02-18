@@ -112,3 +112,15 @@ def extract_inline_buttons(text):
     return buttons
 
 
+
+
+def contains_any_word(text, word_list):
+    # Convert the text to lowercase for case-insensitive matching
+    lowercase_text = text.lower()
+    # Check if any word from the word_list is present in the text
+    for word in word_list:
+        if word.lower() in lowercase_text:
+            return True
+    
+    return False
+

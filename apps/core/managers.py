@@ -84,6 +84,7 @@ class ChatManager:
 
 class ChatActivityManager:
 
+
     @classmethod
     def countOfAllOutputTokens(cls):
         userActivities = session.query(ChatActivity).all()
@@ -237,6 +238,9 @@ class MessageManager:
     def userRole(cls, translated_text, instance):
         original_message = instance.text
         
+        original_message = f"I am {instance.from_user.first_name}, {original_message}"
+
+
         data = cls.saveMessage(instance.chat.id, "user", translated_text, original_message)
 
         chat = Chat.get(instance.chat.id)

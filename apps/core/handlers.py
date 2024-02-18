@@ -4,13 +4,14 @@ from .models import Chat
 from .managers import ChatManager, MessageManager, ChatActivityManager
 from .keyboards import settingsMenu
 from utils.translate import translate_message, detect
-from utils import countTokens, countTokenOfMessage, constants
+from utils import countTokens, countTokenOfMessage, constants, contains_any_word
 from aiogram.dispatcher import FSMContext
 import utils.text as text
 import asyncio
 from apps.subscription.managers import SubscriptionManager, PlanManager, LimitManager
 from filters.core import IsReplyFilter
 from aiogram.utils.exceptions import BadRequest
+from apps.imageai.handlers import handleArt
 
 class AIChatHandler:
     PROCESSING_MESSAGE = "⏳..."
@@ -126,6 +127,8 @@ class AIChatHandler:
             await self.reply_or_send("Iltimos 5 sekund dan keyin qayta urinib ko'ring!")
 
 
+
+
 # handly reply and private messages
 @dp.message_handler(lambda message: not message.text.startswith('/') and not message.text.endswith('.!') and not message.text.startswith('✅') and not message.text.startswith("Bekor qilish") and message.chat.type == 'private')
 async def handle_private_messages(message: types.Message, state: FSMContext):
@@ -133,6 +136,15 @@ async def handle_private_messages(message: types.Message, state: FSMContext):
     
     if current_state is None:
         chat = AIChatHandler(message=message)
+        
+        imageGenerationWords = [
+            "rasm", "yarat", "yasash", "surat", "tasvir", "ta'svir",
+            "image", "generate", "create", "design", "изображение", "картин", "рисунок", 
+            "фотографию", "art", "картину", "imagine"]
+        
+        if contains_any_word(message.text, imageGenerationWords):
+            return await handleArt(message)
+        
         await chat.handle()
         return
     

@@ -7,7 +7,6 @@ from utils.exception import AiogramException
 class LexicaAi:
     url = "https://lexica.art/api/infinite-prompts"
 
-
     
 
     @classmethod

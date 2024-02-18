@@ -2,8 +2,10 @@ from bot import dp, bot, types
 from .generate import LexicaAi
 from filters import IsPrivate
 from utils import text, constants
+from utils.translate import translate_message
 from apps.subscription.managers import LimitManager
 from apps.core.models import ChatActivity
+
 
 
 dp.filters_factory.bind(IsPrivate)
@@ -17,16 +19,12 @@ def isChatAllowed(chatType, chatId):
     return True
 
 
-@dp.message_handler(commands=["art"])
 async def handleArt(message: types.Message):
-    query = message.get_args()
+    query = translate_message(message.text, message.chat.id, from_="auto", lang="en", is_translate=True)
     
     if isChatAllowed(message.chat.type, message.chat.id) == False:
         return await message.answer("Afsuski xozirda bot @muloqotaigr dan boshqa  guruhlarni qo'llab quvatlamaydi!")
-        
-    if not query:
-        return await message.answer("Iltimos so'rovingizni kiriting:\n` /art prompt` ", parse_mode="MARKDOWN")
-    
+            
     if message.chat.id == constants.HOST_GROUP_ID:
         return await message.answer("Bu guruhda rasm generatsiya qilib bo'lmaydi!")
     
@@ -54,7 +52,7 @@ async def handleArt(message: types.Message):
 
     media_group = [types.InputMediaPhoto(media=url) for url in images]
 
-    media_group[0].caption = f"\n🌄 {query}\n\n@muloqataibot"
+    media_group[0].caption = f"\n🌄 {message.text}\n\n@muloqataibot"
     
     await bot.delete_message(message.chat.id, message_id=sent_message.message_id)
     await bot.send_media_group(message.chat.id, media=media_group)
