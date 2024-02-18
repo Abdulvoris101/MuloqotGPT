@@ -155,7 +155,6 @@ async def send_welcome(message: types.Message):
     if status == False:
         return await message.answer("Afsuski xozirda bot @muloqotaigr dan boshqa  guruhlarni qo'llab quvatlamaydi!")
     
-    await message.answer(text.START_COMMAND)
     await message.answer(text.getGreetingsText(message.from_user.first_name))
 
 
