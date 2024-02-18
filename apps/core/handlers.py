@@ -2,7 +2,7 @@ from bot import dp, bot, types
 from apps.gpt import requestGpt
 from filters.core import isBotMentioned, isGroupAllowed
 from .managers import ChatManager, MessageManager, ChatActivityManager
-from utils.translate import translate_message, detect
+from utils.translate import translateMessage, detect
 from utils import checkTokens, countTokenOfMessage, constants, containsAnyWord
 from apps.subscription.managers import SubscriptionManager, PlanManager, LimitManager
 from aiogram.utils.exceptions import BadRequest
@@ -65,8 +65,8 @@ class AIChatHandler:
 
         self.isTranslate = True if lang_code == "uz" else False
 
-        message_en = translate_message(self.text, self.chatId,
-                                       lang='en', is_translate=self.isTranslate)
+        message_en = translateMessage(self.text, self.chatId,
+                                      lang='en', is_translate=self.isTranslate)
 
         return self.text if message_en is None else message_en
 
@@ -170,7 +170,7 @@ async def profile(message: types.Message):
 
     await message.answer(text.getProfileText(
         "Premium" if premium is not None else "Free",
-        ChatActivityManager.getTodaysMessage(userChat.id),
+        ChatActivityManager.getTodayMessages(userChat.id),
         ChatActivityManager.getTodayImages(userChat.id)
     ))
 

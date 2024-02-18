@@ -2,7 +2,8 @@ from deep_translator import GoogleTranslator
 import re
 import pycld2 as cld2
 
-def translate_message(message, chatId, from_='uz', lang='en', is_translate=False):    
+
+def translateMessage(message, chatId, from_='uz', lang='en', is_translate=False):
     try:
         if is_translate:
             translated_message = GoogleTranslator(source=from_, target=lang).translate(message)
@@ -14,13 +15,13 @@ def translate_message(message, chatId, from_='uz', lang='en', is_translate=False
     return translated_message
 
 
-def skip_code_translation(text, chatId, is_translate=False):
+def skipCodeTranslation(text, chatId, is_translate=False):
     from apps.core.models import Chat
     
     # Define the pattern for identifying code blocks
     
     if text.find("`") == -1:
-        return translate_message(text, chatId, from_='auto', lang='uz', is_translate=is_translate)
+        return translateMessage(text, chatId, from_='auto', lang='uz', is_translate=is_translate)
 
     code_pattern = r'```.*?```'
 
@@ -32,7 +33,7 @@ def skip_code_translation(text, chatId, is_translate=False):
         text = text.replace(code_block, f'{{{{code_placeholder_{i}}}}}')
 
     # Translate the text outside of code blocks
-    translation = translate_message(text, chatId, 'ru', 'uz', is_translate=is_translate)
+    translation = translateMessage(text, chatId, 'ru', 'uz', is_translate=is_translate)
     translated_text = translation
 
     # Replace placeholders with the original code blocks

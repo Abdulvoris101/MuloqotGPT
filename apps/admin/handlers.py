@@ -58,7 +58,7 @@ async def add_rule(message: types.Message, state=FSMContext):
 
     await state.finish()
     
-    MessageManager.systemToAllchat(text=message.text)
+    MessageManager.systemToAllChat(text=message.text)
     return await message.answer("System xabar kiritildi!")
 
 

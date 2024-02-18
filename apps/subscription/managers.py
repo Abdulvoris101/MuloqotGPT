@@ -259,7 +259,7 @@ class LimitManager:
     @classmethod
     def checkGptRRequestsDailyLimit(cls, chatId):
         chat_plan_limit = cls.getDailyGptLimitOfUser(chatId)
-        chat_used_requests = ChatActivityManager.getTodaysMessage(chatId)
+        chat_used_requests = ChatActivityManager.getTodayMessages(chatId)
         chat_quota = ChatQuota.get(chatId)
         chatRecord = Chat.get(chatId)
         

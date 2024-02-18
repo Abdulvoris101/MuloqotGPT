@@ -2,7 +2,7 @@ from bot import dp, bot, types
 from .generate import LexicaAi
 from filters import IsPrivate
 from utils import text, constants
-from utils.translate import translate_message
+from utils.translate import translateMessage
 from apps.subscription.managers import LimitManager
 from apps.core.models import ChatActivity
 from utils.constants import ALLOWED_GROUPS
@@ -24,7 +24,7 @@ def isChatAllowed(chatType, chatId):
 async def handleArt(message: types.Message):
     await ChatManager.activate(message)
     
-    query = translate_message(message.text, message.chat.id, from_="auto", lang="en", is_translate=True)
+    query = translateMessage(message.text, message.chat.id, from_="auto", lang="en", is_translate=True)
     
     if isChatAllowed(message.chat.type, message.chat.id) == False:
         return await message.answer("Afsuski xozirda bot @muloqotaigr dan boshqa  guruhlarni qo'llab quvatlamaydi!")
