@@ -33,7 +33,7 @@ class AIChatHandler:
                 return await self.message.answer(message, *args, **kwargs) 
             
     async def check_tokens(self, messages):        
-        if countTokens(messages) >= 400:
+        if countTokens(messages) >= 500:
             return True
 
         return False
@@ -155,7 +155,6 @@ async def send_welcome(message: types.Message):
     if status == False:
         return await message.answer("Afsuski xozirda bot @muloqotaigr dan boshqa  guruhlarni qo'llab quvatlamaydi!")
     
-    await message.answer(text.START_COMMAND)
     await message.answer(text.getGreetingsText(message.from_user.first_name))
 
 

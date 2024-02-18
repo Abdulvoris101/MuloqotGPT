@@ -4,21 +4,21 @@ from utils import constants
 
 COST = constants.AQSHA_COST
 
-START_COMMAND = """✨ Salom! Men MuloqotAi.
-Foydalanish uchun shunchaki savolingizni botga yozish kifoya.
+def getGreetingsText(firstName):
+    return f"""Salom! {firstName}
+Men dunyodagi eng ilg'or Sun'iy intellektman
 
-Buyruqlar:
-/start - Botni qayta ishga tushirish
-/art - rasm generatsiya qilish
-/premium - Premium obuna
-/help - Foydalanish qo’llanmasi
+Men sizga ko'p vazifalarni hal qilishda yordam bera olaman. Masalan:
+- ijtimoiy tarmoqlar uchun post, insho xabarini yozish
+- kodni yozish/to'g'rilash
+- /art komandasi bilan rasm chizish
+– matnni istalgan tilga Google Translator’dan yaxshiroq tarjima qilish
+- uy vazifasini bajarish
+- xattoki men sizning shaxsiy psixologingiz bo'lishim xam mumkin
 
-Botning rasmiy <b>kanali</b> - @muloqotai
 Botning rasmiy <b>guruhi</b> - @muloqotaigr
 
 Batafsil ma'lumot uchun - /help
-
-🖼 <b>Rasm generatsiya qilish uchun</b> <b>/art</b> kommandasini yuboring!
 """
 
 ABILITY_COMMAND = """💡 Aqlli: Ko'plab mavzularni tushunish va javob berishga tayyorman. Umumiy bilimdan ma'lumotlarni qidirishga qadar, 
@@ -30,8 +30,6 @@ sizga aniqligi va maqbul javoblarni taklif etishim mumkin.
 
 ⚙️ Avtotarjimon: Meni siz bilan o'zbek tilida yanada yahshiroq muloqot qila olishim uchun, avtotarjima funksiyasini ishlataman. Endi siz ingliz tilida qiynalib menga yozishingiz shart emas. Bu funksiya ixtiyoriy xoxlagan paytiz o'chirib qo'yishingiz mumkin."""
 
-def getGreetingsText(firstName):
-    return f"""Salom {firstName}, Men sizning virtual dunyodagi shaxsiy yordamchingizman, Sizga qanday yordam berishim mumkin?"""
 
 HELP_COMMAND = """<b>Botni qanday ishlataman?</b>
 Botda  chatgptni  ishlatish uchun botga shunchaki so'rov yuborish kifoya. 
@@ -110,7 +108,8 @@ Premium obuna bilan siz:
 ✅ Javoblar kreativroq.
 """
 
-LIMIT_REACHED = """Afsuski sizning kunlik limitingiz tugadi. 
+LIMIT_REACHED = """Afsuski sizning kunlik limitingiz tugadi,
+ruxsat etilgan maksimal bepul foydalanishga erishdingiz. ChatGPT-ni abadiy bepul taqdim etish biz uchun qimmat.
 Yanada ko'proq so'rov uchun premium tarifga obuna bo'ling
 16/16
 /premium"""
