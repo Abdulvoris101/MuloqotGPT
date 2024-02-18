@@ -18,7 +18,8 @@ Men sizga ko'p vazifalarni hal qilishda yordam bera olaman. Masalan:
 
 Botning rasmiy <b>guruhi</b> - @muloqotaigr
 
-🖼 Rasm chizish uchun so'rov boshiga ushbu so'zlarni qo'shishingiz kerak - generate yokida imagine
+🖼 Rasm chizish uchun so'rov boshiga ushbu so'zlarni qo'shishingiz kerak - <b>generate</b> yokida <b>imagine</b>
+Misol uchun - <code>imagine developer</code>
 Batafsil ma'lumot uchun - /help
 """
 
