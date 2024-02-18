@@ -138,9 +138,9 @@ async def handle_private_messages(message: types.Message, state: FSMContext):
         chat = AIChatHandler(message=message)
         
         imageGenerationWords = [
-            "rasm", "yarat", "yasash", "surat", "tasvir", "ta'svir",
-            "image", "generate", "create", "design", "изображение", "картин", "рисунок", 
-            "фотографию", "art", "картину", "imagine"]
+            "rasm", "surat", "tasvir", "ta'svir",
+            "image", "generate", 
+            "imagine"]
         
         if contains_any_word(message.text, imageGenerationWords):
             return await handleArt(message)
