@@ -5,6 +5,8 @@ from utils import text, constants
 from utils.translate import translate_message
 from apps.subscription.managers import LimitManager
 from apps.core.models import ChatActivity
+from utils.constants import ALLOWED_GROUPS
+from apps.core.managers import ChatManager
 
 
 
@@ -13,13 +15,15 @@ dp.filters_factory.bind(IsPrivate)
 def isChatAllowed(chatType, chatId):
     
     if chatType in [types.ChatType.GROUP, types.ChatType.SUPERGROUP]:
-        if int(chatId) != int(constants.HOST_GROUP_ID):
+        if int(chatId) not in ALLOWED_GROUPS:
             return False
 
     return True
 
 
 async def handleArt(message: types.Message):
+    await ChatManager.activate(message)
+    
     query = translate_message(message.text, message.chat.id, from_="auto", lang="en", is_translate=True)
     
     if isChatAllowed(message.chat.type, message.chat.id) == False:

@@ -55,7 +55,7 @@ Botning rasmiy kanali - @muloqotai
 
 
 def buy_text(price):
-    
+
     BUY_TEXT = f"""1/2
 To'lov tafsilotlari:
 
@@ -110,11 +110,14 @@ Premium obuna bilan siz:
 ✅ Javoblar kreativroq.
 """
 
-LIMIT_REACHED = """Afsuski sizning kunlik limitingiz tugadi,
-ruxsat etilgan maksimal bepul foydalanishga erishdingiz. ChatGPT-ni abadiy bepul taqdim etish biz uchun qimmat.
-Yanada ko'proq so'rov uchun premium tarifga obuna bo'ling
-16/16
-/premium"""
+def getLimitReached(isPremium):
+    usedRequests = 75 if isPremium else 16
+    freeText = """ruxsat etilgan maksimal bepul foydalanishga erishdingiz. ChatGPT-ni abadiy bepul taqdim etish biz uchun qimmat.
+Yanada ko'proq so'rov uchun premium tarifga obuna bo'ling. /premium""" if not isPremium else ""
+    return f"""Afsuski sizning kunlik limitingiz tugadi, {freeText}
+{usedRequests}/{usedRequests}
+"""
+
 
 LIMIT_GROUP_REACHED = """Afsuski guruhning kunlik limiti tugadi. 
 So'rovlarni ko'paytirish uchun bizga donat qilib yordam berishingiz mumkin
@@ -122,7 +125,7 @@ So'rovlarni ko'paytirish uchun bizga donat qilib yordam berishingiz mumkin
 /donate"""
 
 
-    
+
 DONATE = f"""
 🌟 Bizga donat qilayotganiz uchun katta rahmat! 
 Sizning donatingiz juda qadrlanadi va mazmunli o'zgarishlarga olib keladi.
@@ -147,17 +150,17 @@ Obunangiz muddati tugadi! Premium imtiyozlardan foydalanishda davom etish uchun 
 
 Bizni tanlaganiz uchun tashakkur 🌟
 """
-     
+
 def getProfileText(
         planType,
         todaysGptRequests,
         todaysImageRequests,
 
 ):
-    
+
     availableGptRequests = "75" if planType == "Premium" else "16"
     availableImageAiRequests = "20" if planType == "Premium" else "5"
-    
+
     isFree = True if planType == "Free" else False
 
     premiumText = """Ko’proq so’rovlar kerakmi? Unda oylik Premium obunani ulang va yanada ko’proq foydalaning!
@@ -183,3 +186,13 @@ Limitlar:
 
 {premiumText if isFree else ''}
 """
+
+# Ai chat handler
+PROCESSING_MESSAGE = "⏳..."
+ENTER_AGAIN = "Iltimos boshqatan so'rov yuboring"
+TOKEN_REACHED = "Savolni qisqartiribroq yozing"
+
+# ERRORS
+
+NOT_AVAILABLE_GROUP = """Afsuski xozirda bot @muloqotaigr va @muloqotaigen dan boshqa  guruhlarni qo'llab 
+quvatlamaydi!"""

@@ -43,6 +43,42 @@ class SubscriptionManager:
         session.commit()
         
         return subscription
+
+    @classmethod
+    def getSubscriptionOrCreate(
+            cls,
+            planId,
+            chatId,
+            cardholder=None,
+            is_paid=False,
+            isFree=True
+    ):
+        chat_subscription = SubscriptionManager.getByChatId(chatId=chatId)
+
+        if chat_subscription is None:
+            if isFree:
+                isActivated = cls.reactivateFreeSubscription(chatId)
+
+                if isActivated:
+                    return
+
+            currentPeriodEnd = datetime.datetime.now() + datetime.timedelta(days=30)
+
+            subscription = Subscription(
+                planId=planId,
+                currentPeriodStart=datetime.datetime.now(),
+                currentPeriodEnd=None if isFree else currentPeriodEnd,
+                is_paid=is_paid,
+                chatId=chatId,
+                cardholder=cardholder
+            )
+
+            session.add(subscription)
+            session.commit()
+
+            return subscription
+
+        return chat_subscription
     
 
     @staticmethod
@@ -247,7 +283,7 @@ class LimitManager:
     @classmethod
     def checkImageaiRequestsDailyLimit(cls, chatId):
         chat_plan_limit = cls.getDailyImageAiLimitOfUser(chatId)
-        chat_used_requests = ChatActivityManager.getTodaysImages(chatId)
+        chat_used_requests = ChatActivityManager.getTodayImages(chatId)
         chat_quota = ChatQuota.get(chatId)
         
         if chat_quota is None:
@@ -442,6 +478,18 @@ class PlanManager:
             Subscription.isCanceled==False).all()
         
         return free_subscription_users
+
+    @classmethod
+    def getHostPlanId(cls):
+        return cls.getHostGroupPlanOrCreate().id
+
+    @classmethod
+    def getFreePlanId(cls):
+        return cls.getFreePlanOrCreate().id
+
+    @classmethod
+    def getPremiumPlanId(cls):
+        return cls.getPremiumPlanOrCreate().id
 
 
 class FreeApiKeyManager:

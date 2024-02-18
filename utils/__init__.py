@@ -5,7 +5,8 @@ from utils import constants
 import re
 from aiogram.utils.exceptions import BotBlocked
 
-# Bot 
+
+# Bot
 
 async def sendEvent(text):
     await bot.send_message(constants.EVENT_CHANNEL_ID, text, parse_mode='HTML')
@@ -24,21 +25,22 @@ async def sendError(text):
 class SendAny:
     def __init__(self, message):
         self.message = message
-    
+
     async def sendPhoto(self, chatId, blockedUsersCount, kb=None):
-        
-        try:  
+
+        try:
             if kb is None:
                 await bot.send_photo(chatId, self.message.photo[-1].file_id, caption=self.message.caption)
             else:
-                await bot.send_photo(chatId, self.message.photo[-1].file_id, caption=self.message.caption, reply_markup=kb)
+                await bot.send_photo(chatId, self.message.photo[-1].file_id, caption=self.message.caption,
+                                     reply_markup=kb)
 
             return 0
-        
+
         except BotBlocked:
             blockedUsersCount = blockedUsersCount + 1
             return blockedUsersCount
-            
+
     async def sendMessage(self, chatId, blockedUsersCount, kb=None):
         try:
             if kb is None:
@@ -48,7 +50,7 @@ class SendAny:
 
             return 0
         except BotBlocked:
-            
+
             blockedUsersCount = blockedUsersCount + 1
 
             return blockedUsersCount
@@ -58,21 +60,23 @@ class SendAny:
             if kb is None:
                 await bot.send_video(chatId, video=self.message.video.file_id, caption=self.message.caption)
             else:
-                await bot.send_video(chatId, video=self.message.video.file_id, caption=self.message.caption, reply_markup=kb)
+                await bot.send_video(chatId, video=self.message.video.file_id, caption=self.message.caption,
+                                     reply_markup=kb)
             return 0
-        
+
         except BotBlocked:
             blockedUsersCount = blockedUsersCount + 1
             return blockedUsersCount
-    
+
     async def sendAnimation(self, chatId, blockedUsersCount, kb=None):
         try:
             if kb is None:
                 await bot.send_animation(chatId, animation=self.message.animation.file_id, caption=self.message.caption)
             else:
-                await bot.send_animation(chatId, animation=self.message.animation.file_id, caption=self.message.caption, reply_markup=kb)
+                await bot.send_animation(chatId, animation=self.message.animation.file_id, caption=self.message.caption,
+                                         reply_markup=kb)
             return 0
-        
+
         except BotBlocked:
             blockedUsersCount = blockedUsersCount + 1
             return blockedUsersCount
@@ -86,10 +90,11 @@ def countTokens(messages):
     total_tokens = sum(token_counts)
     return total_tokens
 
+
 def countTokenOfMessage(message):
     enc = tiktoken.get_encoding("cl100k_base")
     total_tokens = len(enc.encode(message))
-    
+
     return total_tokens
 
 
@@ -112,15 +117,17 @@ def extract_inline_buttons(text):
     return buttons
 
 
-
-
-def contains_any_word(text, word_list):
+def containsAnyWord(text, word_list):
     # Convert the text to lowercase for case-insensitive matching
     lowercase_text = text.lower()
     # Check if any word from the word_list is present in the text
     for word in word_list:
         if word.lower() in lowercase_text:
             return True
-    
+
     return False
 
+def checkTokens(messages):
+    if countTokens(messages) >= 500:
+        return True
+    return False

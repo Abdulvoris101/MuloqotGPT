@@ -67,8 +67,8 @@ async def add_rule(message: types.Message, state=FSMContext):
 async def get_statistics(message: types.Message):
     premiumUsers = SubscriptionManager.getPremiumUsersCount()
     usersCount = ChatManager.usersCount()
-    activeUsers = ChatManager.activeUsers()
-    activeUsersOfDay = ChatManager.activeUsersOfDay()
+    activeUsers = ChatManager.activeMonthlyUsers()
+    activeUsersOfDay = ChatManager.activeDailyUsers()
     allMessages = Message.count()
     avgUsersMessagesCount = allMessages / usersCount
     limitReachedUsers = ChatActivityManager.getLimitReachedUsers()
