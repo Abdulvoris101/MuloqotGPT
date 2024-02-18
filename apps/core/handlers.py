@@ -33,7 +33,7 @@ class AIChatHandler:
                 return await self.message.answer(message, *args, **kwargs) 
             
     async def check_tokens(self, messages):        
-        if countTokens(messages) >= 400:
+        if countTokens(messages) >= 500:
             return True
 
         return False
