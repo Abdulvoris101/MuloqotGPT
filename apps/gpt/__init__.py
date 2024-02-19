@@ -1,1 +1,1 @@
-from .request import requestGpt
+from .request import GptRequest

@@ -1,5 +1,5 @@
 from bot import dp, bot, types
-from apps.gpt import requestGpt
+from apps.gpt import GptRequest
 from filters.core import isBotMentioned, isGroupAllowed
 from .managers import ChatManager, MessageManager, ChatActivityManager
 from utils.translate import translateMessage, detect
@@ -88,9 +88,10 @@ class AIChatHandler:
 
     async def sendToGpt(self, messages, chatId, progressMessageId):
         try:
-            response = await requestGpt(messages,  chatId,
-                                        SubscriptionManager.isPremiumToken(chatId=chatId))
+            gptRequest = GptRequest(chatId,
+                                    SubscriptionManager.isPremiumToken(chatId=chatId))
 
+            response = await gptRequest.requestGpt(messages)
             translatedResponse = MessageManager.assistantRole(message=response, instance=self.message,
                                                               is_translate=self.isTranslate)
 
