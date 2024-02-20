@@ -41,10 +41,9 @@ class Chat(Base):
         session.commit()
 
     @classmethod
-    def delete(self, chatId):
+    def delete(cls, chatId):
         chat = session.query(Chat).filter_by(chatId=chatId).first()
         session.delete(chat)
-
 
 
 class ChatActivity(Base):
@@ -67,7 +66,7 @@ class ChatActivity(Base):
         session.commit()
 
     @classmethod
-    def delete(self, chatId):
+    def delete(cls, chatId):
         chatActivity = session.query(Chat).filter_by(chatId=chatId).first()
         session.delete(chatActivity)
 
@@ -102,8 +101,7 @@ class Message(Base):
 
         return int(last_message.id)
     
-    
     @classmethod
-    def delete(self, chatId):
+    def delete(cls, chatId):
         session.query(Message).filter_by(chatId=chatId).delete()
 

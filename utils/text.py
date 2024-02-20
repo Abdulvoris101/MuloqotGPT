@@ -196,3 +196,5 @@ TOKEN_REACHED = "Savolni qisqartiribroq yozing"
 
 NOT_AVAILABLE_GROUP = """Afsuski xozirda bot @muloqotaigr va @muloqotaigen dan boshqa  guruhlarni qo'llab 
 quvatlamaydi!"""
+
+IMAGE_GEN_ERROR = """Rasm generatsiyasi jarayonida xatolik yuz berdi. Iltimos, keyinroq urinib ko'ring."""

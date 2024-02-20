@@ -1,45 +1,35 @@
 from bot import dp, bot, types
 from .generate import LexicaAi
-from filters import IsPrivate
+from filters.core import IsPrivate
 from utils import text, constants
 from utils.translate import translateMessage
 from apps.subscription.managers import LimitManager
 from apps.core.models import ChatActivity
-from utils.constants import ALLOWED_GROUPS
-from apps.core.managers import ChatManager
-
+from apps.subscription.managers import SubscriptionManager
 
 
 dp.filters_factory.bind(IsPrivate)
 
-def isChatAllowed(chatType, chatId):
-    
-    if chatType in [types.ChatType.GROUP, types.ChatType.SUPERGROUP]:
-        if int(chatId) not in ALLOWED_GROUPS:
-            return False
-
-    return True
-
 
 async def handleArt(message: types.Message):
-    await ChatManager.activate(message)
+    userChat = message.chat
+
+    query = translateMessage(message.text,
+                             chatId=userChat.id,
+                             from_="auto",
+                             lang="en",
+                             is_translate=True)
     
-    query = translateMessage(message.text, message.chat.id, from_="auto", lang="en", is_translate=True)
-    
-    if isChatAllowed(message.chat.type, message.chat.id) == False:
-        return await message.answer("Afsuski xozirda bot @muloqotaigr dan boshqa  guruhlarni qo'llab quvatlamaydi!")
-            
-    if message.chat.id == constants.HOST_GROUP_ID:
+    if userChat.id == constants.HOST_GROUP_ID:
         return await message.answer("Bu guruhda rasm generatsiya qilib bo'lmaydi!")
     
     if not LimitManager.checkImageaiRequestsDailyLimit(message.chat.id):
-        if message.chat.id == constants.HOST_GROUP_ID:
+        if userChat.id == constants.IMAGE_GEN_GROUP_ID:
             return await message.answer(text.LIMIT_GROUP_REACHED)
 
-        return await message.answer(text.LIMIT_REACHED)
+        return await message.answer(text.getLimitReached(SubscriptionManager.isPremiumToken(userChat.id)))
 
-    sent_message = await bot.send_message(message.chat.id, "...")
-
+    sent_message = await bot.send_message(message.chat.id, "⏳")
     await message.answer_chat_action("typing")
 
     images = await LexicaAi.generate(message.chat.id, query)

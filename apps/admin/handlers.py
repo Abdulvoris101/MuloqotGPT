@@ -8,7 +8,7 @@ from apps.core.models import ChatActivity, Message
 from .keyboards import adminKeyboards, cancelKeyboards, sendMessageMenu, dynamic_sendMenu
 from aiogram.dispatcher.filters import Text
 from utils import SendAny, extract_inline_buttons, constants, text, sendError
-from filters import IsAdmin
+from filters.core import IsAdmin
 from apps.subscription.managers import SubscriptionManager, PlanManager
 from aiogram.utils.exceptions import BotBlocked
 

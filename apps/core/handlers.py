@@ -18,9 +18,6 @@ class AIChatHandler:
         self.full_name = message.chat.full_name
         self.text = str(message.text)
 
-    async def __call__(self, *args, **kwargs):
-        await ChatManager.activate(self.message)
-
     async def sendMessage(self, message, *args, **kwargs):
         if self.message.chat.type == "private":
             return await self.message.answer(message, *args, **kwargs)
@@ -122,6 +119,8 @@ async def handle_private_messages(message: types.Message):
     if not isGroupAllowed(message.chat.type, message.chat.id):
         return await message.answer(
             text.NOT_AVAILABLE_GROUP)
+
+    await ChatManager.activate(message)
 
     if containsAnyWord(message.text, constants.IMAGE_GENERATION_WORDS):
         return await handleArt(message)
