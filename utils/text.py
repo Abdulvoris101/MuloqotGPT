@@ -187,8 +187,35 @@ Limitlar:
 {premiumText if isFree else ''}
 """
 
+def getStatisticsText(
+        usersCount,
+        activeUsers,
+        activeUsersOfDay,
+        premiumUsers,
+        limitReachedUsers,
+        allMessages,
+        avgUsersMessagesCount
+):
+    return f"""👤 Foydalanuvchilar - {usersCount}
+💥 Aktiv Foydalanuvchilar - {activeUsers}
+💯 Kunlik Aktiv Foydalanuvchilar - {activeUsersOfDay}
+🎁 Premium Foydalanuvchilar - {premiumUsers}
+🛑 Bugungi limiti tugagan Foydalanuvchilar - {limitReachedUsers}
+📨 Xabarlar - {allMessages}
+📩 User uchun o'rtacha xabar - {avgUsersMessagesCount}"""
+
+
+def getRejectReason(reason):
+    return f"""Afsuski sizning premium obunaga bo'lgan so'rovingiz bekor qilindi.
+Sababi: {reason}
+Biror xatolik ketgan bo'lsa bizga murojat qiling: @texnosupportuzbot
+"""
+
+INLINE_BUTTONS_GUIDE = """Inline buttonlarni kiriting. 
+Misol uchun\n`./Test-t.me//texnomasters\n./Test2-t.me//texnomasters`"""
+
 # Ai chat handler
-PROCESSING_MESSAGE = "⏳..."
+PROCESSING_MESSAGE = "⏳"
 ENTER_AGAIN = "Iltimos boshqatan so'rov yuboring"
 TOKEN_REACHED = "Savolni qisqartiribroq yozing"
 
@@ -196,5 +223,5 @@ TOKEN_REACHED = "Savolni qisqartiribroq yozing"
 
 NOT_AVAILABLE_GROUP = """Afsuski xozirda bot @muloqotaigr va @muloqotaigen dan boshqa  guruhlarni qo'llab 
 quvatlamaydi!"""
-
+IMAGE_GEN_NOT_AVAILABLE = """Bu guruhda rasm generatsiya qilib bo'lmaydi!"""
 IMAGE_GEN_ERROR = """Rasm generatsiyasi jarayonida xatolik yuz berdi. Iltimos, keyinroq urinib ko'ring."""

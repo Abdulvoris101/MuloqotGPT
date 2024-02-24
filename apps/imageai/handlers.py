@@ -11,6 +11,22 @@ from apps.subscription.managers import SubscriptionManager
 dp.filters_factory.bind(IsPrivate)
 
 
+async def isPermitted(chatId, message):
+    if chatId == constants.HOST_GROUP_ID:
+        await message.answer(text.IMAGE_GEN_NOT_AVAILABLE)
+        return False
+
+    if not LimitManager.checkImageaiRequestsDailyLimit(message.chat.id):
+        if chatId == constants.IMAGE_GEN_GROUP_ID:
+            await message.answer(text.LIMIT_GROUP_REACHED)
+            return False
+
+        await message.answer(text.getLimitReached(SubscriptionManager.isPremiumToken(chatId)))
+        return False
+
+    return True
+
+
 async def handleArt(message: types.Message):
     userChat = message.chat
 
@@ -18,14 +34,9 @@ async def handleArt(message: types.Message):
                              from_="auto",
                              to="en",
                              isTranslate=True)
-    
-    if userChat.id == constants.HOST_GROUP_ID:
-        return await message.answer("Bu guruhda rasm generatsiya qilib bo'lmaydi!")
-    
-    if not LimitManager.checkImageaiRequestsDailyLimit(message.chat.id):
-        if userChat.id == constants.IMAGE_GEN_GROUP_ID:
-            return await message.answer(text.LIMIT_GROUP_REACHED)
-        return await message.answer(text.getLimitReached(SubscriptionManager.isPremiumToken(userChat.id)))
+
+    if not await isPermitted(chatId=userChat.id, message=message):
+        return
 
     sentMessage = await bot.send_message(message.chat.id, "⏳")
     await message.answer_chat_action("typing")

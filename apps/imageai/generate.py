@@ -8,23 +8,31 @@ from utils import text
 
 class LexicaAi:
     url = "https://lexica.art/api/infinite-prompts"
+    images_url = "https://image.lexica.art/full_jpg"
 
     @classmethod
-    async def generate(cls, userId, prompt):
-        prompt = str(translateMessage(prompt, from_='auto', to='en', isTranslate=True)).strip()
-
-        data = {
+    def getBody(cls, prompt):
+        return {
             "text": prompt,
             "searchMode": "images",
             "source": "search",
             "model": "lexica-aperture-v2"
         }
 
+    @classmethod
+    async def generate(cls, userId, prompt):
+        prompt = str(translateMessage(prompt, from_='auto', to='en', isTranslate=True)).strip()
+
         try:
             async with aiohttp.ClientSession() as session:
-                async with session.post(cls.url, json=data, timeout=aiohttp.ClientTimeout(total=30)) as resp:
+                async with session.post(
+                        cls.url,
+                        json=cls.getBody(prompt),
+                        timeout=aiohttp.ClientTimeout(total=30)) as resp:
+
                     resp.raise_for_status()
-                    images = [f"https://image.lexica.art/full_jpg/{ids['id']}" for ids in (await resp.json())["images"]]
+                    images = [f"{cls.images_url}/{ids['id']}"
+                              for ids in (await resp.json())["images"]]
 
         except asyncio.TimeoutError as e:
             raise AiogramException(user_id=userId,

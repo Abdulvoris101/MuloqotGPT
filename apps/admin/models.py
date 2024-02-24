@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, BigInteger, JSON
+from sqlalchemy import Column, Integer, BigInteger
 from db.setup import session, Base
 
 
@@ -12,25 +12,20 @@ class Admin(Base):
         self.userId = userId
 
     @classmethod
-    def isAdmin(self, userId):
-        
+    def isAdmin(cls, userId):
         try:
             admin = session.query(Admin).filter_by(userId=userId).first()
             session.commit()
-
         except Exception as e:
-            # If an exception occurs, rollback the transaction
             raise e
         finally:
-            # Always close the session
             session.close()
 
-        
         return admin is not None
 
-    def register(self, user_id):
-        if not self.__class__.isAdmin(user_id):
-            self.user_id = user_id
+    def register(self, userId):
+        if not self.__class__.isAdmin(userId):
+            self.userId = userId
             self.save()
 
     def save(self):
