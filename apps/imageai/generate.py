@@ -11,7 +11,7 @@ class LexicaAi:
 
     @classmethod
     async def generate(cls, userId, prompt):
-        prompt = str(translateMessage(prompt, chatId=None, from_='auto', lang='en', is_translate=True)).strip()
+        prompt = str(translateMessage(prompt, from_='auto', to='en', isTranslate=True)).strip()
 
         data = {
             "text": prompt,
@@ -31,7 +31,6 @@ class LexicaAi:
                                    message_text=text.IMAGE_GEN_ERROR)
 
         except Exception as e:
-            # Handle other exceptions if needed
             raise AiogramException(user_id=userId,
                                    message_text=text.IMAGE_GEN_ERROR, original_exception=e)
 

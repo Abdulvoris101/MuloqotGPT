@@ -8,19 +8,15 @@ from utils import sendSubscriptionEvent
 from apps.subscription.managers import SubscriptionManager, PlanManager
 
 
-
-@dp.message_handler(Text(equals="Bekor qilish"), state='*')
-async def cancel_subscription(message: types.Message, state: FSMContext):   
-    await state.finish()    
-    return await bot.send_message(message.chat.id, "Obuna bekor qilindi!", reply_markup=types.ReplyKeyboardRemove())
-
-
-
 @dp.callback_query_handler(text="subscribe_premium")
 async def buyPremium(message: types.Message):
+    user = message.from_user
+    premiumPlan = PlanManager.getPremiumPlanOrCreate()
 
-    notPaidSubscription = SubscriptionManager.getNotPaidPremiumSubscription(message.from_user.id, PlanManager.getPremiumPlanOrCreate().id)
-    payedSubscription = SubscriptionManager.getPremiumSubscription(message.from_user.id, PlanManager.getPremiumPlanOrCreate().id)
+    notPaidSubscription = SubscriptionManager.getNotPaidPremiumSubscription(
+        user.id, premiumPlan.id)
+    payedSubscription = SubscriptionManager.getPremiumSubscription(
+        user.id, premiumPlan.id)
     
     if notPaidSubscription is not None:
         await message.answer("Sizning premium obunaga so'rovingiz ko'rib chiqilmoqda")
@@ -30,7 +26,6 @@ async def buyPremium(message: types.Message):
         return
     
     await message.answer("Sotib olish")
-    
     await bot.send_message(
         message.from_user.id,
         text.buy_text(int(constants.PREMIUM_PRICE)), 
@@ -47,31 +42,27 @@ async def premium(message: types.Message):
             text.PLAN_TEXT,
             reply_markup=buySubscriptionMenu
         )
- 
+
 
 @dp.message_handler(Text(equals="Skrinshotni yuborish"), state=PaymentState.first_step)
-async def topupBalance(message: types.Message, state=FSMContext):   
-     
+async def topUpBalance(message: types.Message, state=FSMContext):
     async with state.proxy() as data:
         data["price"] = constants.PREMIUM_PRICE
         
-    sent_message = await message.answer("Biroz kuting...")
+    sentMessage = await message.answer("Biroz kuting...")
 
-    await bot.delete_message(message.chat.id, sent_message.message_id)
-
+    await bot.delete_message(message.chat.id, sentMessage.message_id)
     await message.answer(text.PAYMENT_STEP1, reply_markup=cancelMenu)
-    
+
     await PaymentState.next()
 
 
 @dp.message_handler(state=PaymentState.second_step, content_types=types.ContentTypes.PHOTO)
 async def subscriptionCreate(message: types.Message, state=FSMContext):
-    
     async with state.proxy() as data:
         price = data["price"]
         
     photoFileId = message.photo[-1].file_id
-
 
     SubscriptionManager.unsubscribe(
         planId=PlanManager.getFreePlanOrCreate().id,
@@ -89,10 +80,10 @@ async def subscriptionCreate(message: types.Message, state=FSMContext):
     await sendSubscriptionEvent(f"""#payment check-in\nchatId: {message.from_user.id},\nsubscription_id: {subscription.id},\nfile id: {photoFileId},\nprice: {price}""")
 
     await bot.send_photo(constants.SUBSCRIPTION_CHANNEL_ID, photoFileId)
-    
     await message.answer(text.PAYMENT_STEP2, reply_markup=types.ReplyKeyboardRemove())
     
     await state.finish()
+
 
 @dp.message_handler(commands=["donate"])
 async def donate(message: types.Message):

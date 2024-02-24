@@ -2,8 +2,6 @@ from sqlalchemy import Column, Integer, String, BigInteger, JSON
 from db.setup import session, Base
 
 
-# Define the 'Admin' table
-# 
 class Admin(Base):
     __tablename__ = 'admin'
 
@@ -12,7 +10,6 @@ class Admin(Base):
 
     def __init__(self, userId):
         self.userId = userId
-
 
     @classmethod
     def isAdmin(self, userId):

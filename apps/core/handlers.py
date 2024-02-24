@@ -1,3 +1,6 @@
+from aiogram.dispatcher import FSMContext
+from aiogram.dispatcher.filters import Text
+from aiogram.utils.exceptions import BadRequest
 from bot import dp, bot, types
 from apps.gpt import GptRequest
 from filters.core import isBotMentioned, isGroupAllowed
@@ -5,7 +8,6 @@ from .managers import ChatManager, MessageManager, ChatActivityManager
 from utils.translate import translateMessage, detect
 from utils import checkTokens, countTokenOfMessage, constants, containsAnyWord
 from apps.subscription.managers import SubscriptionManager, PlanManager, LimitManager
-from aiogram.utils.exceptions import BadRequest
 from apps.imageai.handlers import handleArt
 import utils.text as text
 import asyncio
@@ -62,8 +64,8 @@ class AIChatHandler:
 
         self.isTranslate = True if lang_code == "uz" else False
 
-        message_en = translateMessage(self.text, self.chatId,
-                                      lang='en', is_translate=self.isTranslate)
+        message_en = translateMessage(message=self.text,
+                                      to='en', isTranslate=self.isTranslate)
 
         return self.text if message_en is None else message_en
 
@@ -72,12 +74,9 @@ class AIChatHandler:
             return
 
         progressMessage = await self.sendMessage(text.PROCESSING_MESSAGE)
-
-        # Save to message of user messages an assistant role
         MessageManager.userRole(await self.getTranslatedMessage(), self.message)
 
         messages = await self.trimMessageTokens()
-
         await self.message.answer_chat_action("typing")
 
         await asyncio.create_task(
@@ -142,7 +141,6 @@ async def send_welcome(message: types.Message):
     status = await ChatManager.activate(message)
     userChat = message.chat
 
-    # if it is group, check is group available !
     if not status:
         return await message.answer(text.NOT_AVAILABLE_GROUP)
 
@@ -180,6 +178,7 @@ async def help_command(message: types.Message):
     await message.answer(text.HELP_COMMAND)
 
 
-@dp.message_handler(commands=['info'])
-async def ability(message: types.Message):
-    await message.answer(text.ABILITY_COMMAND)
+@dp.message_handler(Text(equals="Bekor qilish"), state='*')
+async def cancel_subscription(message: types.Message, state: FSMContext):
+    await state.finish()
+    return await bot.send_message(message.chat.id, "Obuna bekor qilindi!", reply_markup=types.ReplyKeyboardRemove())

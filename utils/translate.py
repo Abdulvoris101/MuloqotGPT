@@ -3,10 +3,10 @@ import re
 import pycld2 as cld2
 
 
-def translateMessage(message, chatId, from_='uz', lang='en', is_translate=False):
+def translateMessage(message, from_='uz', to='en', isTranslate=False):
     try:
-        if is_translate:
-            translated_message = GoogleTranslator(source=from_, target=lang).translate(message)
+        if isTranslate:
+            translated_message = GoogleTranslator(source=from_, target=to).translate(message)
         else:
             translated_message = message
     except:
@@ -15,33 +15,25 @@ def translateMessage(message, chatId, from_='uz', lang='en', is_translate=False)
     return translated_message
 
 
-def skipCodeTranslation(text, chatId, is_translate=False):
-    from apps.core.models import Chat
-    
-    # Define the pattern for identifying code blocks
-    
+def skipCodeTranslation(text, isTranslate=False):
     if text.find("`") == -1:
-        return translateMessage(text, chatId, from_='auto', lang='uz', is_translate=is_translate)
+        return translateMessage(message=text, from_='auto',
+                                to='uz', isTranslate=isTranslate)
 
     code_pattern = r'```.*?```'
+    codeBlocks = re.findall(code_pattern, text, re.DOTALL)
 
-    # Find all code blocks in the text
-    code_blocks = re.findall(code_pattern, text, re.DOTALL)
+    for i, codeBlock in enumerate(codeBlocks):
+        text = text.replace(codeBlock, f'{{{{code_placeholder_{i}}}}}')
 
-    # Replace code blocks with placeholders
-    for i, code_block in enumerate(code_blocks):
-        text = text.replace(code_block, f'{{{{code_placeholder_{i}}}}}')
+    translatedText = translateMessage(message=text, from_='ru',
+                                      to='uz', isTranslate=isTranslate)
 
-    # Translate the text outside of code blocks
-    translation = translateMessage(text, chatId, 'ru', 'uz', is_translate=is_translate)
-    translated_text = translation
+    for i, codeBlock in enumerate(codeBlocks):
+        translatedText = translatedText.replace(f'{{{{code_placeholder_{i}}}}}', codeBlock)
 
-    # Replace placeholders with the original code blocks
-    for i, code_block in enumerate(code_blocks):
-        translated_text = translated_text.replace(f'{{{{code_placeholder_{i}}}}}', code_block)
+    return translatedText
 
-    # Return the translated text
-    return translated_text
 
 def detect(text):
     """Decide which language is used to write the text.
@@ -54,13 +46,14 @@ def detect(text):
       text (string): A snippet of text, the longer it is the more reliable we
                      can detect the language used to write the text.
     """
+
     t = text.encode("utf-8")
     reliable, index, top_3_choices = cld2.detect(t, bestEffort=False)
 
     if not reliable:
-      reliable = False
       reliable, index, top_3_choices = cld2.detect(t, bestEffort=True)
 
     languages = [x for x in top_3_choices]
     language = languages[0]
+
     return language[1]

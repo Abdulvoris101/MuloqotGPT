@@ -1,11 +1,10 @@
 from aiogram.dispatcher import FSMContext
-import os
 from bot import dp, types, bot
 from db.state import AdminLoginState, AdminSystemMessageState, SendMessageWithInlineState,  AdminSendMessage, TopupState, RejectState
 from .models import Admin
 from apps.core.managers import ChatManager, MessageManager, ChatActivityManager
 from apps.core.models import ChatActivity, Message
-from .keyboards import adminKeyboards, cancelKeyboards, sendMessageMenu, dynamic_sendMenu
+from .keyboards import adminKeyboards, cancelKeyboards, sendMessageMenu, sendInlineMenu
 from aiogram.dispatcher.filters import Text
 from utils import SendAny, extract_inline_buttons, constants, text, sendError
 from filters.core import IsAdmin
@@ -60,7 +59,6 @@ async def add_rule(message: types.Message, state=FSMContext):
     
     MessageManager.systemToAllChat(text=message.text)
     return await message.answer("System xabar kiritildi!")
-
 
 
 @dp.message_handler(IsAdmin(), Text(equals="📊 Statistika.!"))
@@ -284,12 +282,12 @@ async def sendMessageWithInline(message: types.Message, state=FSMContext):
         inline_keyboards_text = data["buttons"]
         
         inline_keyboards = extract_inline_buttons(inline_keyboards_text)
-        inline_keyboards = dynamic_sendMenu(inline_keyboards)
+        inline_keyboards = sendInlineMenu(inline_keyboards)
 
         sendAny = SendAny(message)
 
         users = PlanManager.getFreePlanUsers()
-
+    
         blockedUsersCount = 0
 
         for user in users:

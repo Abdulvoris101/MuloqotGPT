@@ -10,29 +10,17 @@ templates = Jinja2Templates(directory="layout/templates")
 
 router = APIRouter()
 
+
 @router.get("/chats", response_class=HTMLResponse)
-async def adminIndex(request: Request, page: int=Query(1, gt=0)):
+async def admin(request: Request, page: int = Query(1, gt=0)):
+    rowsPerPage = 15
+    offset = (page - 1) * rowsPerPage
+    totalItems = ChatManager.count()
+    totalPages = (totalItems // rowsPerPage) + (1 if totalItems % rowsPerPage > 0 else 0)
+    query = session.query(Chat).order_by(desc(Chat.id)).limit(rowsPerPage).offset(offset)
 
-    rows_per_page = 15
-
-    # Calculate the offset for the current page
-    offset = (page - 1) * rows_per_page
-    
-    # Query the data without pagination to get the total count
-    total_items = ChatManager.count()
-    
-    # Calculate the total number of pages
-    total_pages = (total_items // rows_per_page) + (1 if total_items % rows_per_page > 0 else 0)
-
-    # Query the data with pagination
-    query = session.query(Chat).order_by(desc(Chat.id)).limit(rows_per_page).offset(offset)
-
-    chats = query.all()
-
-    all_chats = ChatManager.all()
-    
-    context = {
-        "chats": chats,
+    return templates.TemplateResponse("index.html", {
+        "chats": query.all(),
         "groups": ChatManager.groupsCount(),
         "messages": Message.count(),
         "activeUsers": ChatManager.activeMonthlyUsers(),
@@ -40,20 +28,15 @@ async def adminIndex(request: Request, page: int=Query(1, gt=0)):
         "countOfAllOutputTokens": ChatActivityManager.countOfAllOutputTokens(),
         "request": request,
         "users": ChatManager.usersCount(),
-        "all_chats": all_chats,
-        "total_pages": total_pages,
+        "all_chats": ChatManager.all(),
+        "total_pages": totalPages,
         "current_page": page
-    }
-    
-    return templates.TemplateResponse("index.html", context)
-
+    })
 
 
 @router.get("/systemMessages", response_class=HTMLResponse)
 async def systemMessages(request: Request):
-    all_systemMessages = MessageManager.getSystemMessages()
-    
-    context = {
+    return templates.TemplateResponse("systemMessages.html", {
         "groups": ChatManager.groupsCount(),
         "messages": Message.count(),
         "countOfAllInputTokens": ChatActivityManager.countOfAllInputTokens(),
@@ -61,8 +44,6 @@ async def systemMessages(request: Request):
         "activeUsers": ChatManager.activeMonthlyUsers(),
         "request": request,
         "users": ChatManager.usersCount(),
-        "all_systemMessages": all_systemMessages
-    }
-    
-    return templates.TemplateResponse("systemMessages.html", context)
+        "all_systemMessages": MessageManager.getSystemMessages()
+    })
 

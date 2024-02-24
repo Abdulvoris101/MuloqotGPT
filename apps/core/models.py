@@ -13,7 +13,6 @@ class Chat(Base):
     chatId = Column(BigInteger, unique=True)
     createdAt = Column(DateTime, nullable=True)
     lastUpdated = Column(DateTime, nullable=True)
-    
     chatActivity = relationship('ChatActivity', backref='chat', lazy='dynamic')
 
     def __init__(self, chatId, chatName, username):
@@ -73,6 +72,16 @@ class ChatActivity(Base):
     @classmethod
     def get(cls, chatId):
         chatActivity = session.query(ChatActivity).filter_by(chatId=chatId).first()
+        return chatActivity
+
+    @classmethod
+    def getOrCreate(cls, chatId):
+        chatActivity = ChatActivity.get(chatId)
+
+        if chatActivity is None:
+            ChatActivity(chatId=chatId).save()
+            chatActivity = ChatActivity.get(chatId)
+
         return chatActivity
 
     def save(self):
