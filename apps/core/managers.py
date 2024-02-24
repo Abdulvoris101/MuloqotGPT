@@ -36,18 +36,15 @@ class ChatManager:
             if int(message.chat.id) not in constants.ALLOWED_GROUPS:
                 return False
 
-        # If chat object is none (new chat) it will send event message to channel
         if chatObj is None:
             chatObj = Chat(userChat.id, userChat.full_name, userChat.username).save()
             await sendEvent(
                 f"#new\nid: {chatObj.id}\ntelegramId: {userChat.id}"
                 f"\nusername: @{userChat.username}\nname: {userChat.full_name}")
 
-        chatActivity = ChatActivity.get(userChat.id)
-        if chatActivity is None:
-            ChatActivity(userChat.id).save()
-
+        ChatActivity.getOrCreate(userChat.id)
         chatQuota = ChatQuota.get(userChat.id)
+
         if chatQuota is None:
             ChatQuota(
                 userChat.id, additionalGptRequests=0,
@@ -197,10 +194,7 @@ class MessageManager:
         chat = Chat.get(instance.chat.id)
         Chat.update(chat, "lastUpdated", datetime.now())
 
-        chatActivity = ChatActivity.get(instance.chat.id)
-        if chatActivity is None:
-            ChatActivity(chatId=instance.chat.id).save()
-            chatActivity = ChatActivity.get(instance.chat.id)
+        chatActivity = ChatActivity.getOrCreate(instance.chat.id)
 
         ChatActivity.update(chatActivity, "inputTokens",
                             chatActivity.inputTokens + countTokenOfMessage(translatedText))
@@ -257,7 +251,6 @@ class MessageManager:
         chat = session.query(Chat).order_by(desc(Chat.id)).first()
 
         messages = session.query(Message).filter_by(chatId=chat.chatId).all()
-
         listed_messages = []
 
         for message in messages:

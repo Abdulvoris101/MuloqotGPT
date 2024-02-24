@@ -32,7 +32,7 @@ sendMessageMenu.add(inlineMessage)
 sendMessageMenu.add(simpleMessage)
 
 
-def sendInlineMenu(inline_keyboards):
+def getInlineMenu(inline_keyboards):
     inlineMenu = types.InlineKeyboardMarkup(row_width=2)
 
     for kb in inline_keyboards:

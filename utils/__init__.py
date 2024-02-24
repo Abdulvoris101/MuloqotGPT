@@ -26,64 +26,48 @@ class SendAny:
     def __init__(self, message):
         self.message = message
 
-    async def sendPhoto(self, chatId, blockedUsersCount, kb=None):
-
+    async def sendPhoto(self, chatId, kb=None):
         try:
             if kb is None:
-                await bot.send_photo(chatId, self.message.photo[-1].file_id, caption=self.message.caption)
+                await bot.send_photo(chatId, self.message.photo[-1].file_id,
+                                     caption=self.message.caption)
             else:
-                await bot.send_photo(chatId, self.message.photo[-1].file_id, caption=self.message.caption,
-                                     reply_markup=kb)
-
-            return 0
-
+                await bot.send_photo(chatId, self.message.photo[-1].file_id,
+                                     caption=self.message.caption, reply_markup=kb)
         except BotBlocked:
-            blockedUsersCount = blockedUsersCount + 1
-            return blockedUsersCount
+            pass
 
-    async def sendMessage(self, chatId, blockedUsersCount, kb=None):
+    async def sendMessage(self, chatId, kb=None):
         try:
             if kb is None:
                 await bot.send_message(chatId, self.message.text)
             else:
                 await bot.send_message(chatId, self.message.text, reply_markup=kb)
-
-            return 0
         except BotBlocked:
+            pass
 
-            blockedUsersCount = blockedUsersCount + 1
-
-            return blockedUsersCount
-
-    async def sendVideo(self, chatId, blockedUsersCount, kb=None):
+    async def sendVideo(self, chatId, kb=None):
         try:
             if kb is None:
                 await bot.send_video(chatId, video=self.message.video.file_id, caption=self.message.caption)
             else:
                 await bot.send_video(chatId, video=self.message.video.file_id, caption=self.message.caption,
                                      reply_markup=kb)
-            return 0
-
         except BotBlocked:
-            blockedUsersCount = blockedUsersCount + 1
-            return blockedUsersCount
+            pass
 
-    async def sendAnimation(self, chatId, blockedUsersCount, kb=None):
+    async def sendAnimation(self, chatId, kb=None):
         try:
             if kb is None:
                 await bot.send_animation(chatId, animation=self.message.animation.file_id, caption=self.message.caption)
             else:
                 await bot.send_animation(chatId, animation=self.message.animation.file_id, caption=self.message.caption,
                                          reply_markup=kb)
-            return 0
-
         except BotBlocked:
-            blockedUsersCount = blockedUsersCount + 1
-            return blockedUsersCount
+            pass
 
 
 # Token counter
-
 def countTokens(messages):
     enc = tiktoken.get_encoding("cl100k_base")
     token_counts = [len(enc.encode(message['content'])) for message in messages]
@@ -100,12 +84,9 @@ def countTokenOfMessage(message):
 
 # Extract inline buttons
 
-def extract_inline_buttons(text):
-    # Split the input string using the found occurrences
+def extractInlineButtons(text):
     text_parts = re.split(r'\./', text)
-    # Remove the empty string at the beginning of the text_parts list
     text_parts = text_parts[1:]
-    # Remove \n from each text part in the list using map() and re.sub()
     text_parts = list(map(lambda part: re.sub(r'\n', '', part), text_parts))
 
     buttons = []
@@ -127,7 +108,9 @@ def containsAnyWord(text, word_list):
 
     return False
 
+
 def checkTokens(messages):
     if countTokens(messages) >= 500:
         return True
     return False
+

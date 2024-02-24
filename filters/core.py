@@ -53,3 +53,9 @@ def isGroupAllowed(
             return False
     return True
 
+
+def checkPassword(password):
+    if password == str(constants.PASSWORD):
+        return True
+
+    return False

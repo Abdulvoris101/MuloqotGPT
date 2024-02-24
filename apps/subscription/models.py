@@ -134,10 +134,24 @@ class ChatQuota(Base):
 
     @classmethod
     def delete(cls, chatId):
-        chatQuota = session.query(ChatQuota).filter_by(chatId=chatId).first()
+        chatQuota = cls.get(chatId)
         session.delete(chatQuota)
 
     @classmethod
     def get(cls, chatId):
         chatQuota = session.query(ChatQuota).filter_by(chatId=chatId).first()
         return chatQuota
+
+    @classmethod
+    def getOrCreate(cls, chatId):
+        chatQuota = cls.get(chatId)
+
+        if chatQuota is None:
+            ChatQuota(
+                chatId=chatId, additionalGptRequests=0,
+                additionalImageRequests=0).save()
+
+        return cls.get(chatId)
+
+
+

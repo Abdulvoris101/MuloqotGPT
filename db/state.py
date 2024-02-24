@@ -15,8 +15,9 @@ class AdminUserAddState(StatesGroup):
 class PerformIdState(StatesGroup):
     performid = State()
 
+
 class AdminSendMessage(StatesGroup):
-    type_ = State()
+    contentType = State()
     message = State()
 
 

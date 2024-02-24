@@ -59,7 +59,7 @@ class AIChatHandler:
     async def getTranslatedMessage(self):
         try:
             lang_code = detect(self.text)
-        except:
+        except :
             lang_code = "en"
 
         self.isTranslate = True if lang_code == "uz" else False
