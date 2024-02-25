@@ -151,6 +151,9 @@ Yanada ko'proq so'rov uchun premium tarifga obuna bo'ling. /premium""" if not is
 
 LIMIT_GROUP_REACHED = """Afsuski guruhning kunlik limiti tugadi. 
 So'rovlarni ko'paytirish uchun bizga donat qilib yordam berishingiz mumkin
+
+Har qanday to'lov o'tgandan so'ng biz zudlik bilan guruh uchun qo'shimcha chatgpt va rasm generatsiya so'rovlarini sotib olib sizlarga taqdim etamiz
+
 150/150
 /donate"""
 
@@ -162,8 +165,6 @@ Donat uchun karta informatsiyasi:
 
 <b>Karta raqami:</b> <code>5614 6814 0539 6510</code>
 <b>Karta egasi</b>: TULKIN XUDAYBERGANOV
-
-Har qanday to'lov o'tgandan so'ng biz zudlik bilan guruh uchun qo'shimcha chatgpt va rasm generatsiya so'rovlarini sotib olib sizlarga taqdim etamiz
 
 Savol va takliflar uchun - @texnosupportuzbot
 """
@@ -215,7 +216,6 @@ TOKEN_REACHED = "Savolni qisqartiribroq yozing"
 
 # ERRORS
 
-NOT_AVAILABLE_GROUP = """Afsuski xozirda bot @muloqotaigr va @muloqotaigen dan boshqa  guruhlarni qo'llab 
-quvatlamaydi!"""
+NOT_AVAILABLE_GROUP = """Bu guruhda rasm generatsiya qilib bo'lmaydi!"""
 IMAGE_GEN_NOT_AVAILABLE = """Bu guruhda rasm generatsiya qilib bo'lmaydi!"""
 IMAGE_GEN_ERROR = """Rasm generatsiyasi jarayonida xatolik yuz berdi. Iltimos, keyinroq urinib ko'ring."""

@@ -1,5 +1,5 @@
 from aiogram.utils.exceptions import BotBlocked
-from bot import dp
+from bot import dp, bot
 
 
 class AiogramException(Exception):
@@ -9,14 +9,14 @@ class AiogramException(Exception):
         self.original_exception = original_exception
 
 
-async def handle_custom_exception(e, message):
-    await message.reply(e.message_text)
+async def handle_custom_exception(error, event):
+    await bot.send_message(event.message.chat.id, error.message_text)
 
 
-async def on_error(event, e):
-    if isinstance(e, AiogramException):
-        await handle_custom_exception(e, event.message)
-    elif isinstance(e, BotBlocked):
+async def on_error(event, error):
+    if isinstance(error, AiogramException):
+        await handle_custom_exception(error, event)
+    elif isinstance(error, BotBlocked):
         print("Bot blocked by user")
     else:
         print(f"Unhandled exception: {type(e).__name__}, {e}")

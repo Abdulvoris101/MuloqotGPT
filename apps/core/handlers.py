@@ -4,7 +4,6 @@ from aiogram.utils.exceptions import BadRequest
 from bot import dp, bot, types
 from apps.gpt import GptRequest
 from filters.bound_filters import isBotMentioned
-from filters.permission import isGroupAllowed
 from .managers import ChatManager, MessageManager, ChatActivityManager
 from utils.translate import translateMessage, detect
 from utils import checkTokens, countTokenOfMessage, constants, containsAnyWord
@@ -19,21 +18,24 @@ import asyncio
 class AIChatHandler:
     def __init__(self, message):
         self.message = message
-        self.chatId = message.chat.id
+        self.chatId = int(message.chat.id)
         self.full_name = message.chat.full_name
         self.text = str(message.text)
 
     async def sendMessage(self, message, *args, **kwargs):
         if self.message.chat.type == "private":
-            return await self.message.answer(message, *args, **kwargs)
+            sentMessage = await bot.send_message(self.chatId, message, *args, **kwargs)
+            return sentMessage.message_id
         else:
             try:
-                return await self.message.reply(message, *args, **kwargs)
+                sentMessage = await self.message.reply(message, *args, **kwargs)
+                return sentMessage.message_id
             except BadRequest:
-                return await self.message.answer(message, *args, **kwargs)
+                sentMessage = await bot.send_message(self.chatId, message, *args, **kwargs)
+                return sentMessage.message_id
 
     async def isPermitted(self):
-        if not LimitManager.checkGptRRequestsDailyLimit(self.chatId):
+        if not LimitManager.checkRequestsDailyLimit(self.chatId, messageType="GPT"):
             if self.message.chat.type in constants.AVAILABLE_GROUP_TYPES:
                 await self.sendMessage(text.LIMIT_GROUP_REACHED)
                 return False
@@ -62,7 +64,7 @@ class AIChatHandler:
     async def getTranslatedMessage(self):
         try:
             lang_code = detect(self.text)
-        except :
+        except:
             lang_code = "en"
 
         self.isTranslate = True if lang_code == "uz" else False
@@ -76,14 +78,16 @@ class AIChatHandler:
         if not await self.isPermitted():
             return
 
-        progressMessage = await self.sendMessage(text.PROCESSING_MESSAGE)
         MessageManager.userRole(await self.getTranslatedMessage(), self.message)
 
         messages = await self.trimMessageTokens()
-        await self.message.answer_chat_action("typing")
+
+        await bot.send_chat_action(chat_id=self.chatId, action="typing")
 
         await asyncio.create_task(
-            self.sendToGpt(messages, self.chatId, progressMessage.message_id))
+            self.sendToGpt(messages=messages,
+                           chatId=self.chatId,
+                           progressMessageId=await self.sendMessage(text.PROCESSING_MESSAGE)))
 
     async def sendToGpt(self, messages, chatId, progressMessageId):
         try:
@@ -117,12 +121,12 @@ class AIChatHandler:
     not message.text.startswith("Bekor qilish"),
     message.chat.type == 'private'
 ]))
-async def handle_private_messages(message: types.Message):
-    if not isGroupAllowed(message.chat.type, message.chat.id):
-        return await message.answer(
-            text.NOT_AVAILABLE_GROUP)
+async def handlePrivateMessages(message: types.Message):
+    userChat = message.chat
+    status = await ChatManager.activate(message)
 
-    await ChatManager.activate(message)
+    if not status:
+        return await bot.send_message(userChat.id, text.NOT_AVAILABLE_GROUP)
 
     if containsAnyWord(message.text, constants.IMAGE_GENERATION_WORDS):
         return await handleArt(message)
@@ -131,23 +135,29 @@ async def handle_private_messages(message: types.Message):
 
 
 @dp.message_handler(isBotMentioned())
-async def handle_group_reply(message: types.Message):
-    if not isGroupAllowed(message.chat.type, message.chat.id):
-        return await message.answer(
-            text.NOT_AVAILABLE_GROUP)
+async def handleGroupReply(message: types.Message):
+    userChat = message.chat
+    requestType = "IMAGE" if containsAnyWord(message.text, constants.IMAGE_GENERATION_WORDS) else "GPT"
+    status = await ChatManager.activate(message, requestType=requestType)
 
-    return await AIChatHandler(message=message).handle()
+    if not status:
+        return await bot.send_message(userChat.id, text.NOT_AVAILABLE_GROUP)
+
+    if containsAnyWord(message.text, constants.IMAGE_GENERATION_WORDS):
+        return await handleArt(message)
+
+    await AIChatHandler(message=message).handle()
 
 
 @dp.message_handler(commands=['start'])
-async def send_welcome(message: types.Message):
+async def sendWelcome(message: types.Message):
     status = await ChatManager.activate(message)
     userChat = message.chat
 
     if not status:
-        return await message.answer(text.NOT_AVAILABLE_GROUP)
+        return await bot.send_message(userChat.id, text.NOT_AVAILABLE_GROUP)
 
-    await message.answer(text.getGreetingsText(message.from_user.first_name))
+    await bot.send_message(userChat.id, text.getGreetingsText(message.from_user.first_name))
 
     planId = PlanManager.getFreePlanId() if userChat.type == "private" \
         else PlanManager.getHostPlanId()
@@ -163,13 +173,13 @@ async def send_welcome(message: types.Message):
 
 @dp.message_handler(commands=['profile'])
 async def profile(message: types.Message):
-    userChat = message.chat
+    userChat = message.from_user
 
     premium = SubscriptionManager.findByChatIdAndPlanId(
-        chatId=userChat,
+        chatId=userChat.id,
         planId=PlanManager.getPremiumPlanId())
 
-    await message.answer(text.getProfileText(
+    return await message.answer(text.getProfileText(
         "Premium" if premium is not None else "Free",
         ChatActivityManager.getTodayMessages(userChat.id),
         ChatActivityManager.getTodayImages(userChat.id)
@@ -177,11 +187,11 @@ async def profile(message: types.Message):
 
 
 @dp.message_handler(commands=['help'])
-async def help_command(message: types.Message):
+async def helpCommand(message: types.Message):
     await message.answer(text.HELP_COMMAND)
 
 
 @dp.message_handler(Text(equals="Bekor qilish"), state='*')
-async def cancel_subscription(message: types.Message, state: FSMContext):
+async def cancelSubscription(message: types.Message, state: FSMContext):
     await state.finish()
     return await bot.send_message(message.chat.id, "Obuna bekor qilindi!", reply_markup=types.ReplyKeyboardRemove())

@@ -1,4 +1,7 @@
+from aiogram.utils.exceptions import BadRequest
+
 from bot import dp, bot, types
+from utils.events import sendError
 from .generate import LexicaAi
 from filters.bound_filters import IsPrivate
 from utils import text, constants
@@ -12,11 +15,7 @@ dp.filters_factory.bind(IsPrivate)
 
 
 async def isPermitted(chatId, message):
-    if chatId == constants.HOST_GROUP_ID:
-        await message.answer(text.IMAGE_GEN_NOT_AVAILABLE)
-        return False
-
-    if not LimitManager.checkImageaiRequestsDailyLimit(message.chat.id):
+    if not LimitManager.checkRequestsDailyLimit(message.chat.id, messageType="IMAGE"):
         if chatId == constants.IMAGE_GEN_GROUP_ID:
             await message.answer(text.LIMIT_GROUP_REACHED)
             return False
@@ -51,4 +50,8 @@ async def handleArt(message: types.Message):
     media_group[0].caption = f"\n🌄 {message.text}\n\n@muloqataibot"
     
     await bot.delete_message(message.chat.id, message_id=sentMessage.message_id)
-    await bot.send_media_group(message.chat.id, media=media_group)
+
+    try:
+        await bot.send_media_group(message.chat.id, media=media_group)
+    except BadRequest as e:
+        await bot.send_message(message.chat.id, "Rasm generatsiya qilishda xatolik. Iltimos boshqatan so'rov yuboring!")

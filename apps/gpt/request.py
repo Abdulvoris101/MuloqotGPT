@@ -44,21 +44,19 @@ class ResponseHandler:
 
 class GptRequest:
     url = "https://api.openai.com/v1/chat/completions"
-    config = ConfigurationManager.getFirst()
-    freeApiKeyManager = FreeApiKeyManager
-    configurationManager = ConfigurationManager
 
     def switchApiKey(self):
         try:
-            self.free_apiKey = self.freeApiKeyManager.getApiKey(self.config.apikeyPosition)
+            self.free_apiKey = FreeApiKeyManager.getApiKey(self.config.apikeyPosition)
         except IndexError:
-            number = 0 if int(self.config.apikeyPosition) + 1 >= self.freeApiKeyManager.getMaxNumber() else int(
+            number = 0 if int(self.config.apikeyPosition) + 1 >= FreeApiKeyManager.getMaxNumber() else int(
                 self.config.apikeyPosition) + 1
 
-            self.configurationManager.updatePosition(number)
+            ConfigurationManager.updatePosition(number)
 
     def __init__(self, chatId, isPremium):
         self.chatId = chatId
+        self.config = ConfigurationManager.getFirst()
         self.isPremium = isPremium
         self.free_apiKey = None
         self.frequency_penalty = 1.5 if isPremium else 1
@@ -68,8 +66,8 @@ class GptRequest:
     async def requestGpt(self, messages):
         try:
             async with aiohttp.ClientSession(cookie_jar=aiohttp.CookieJar(unsafe=True)) as session:
-                freeApiKeyManager = self.freeApiKeyManager
-                configurationManager = self.configurationManager
+                freeApiKeyManager = FreeApiKeyManager
+                configurationManager = ConfigurationManager
 
                 freeApiKeyManager.increaseRequest(self.free_apiKey.id)
                 freeApiKeyManager.checkAndExpireKey(self.free_apiKey.id)
@@ -98,7 +96,6 @@ class GptRequest:
 
                 response_data = json.loads(response_data)
 
-                # Handle the response using your CleanResponse and handleResponse logic
                 response = ResponseHandler(response_data, status, self.chatId)
                 response = await response.getMessage()
 

@@ -8,32 +8,6 @@ from aiogram.dispatcher.filters import Text
 from apps.subscription.managers import SubscriptionManager, PlanManager
 
 
-@dp.callback_query_handler(text="subscribe_premium")
-async def buyPremium(message: types.Message):
-    user = message.from_user
-    premiumPlan = PlanManager.getPremiumPlanOrCreate()
-
-    notPaidSubscription = SubscriptionManager.getNotPaidPremiumSubscription(
-        user.id, premiumPlan.id)
-    payedSubscription = SubscriptionManager.getPremiumSubscription(
-        user.id, premiumPlan.id)
-    
-    if notPaidSubscription is not None:
-        await message.answer("Sizning premium obunaga so'rovingiz ko'rib chiqilmoqda")
-        return
-    if payedSubscription is not None:
-        await message.answer("Siz allaqachon premium obunaga egasiz")
-        return
-    
-    await message.answer("Sotib olish")
-    await bot.send_message(
-        message.from_user.id,
-        text.subscriptionInvoiceText(int(constants.PREMIUM_PRICE)),
-        reply_markup=checkPaymentMenu)
-
-    await PaymentState.first_step.set()
-
-
 @dp.message_handler(commands=["premium"])
 async def premium(message: types.Message):
     if message.chat.type == "private":
@@ -44,8 +18,34 @@ async def premium(message: types.Message):
         )
 
 
+@dp.callback_query_handler(text="subscribe_premium")
+async def buyPremium(message: types.Message):
+    user = message.from_user
+    premiumPlanId = PlanManager.getPremiumPlanId()
+
+    notPaidSubscription = SubscriptionManager.getUnpaidPremiumSubscription(
+        user.id, premiumPlanId)
+    payedSubscription = SubscriptionManager.getPremiumSubscription(
+        user.id, premiumPlanId)
+
+    if notPaidSubscription is not None:
+        await message.answer("Sizning premium obunaga so'rovingiz ko'rib chiqilmoqda")
+        return
+    if payedSubscription is not None:
+        await message.answer("Siz allaqachon premium obunaga egasiz")
+        return
+
+    # await message.answer("Sotib olish")
+    await bot.send_message(
+        message.from_user.id,
+        text.subscriptionInvoiceText(int(constants.PREMIUM_PRICE)),
+        reply_markup=checkPaymentMenu)
+
+    await PaymentState.first_step.set()
+
+
 @dp.message_handler(Text(equals="Skrinshotni yuborish"), state=PaymentState.first_step)
-async def topUpBalance(message: types.Message, state=FSMContext):
+async def checkThePayment(message: types.Message, state=FSMContext):
     async with state.proxy() as data:
         data["price"] = constants.PREMIUM_PRICE
         
@@ -58,16 +58,11 @@ async def topUpBalance(message: types.Message, state=FSMContext):
 
 
 @dp.message_handler(state=PaymentState.second_step, content_types=types.ContentTypes.PHOTO)
-async def subscriptionCreate(message: types.Message, state=FSMContext):
+async def createSubscription(message: types.Message, state=FSMContext):
     async with state.proxy() as data:
         price = data["price"]
         
     photoFileId = message.photo[-1].file_id
-
-    SubscriptionManager.unsubscribe(
-        planId=PlanManager.getFreePlanOrCreate().id,
-        chatId=message.from_user.id
-    )
 
     subscription = SubscriptionManager.createSubscription(
         planId=PlanManager.getPremiumPlanOrCreate().id,

@@ -2,6 +2,7 @@ from .models import Chat, Message, ChatActivity
 from utils import countTokenOfMessage, constants
 from utils.translate import skipCodeTranslation
 from utils.events import sendEvent
+from filters.permission import isGroupAllowed
 from db.setup import session
 from db.proccessors import MessageProcessor
 from sqlalchemy import cast, String, func, desc, and_
@@ -28,14 +29,13 @@ class ChatManager:
         return session.query(Chat).count()
 
     @classmethod
-    async def activate(cls, message):
+    async def activate(cls, message, requestType="GPT"):
         userChat = message.chat
         chatType = userChat.type
         chatObj = Chat.get(userChat.id)
 
-        if chatType in constants.AVAILABLE_GROUP_TYPES:
-            if int(message.chat.id) not in constants.ALLOWED_GROUPS:
-                return False
+        if not isGroupAllowed(chatType, userChat.id, requestType):
+            return False
 
         if chatObj is None:
             chatObj = Chat(userChat.id, userChat.full_name, userChat.username).save()
@@ -44,14 +44,10 @@ class ChatManager:
                 f"\nusername: @{userChat.username}\nname: {userChat.full_name}")
 
         ChatActivity.getOrCreate(userChat.id)
-        chatQuota = ChatQuota.get(userChat.id)
-
-        if chatQuota is None:
-            ChatQuota(
-                userChat.id, additionalGptRequests=0,
-                additionalImageRequests=0).save()
+        ChatQuota.getOrCreate(userChat.id)
 
         MessageProcessor.createSystemMessages(userChat.id, userChat.type)
+
         session.commit()
 
         return True
@@ -98,7 +94,7 @@ class ChatActivityManager:
     @staticmethod
     def getTodayMessages(chatId):
         chatActivity = session.query(ChatActivity).filter_by(chatId=chatId).first()
-        return 1 if chatActivity is None else chatActivity.todaysImages
+        return 1 if chatActivity is None else chatActivity.todaysMessages
 
     @staticmethod
     def getTodayImages(chatId):
@@ -206,8 +202,7 @@ class MessageManager:
 
     @classmethod
     def assistantRole(cls, message, instance, is_translate):
-        translated_message = skipCodeTranslation(message, instance.chat.id,
-                                                 is_translate)  # returns uz text
+        translated_message = skipCodeTranslation(message, is_translate)
 
         cls.saveMessage(instance.chat.id, "assistant", message, translated_message)
 

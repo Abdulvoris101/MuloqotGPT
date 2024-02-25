@@ -33,6 +33,8 @@ async def admin(message: types.Message):
     await AdminLoginState.password.set()
     return await message.answer("Parolni kiriting!")
 
+# todo: test this
+
 
 @dp.message_handler(state=AdminLoginState.password)
 async def passwordHandler(message: types.Message, state=FSMContext):
@@ -54,7 +56,7 @@ async def sendRuleMessage(message: types.Message):
     await AdminSystemMessageState.message.set()
     return await message.answer(
         "Qoidani faqat ingliz yoki rus tilida kiriting!", reply_markup=cancelKeyboards)
-    
+
 
 @dp.message_handler(IsAdmin(), state=AdminSystemMessageState.message)
 async def addRule(message: types.Message, state=FSMContext):
@@ -95,10 +97,10 @@ async def topUpSetChatId(message: types.Message, state=FSMContext):
     async with state.proxy() as data:
         data['chatId'] = message.text
 
-    premium_subscription = SubscriptionManager.getNotPaidPremiumSubscription(
+    unPaidPremiumSubscription = SubscriptionManager.getUnpaidPremiumSubscription(
         chatId=message.text, planId=PlanManager.getPremiumPlanOrCreate().id)
     
-    if premium_subscription is None:
+    if not unPaidPremiumSubscription:
         await state.finish()
         return await message.answer("Foydalanuvchiga premium obuna taqdim etib bo'lmaydi!")
     
@@ -122,7 +124,7 @@ async def subscribeUser(message: types.Message, state=FSMContext):
         chatId=chatId
     )
     
-    chatActivity = ChatActivity.get(chatId=chatId)
+    chatActivity = ChatActivity.getOrCreate(chatId=chatId)
     ChatActivity.update(chatActivity, "todaysMessages", 20 - chatActivity.todaysMessages)
 
     SubscriptionManager.subscribe(
@@ -167,6 +169,8 @@ async def rejectReason(message: types.Message, state=FSMContext):
 
 
 # Send Message command
+
+# todo: test this section
 
 @dp.message_handler(IsAdmin(), Text(equals="📤 Xabar yuborish.!"))
 async def sendMessageToUsers(message: types.Message):

@@ -106,9 +106,6 @@ class PlanManager:
 
 
 class SubscriptionManager:
-    premiumPlan = PlanManager.getPremiumPlanOrCreate()
-    hostGroupPlan = PlanManager.getHostGroupPlanOrCreate()
-    freePlan = PlanManager.getFreePlanOrCreate()
     currentPeriodEnd = datetime.datetime.now() + datetime.timedelta(days=30)
 
     @classmethod
@@ -230,7 +227,7 @@ class SubscriptionManager:
         subscriptions = session.query(Subscription).filter(
             Subscription.is_paid is True,
             Subscription.isCanceled is False,
-            Subscription.planId == cls.premiumPlan.id,
+            Subscription.planId == PlanManager.getPremiumPlanId(),
             Subscription.currentPeriodEnd < datetime.datetime.now()
         ).all()
 
@@ -247,10 +244,10 @@ class SubscriptionManager:
     @classmethod
     def isPremiumToken(cls, chatId):
         subscription = cls.getPremiumSubscription(chatId=chatId,
-                                                  planId=cls.premiumPlan.id)
+                                                  planId=PlanManager.getPremiumPlanId())
 
         group_subscription = cls.getHostGroupSubscription(chatId=chatId,
-                                                          planId=cls.hostGroupPlan.id)
+                                                          planId=PlanManager.getHostPlanId())
 
         users_used_requests = ChatActivityManager.getAllMessagesCount(chatId)
 
@@ -267,7 +264,7 @@ class SubscriptionManager:
     def rejectPremiumRequest(cls, chatId):
         subscription = cls.getInActivePremiumSubscription(
             chatId=chatId,
-            planId=cls.premiumPlan.id
+            planId=PlanManager.getPremiumPlanId()
         )
 
         if subscription is None:
@@ -283,7 +280,7 @@ class SubscriptionManager:
     @classmethod
     def getUsersFreeInactiveSubscription(cls, chatId):
         return session.query(Subscription).filter_by(
-            chatId=chatId, planId=cls.freePlan.id, is_paid=False, isCanceled=True).first()
+            chatId=chatId, planId=PlanManager.getFreePlanId(), is_paid=False, isCanceled=True).first()
 
     @staticmethod
     def findByChatIdAndPlanId(
@@ -293,7 +290,7 @@ class SubscriptionManager:
         return session.query(Subscription).filter_by(chatId=chatId, planId=planId).first()
 
     @staticmethod
-    def getNotPaidPremiumSubscription(
+    def getUnpaidPremiumSubscription(
             chatId,
             planId
     ):
@@ -332,131 +329,60 @@ class SubscriptionManager:
 
     @classmethod
     def getPremiumUsersCount(cls):
-        return session.query(Subscription).filter_by(planId=cls.premiumPlan.id,
+        return session.query(Subscription).filter_by(planId=PlanManager.getPremiumPlanId(),
                                                      isCanceled=False, is_paid=True).count()
+
+    @classmethod
+    def getUserActiveSubscription(cls, chatId):
+        userActiveSubscription = session.query(Subscription).filter_by(
+            chatId=chatId, is_paid=True, isCanceled=False).first()
+
+        return userActiveSubscription
 
 
 class LimitManager:
-    premiumPlan = PlanManager.getPremiumPlanOrCreate()
-    hostGroupPlan = PlanManager.getHostGroupPlanOrCreate()
-    freePlan = PlanManager.getFreePlanOrCreate()
+    @classmethod
+    def getUsedRequests(cls, chatId, messageType):
+        if messageType == "GPT":
+            return ChatActivityManager.getTodayMessages(chatId)
+        elif messageType == "IMAGE":
+            return ChatActivityManager.getTodayImages(chatId)
 
     @classmethod
-    def checkGptRRequestsDailyLimit(cls, chatId):
-        chatPlanLimit = cls.getDailyGptLimitOfUser(chatId)
-        chatUsedRequests = ChatActivityManager.getTodayMessages(chatId)
-        chatQuota = ChatQuota.getOrCreate(chatId)
-        chatRecord = Chat.get(chatId)
-
-        if chatPlanLimit > chatUsedRequests:
-            return True
-        elif chatQuota.additionalGptRequests > 1:
-            if chatRecord is not None:
-                ChatQuota.update(chatQuota, "additionalGptRequests", chatQuota.additionalGptRequests - 1)
-            return True
-
-        return False
-
-    @classmethod
-    def checkImageaiRequestsDailyLimit(cls, chatId):
-        chatPlanLimit = cls.getDailyImageAiLimitOfUser(chatId)
-        chatUsedRequests = ChatActivityManager.getTodayImages(chatId)
+    def checkRequestsDailyLimit(cls, chatId, messageType):
+        chatPlanLimit = cls.getDailyGptLimitOfUser(chatId, messageType)
+        chatUsedRequests = cls.getUsedRequests(chatId, messageType)
         chatQuota = ChatQuota.getOrCreate(chatId)
 
         if chatPlanLimit > chatUsedRequests:
             return True
 
-        elif chatQuota.additionalImageRequests > chatUsedRequests:
+        elif chatQuota.additionalGptRequests >= 1 and messageType == "GPT":
+            ChatQuota.update(chatQuota, "additionalGptRequests",
+                             chatQuota.additionalGptRequests - 1)
+            return True
+
+        elif chatQuota.additionalImageRequests >= 1 and messageType == "IMAGE":
             ChatQuota.update(chatQuota, "additionalImageRequests",
                              chatQuota.additionalImageRequests - 1)
+
             return True
 
         return False
-
-    @classmethod
-    def dailyLimitOfUser(cls):
-        cls.premiumSubscription = session.query(Subscription).filter_by(
-            chatId=cls.chatId, planId=cls.premiumPlan.id, is_paid=True, isCanceled=False).first()
-
-        cls.freeSubscription = session.query(Subscription).filter_by(
-            chatId=cls.chatId, planId=cls.freePlan.id, is_paid=True, isCanceled=False).first()
-
-        cls.hostGroupSubscription = session.query(Subscription).filter_by(
-            chatId=cls.chatId, planId=cls.hostGroupPlan.id, is_paid=True, isCanceled=False).first()
 
     @classmethod
     def getDailyGptLimitOfUser(
             cls,
-            chatId
+            chatId,
+            messageType
     ):
-        cls.chatId = int(chatId)
+        userSubscription = SubscriptionManager.getUserActiveSubscription(chatId=chatId)
+        userPlan = PlanManager.get(userSubscription.planId)
 
-        cls.dailyLimitOfUser()
-
-        if cls.premiumSubscription is not None:
-            return int(cls.premiumPlan.monthlyLimitedGptRequests) / 30  # get daily limit requests
-        elif cls.freeSubscription is not None:
-            return int(cls.freePlan.monthlyLimitedGptRequests) / 30
-        elif cls.hostGroupSubscription is not None:
-            return int(cls.hostGroupPlan.monthlyLimitedGptRequests) / 30
-
-        elif chatId == constants.HOST_GROUP_ID and cls.hostGroupSubscription is None:
-            SubscriptionManager.createSubscription(
-                planId=cls.hostGroupPlan.id,
-                chatId=chatId,
-                cardholder="ABDUVORIS ERKINOV",
-                is_paid=True,
-                isFree=False
-            )
-            return int(cls.hostGroupPlan.monthlyLimitedGptRequests) / 30
-
-        else:
-            SubscriptionManager.createSubscription(
-                planId=cls.freePlan.id,
-                chatId=chatId,
-                cardholder=None,
-                is_paid=True,
-                isFree=True
-            )
-
-            return int(cls.freePlan.monthlyLimitedGptRequests) / 30
-
-    @classmethod
-    def getDailyImageAiLimitOfUser(
-            cls,
-            chatId
-    ):
-        cls.chatId = chatId
-
-        cls.dailyLimitOfUser()
-
-        if cls.premiumSubscription is not None:
-            return int(cls.premiumPlan.monthlyLimitedImageRequests) / 30  # get daily limit requests
-        elif cls.freeSubscription is not None:
-            return int(cls.freePlan.monthlyLimitedImageRequests) / 30
-
-        elif cls.hostGroupSubscription is not None:
-            return int(cls.host_group_plan.monthlyLimitedGptRequests) / 30
-
-        elif chatId == constants.HOST_GROUP_ID and cls.hostGroupSubscription is None:
-            SubscriptionManager.createSubscription(
-                planId=cls.hostGroupPlan.id,
-                chatId=chatId,
-                cardholder="ABDUVORIS ERKINOV",
-                is_paid=True,
-                isFree=False
-            )
-            return int(cls.hostGroupPlan.monthlyLimitedGptRequests) / 30
-        else:
-            SubscriptionManager.createSubscription(
-                planId=cls.freePlan.id,
-                chatId=chatId,
-                cardholder=None,
-                is_paid=True,
-                isFree=True
-            )
-
-            return int(cls.freePlan.monthlyLimitedImageRequests) / 30
+        if messageType == "GPT":
+            return int(userPlan.monthlyLimitedGptRequests) / 30
+        elif messageType == "IMAGE":
+            return int(userPlan.monthlyLimitedImageRequests) / 30
 
 
 class FreeApiKeyManager:

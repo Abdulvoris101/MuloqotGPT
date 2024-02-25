@@ -3,7 +3,6 @@ from aiogram import types
 from utils import constants
 from aiogram.dispatcher.dispatcher import Dispatcher, Bot
 import uvicorn
-
 from apps.core.handlers import dp
 from apps.admin.handlers import dp
 from bot import dp, bot
