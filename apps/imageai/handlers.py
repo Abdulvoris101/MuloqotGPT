@@ -1,6 +1,6 @@
 from bot import dp, bot, types
 from .generate import LexicaAi
-from filters.core import IsPrivate
+from filters.bound_filters import IsPrivate
 from utils import text, constants
 from utils.translate import translateMessage
 from apps.subscription.managers import LimitManager

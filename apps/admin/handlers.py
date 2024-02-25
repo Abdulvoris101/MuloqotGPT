@@ -1,16 +1,18 @@
 from aiogram.dispatcher import FSMContext
 from bot import dp, types, bot
 from db.state import AdminLoginState, AdminSystemMessageState, SendMessageWithInlineState,  AdminSendMessage, TopupState, RejectState
+from utils.message import fetchUsersByType, sendAnyMessages
 from .models import Admin
 from apps.core.managers import ChatManager, MessageManager, ChatActivityManager
 from apps.core.models import ChatActivity, Message
 from .keyboards import adminKeyboards, cancelKeyboards, sendMessageMenu, getInlineMenu
 from aiogram.dispatcher.filters import Text
-from utils import SendAny, extractInlineButtons, constants, text, sendError
-from filters.core import IsAdmin, checkPassword
+from utils import extractInlineButtons, text
+from utils.events import sendError
+from filters.bound_filters import IsAdmin
+from filters.permission import checkPassword
 from apps.subscription.managers import SubscriptionManager, PlanManager
 from aiogram.utils.exceptions import BotBlocked
-import asyncio
 
 
 @dp.message_handler(commands=["cancel"], state='*')
@@ -33,8 +35,9 @@ async def admin(message: types.Message):
 
 
 @dp.message_handler(state=AdminLoginState.password)
-async def password_handler(message: types.Message, state=FSMContext):
+async def passwordHandler(message: types.Message, state=FSMContext):
     user = message.from_user
+
     async with state.proxy() as data:
         data['password'] = message.text
 
@@ -80,14 +83,7 @@ async def getStatistics(message: types.Message):
     ))
 
 
-@dp.message_handler(IsAdmin(), Text(equals="📤 Xabar yuborish.!"))
-async def sendMessageToUsers(message: types.Message):
-    return await message.answer(
-        "Xabar turini kiriting", reply_markup=sendMessageMenu)
-
-
-# Subscribe user
-
+# Subscription handlers
 @dp.message_handler(IsAdmin(), Text(equals="🎁 Premium obuna.!"))
 async def giveSubscription(message: types.Message):
     await TopupState.chatId.set()
@@ -132,7 +128,7 @@ async def subscribeUser(message: types.Message, state=FSMContext):
     SubscriptionManager.subscribe(
         chatId=chatId, planId=PlanManager.getPremiumPlanOrCreate().id)
     
-    await bot.send_message(chatId, text.PREMIUM_GAVE)
+    await bot.send_message(chatId, text.PREMIUM_GRANTED_TEXT)
     
     await state.finish()
     return await message.answer("Ushbu foydalanuvchi premium obunaga ega bo'ldi 🎉", reply_markup=adminKeyboards)
@@ -170,56 +166,27 @@ async def rejectReason(message: types.Message, state=FSMContext):
     return await message.answer("Premium obuna rad etildi", reply_markup=adminKeyboards)
 
 
-# Callback with and without inline
+# Send Message command
+
+@dp.message_handler(IsAdmin(), Text(equals="📤 Xabar yuborish.!"))
+async def sendMessageToUsers(message: types.Message):
+    return await message.answer(
+        "Xabar turini kiriting", reply_markup=sendMessageMenu)
+
+
+""" Handling the send message command"""
+
+
+# Handlers of send message with inline buttons
 @dp.callback_query_handler(text="without_inline")
-async def checkIsSubscribed(message: types.Message):
-    await AdminSendMessage.contentType.set()
+async def setUserTypeToSend(message: types.Message):
+    await AdminSendMessage.userType.set()
     await bot.send_message(message.from_user.id, "Kimlarga yuborishni tanlang, FREE/ALL")
     return await message.answer("Kimlarga yuborishni tanlang, FREE/ALL")
 
 
-#  todo: extract method to another file
-
-def fetchUsersByType(contentType):
-    if contentType == "FREE":
-        users = PlanManager.getFreePlanUsers()
-    elif contentType == "ALL":
-        users = ChatManager.all()
-    else:
-        return False
-
-    return users
-
-
-async def sendAnyMessages(users, message, inlineKeyboards=None):
-    sendAny = SendAny(message)
-
-    async def process_user(user):
-        try:
-            contentTypeHandlers = {
-                "text": sendAny.sendMessage,
-                "photo": sendAny.sendPhoto,
-                "video": sendAny.sendVideo,
-                "animation": sendAny.sendAnimation
-            }
-
-            content_type = message.content_type
-            handler = contentTypeHandlers.get(content_type)
-
-            if handler:
-                await handler(chatId=user.chatId, kb=inlineKeyboards)
-
-        except Exception as e:
-            return 0
-
-    tasks = [process_user(user) for user in users]
-    blockedUsersCount = await asyncio.gather(*tasks)
-
-    return blockedUsersCount
-
-
-@dp.message_handler(state=AdminSendMessage.contentType)
-async def setContentType(message: types.Message, state=FSMContext):
+@dp.message_handler(state=AdminSendMessage.userType)
+async def setMessage(message: types.Message, state=FSMContext):
     async with state.proxy() as data:
         data["contentType"] = message.text
 
@@ -246,17 +213,9 @@ async def sendToUsersMessage(message: types.Message, state=FSMContext):
     return await message.answer("Xabar yuborildi!")
 
 
-# With inline buttons set
-@dp.message_handler(state=SendMessageWithInlineState.buttons)
-async def setButtons(message: types.Message, state=FSMContext):
-    async with state.proxy() as data:
-        data["buttons"] = message.text
-    
-    await SendMessageWithInlineState.next()
-    return await message.answer("Xabar/Rasm/Video kiriting")
+""" Send message with inline buttons handlers """
 
 
-# Callback the inline button
 @dp.callback_query_handler(text="with_inline")
 async def checkIsSubscribed_Inline(message: types.Message):
     await SendMessageWithInlineState.buttons.set()
@@ -266,7 +225,16 @@ async def checkIsSubscribed_Inline(message: types.Message):
     return await message.answer("Inline")
 
 
-# Send message with inline buttons
+# Set inline buttons
+@dp.message_handler(state=SendMessageWithInlineState.buttons)
+async def setButtons(message: types.Message, state=FSMContext):
+    async with state.proxy() as data:
+        data["buttons"] = message.text
+
+    await SendMessageWithInlineState.next()
+    return await message.answer("Xabar/Rasm/Video kiriting")
+
+
 @dp.message_handler(state=SendMessageWithInlineState.message, content_types=types.ContentType.ANY)
 async def sendMessageWithInline(message: types.Message, state=FSMContext):
     async with state.proxy() as data:

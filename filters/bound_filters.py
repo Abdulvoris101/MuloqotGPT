@@ -1,6 +1,6 @@
 from aiogram.dispatcher.filters import BoundFilter
 from aiogram import types
-from utils import containsAnyWord, constants
+from utils import containsAnyWord
 from apps.admin.models import Admin
 
 
@@ -41,21 +41,5 @@ class IsReplyFilter(BoundFilter):
             if message.reply_to_message.from_user.is_bot:
                 return True
 
-        return  str(message.text).lower().startswith("muloqotai") or str(message.text).lower().startswith("@muloqataibot")
+        return str(message.text).lower().startswith("muloqotai") or str(message.text).lower().startswith("@muloqataibot")
 
-
-def isGroupAllowed(
-    chatType,
-    chatId
-):
-    if chatType in constants.AVAILABLE_GROUP_TYPES:
-        if int(chatId) not in constants.ALLOWED_GROUPS:
-            return False
-    return True
-
-
-def checkPassword(password):
-    if password == str(constants.PASSWORD):
-        return True
-
-    return False

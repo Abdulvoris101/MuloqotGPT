@@ -3,7 +3,8 @@ from aiogram.dispatcher.filters import Text
 from aiogram.utils.exceptions import BadRequest
 from bot import dp, bot, types
 from apps.gpt import GptRequest
-from filters.core import isBotMentioned, isGroupAllowed
+from filters.bound_filters import isBotMentioned
+from filters.permission import isGroupAllowed
 from .managers import ChatManager, MessageManager, ChatActivityManager
 from utils.translate import translateMessage, detect
 from utils import checkTokens, countTokenOfMessage, constants, containsAnyWord
@@ -11,6 +12,8 @@ from apps.subscription.managers import SubscriptionManager, PlanManager, LimitMa
 from apps.imageai.handlers import handleArt
 import utils.text as text
 import asyncio
+
+# todo: check each handler
 
 
 class AIChatHandler:

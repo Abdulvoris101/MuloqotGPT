@@ -1,6 +1,7 @@
 from .models import Chat, Message, ChatActivity
-from utils import sendEvent, countTokenOfMessage, constants
+from utils import countTokenOfMessage, constants
 from utils.translate import skipCodeTranslation
+from utils.events import sendEvent
 from db.setup import session
 from db.proccessors import MessageProcessor
 from sqlalchemy import cast, String, func, desc, and_

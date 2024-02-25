@@ -1,10 +1,10 @@
+from aiogram.dispatcher.dispatcher import FSMContext
 from bot import dp, bot, types
 from utils import text, constants
+from utils.events import sendSubscriptionEvent
 from db.state import PaymentState
-from aiogram.dispatcher.dispatcher import FSMContext
 from .keyboards import checkPaymentMenu, cancelMenu, buySubscriptionMenu
 from aiogram.dispatcher.filters import Text
-from utils import sendSubscriptionEvent
 from apps.subscription.managers import SubscriptionManager, PlanManager
 
 
@@ -28,7 +28,7 @@ async def buyPremium(message: types.Message):
     await message.answer("Sotib olish")
     await bot.send_message(
         message.from_user.id,
-        text.buy_text(int(constants.PREMIUM_PRICE)), 
+        text.subscriptionInvoiceText(int(constants.PREMIUM_PRICE)),
         reply_markup=checkPaymentMenu)
 
     await PaymentState.first_step.set()
@@ -39,7 +39,7 @@ async def premium(message: types.Message):
     if message.chat.type == "private":
         await bot.send_message(
             message.chat.id, 
-            text.PLAN_TEXT,
+            text.PLAN_DESCRIPTION_TEXT,
             reply_markup=buySubscriptionMenu
         )
 
@@ -52,7 +52,7 @@ async def topUpBalance(message: types.Message, state=FSMContext):
     sentMessage = await message.answer("Biroz kuting...")
 
     await bot.delete_message(message.chat.id, sentMessage.message_id)
-    await message.answer(text.PAYMENT_STEP1, reply_markup=cancelMenu)
+    await message.answer(text.PAYMENT_STEP_1, reply_markup=cancelMenu)
 
     await PaymentState.next()
 
@@ -80,7 +80,7 @@ async def subscriptionCreate(message: types.Message, state=FSMContext):
     await sendSubscriptionEvent(f"""#payment check-in\nchatId: {message.from_user.id},\nsubscription_id: {subscription.id},\nfile id: {photoFileId},\nprice: {price}""")
 
     await bot.send_photo(constants.SUBSCRIPTION_CHANNEL_ID, photoFileId)
-    await message.answer(text.PAYMENT_STEP2, reply_markup=types.ReplyKeyboardRemove())
+    await message.answer(text.PAYMENT_STEP_2, reply_markup=types.ReplyKeyboardRemove())
     
     await state.finish()
 

@@ -1,6 +1,7 @@
 from apps.core.managers import ChatActivityManager
 from apps.subscription.managers import FreeApiKeyManager, ConfigurationManager
-from utils import sendError, constants
+from utils import constants
+from utils.events import sendError
 from utils.exception import AiogramException
 import json
 import aiohttp
