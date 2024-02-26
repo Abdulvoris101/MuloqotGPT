@@ -1,3 +1,4 @@
+from utils.exception import AiogramException
 from .models import Subscription, Plan, FreeApiKey, Configuration, ChatQuota
 import datetime
 from db.setup import session
@@ -87,8 +88,8 @@ class PlanManager:
         free_plan = PlanManager.getFreePlanOrCreate()
         
         free_subscription_users = session.query(Subscription).filter(
-            Subscription.planId == free_plan.id, Subscription.is_paid is True,
-            Subscription.isCanceled is False).all()
+            Subscription.planId == free_plan.id, Subscription.is_paid == True,
+            Subscription.isCanceled == False).all()
         
         return free_subscription_users
 

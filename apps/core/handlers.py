@@ -176,15 +176,17 @@ async def sendWelcome(message: types.Message):
 async def profile(message: types.Message):
     userChat = message.from_user
 
-    premium = SubscriptionManager.findByChatIdAndPlanId(
+    premium = SubscriptionManager.getPremiumSubscription(
         chatId=userChat.id,
         planId=PlanManager.getPremiumPlanId())
-
-    return await message.answer(text.getProfileText(
-        "Premium" if premium is not None else "Free",
-        ChatActivityManager.getTodayMessages(userChat.id),
-        ChatActivityManager.getTodayImages(userChat.id)
-    ))
+    try:
+        return await message.answer(text.getProfileText(
+            "Premium" if premium is not None else "Free",
+            ChatActivityManager.getTodayMessages(userChat.id),
+            ChatActivityManager.getTodayImages(userChat.id)
+        ))
+    except BadRequest:
+        print("Bot blocked")
 
 
 @dp.message_handler(commands=['help'])
