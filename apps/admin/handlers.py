@@ -33,7 +33,6 @@ async def admin(message: types.Message):
     await AdminLoginState.password.set()
     return await message.answer("Parolni kiriting!")
 
-# todo: test this
 
 
 @dp.message_handler(state=AdminLoginState.password)
@@ -209,7 +208,7 @@ async def sendToUsersMessage(message: types.Message, state=FSMContext):
         await state.finish()
         return await message.answer("Bekor qilindi!", reply_markup=adminKeyboards)
 
-    blockedUsersCount = sendAnyMessages(users, message)
+    blockedUsersCount = await sendAnyMessages(users, message)
 
     await sendError(f"Bot was blocked by {blockedUsersCount} users")
     await state.finish()

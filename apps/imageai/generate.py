@@ -28,19 +28,20 @@ class LexicaAi:
                 async with session.post(
                         cls.url,
                         json=cls.getBody(prompt),
-                        timeout=aiohttp.ClientTimeout(total=30)) as resp:
+                        timeout=aiohttp.ClientTimeout(total=15)) as resp:
 
                     resp.raise_for_status()
                     images = [f"{cls.images_url}/{ids['id']}"
                               for ids in (await resp.json())["images"]]
 
         except asyncio.TimeoutError as e:
-            raise AiogramException(user_id=userId,
-                                   message_text=text.IMAGE_GEN_ERROR)
+            raise AiogramException(userId=userId, message_text=text.IMAGE_GEN_ERROR)
+
+        except aiohttp.client.ClientResponseError as e:
+            raise AiogramException(userId=userId, message_text=text.IMAGE_GEN_ERROR)
 
         except Exception as e:
-            raise AiogramException(user_id=userId,
-                                   message_text=text.IMAGE_GEN_ERROR, original_exception=e)
+            raise AiogramException(userId=userId, message_text=text.IMAGE_GEN_ERROR)
 
         return images
 

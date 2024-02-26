@@ -4,6 +4,7 @@ from aiogram.utils.exceptions import BadRequest
 from bot import dp, bot, types
 from apps.gpt import GptRequest
 from filters.bound_filters import isBotMentioned
+from utils.exception import AiogramException
 from .managers import ChatManager, MessageManager, ChatActivityManager
 from utils.translate import translateMessage, detect
 from utils import checkTokens, countTokenOfMessage, constants, containsAnyWord
@@ -94,19 +95,19 @@ class AIChatHandler:
             gptRequest = GptRequest(chatId,
                                     SubscriptionManager.isPremiumToken(chatId=chatId))
 
-            response = await gptRequest.requestGpt(messages)
+            try:
+                response = await gptRequest.requestGpt(messages)
+            except AiogramException as e:
+                await bot.delete_message(chatId, progressMessageId)
+                await self.sendMessage(e.message_text, disable_web_page_preview=True,
+                                       parse_mode=types.ParseMode.MARKDOWN)
+                return
+
             translatedResponse = MessageManager.assistantRole(message=response, instance=self.message,
                                                               is_translate=self.isTranslate)
-
             await bot.delete_message(chatId, progressMessageId)
-
-            try:
-                # Send the AI response to the user
-                await self.sendMessage(str(translatedResponse), disable_web_page_preview=True,
-                                       parse_mode=types.ParseMode.MARKDOWN)
-            except Exception as e:
-                await self.sendMessage(text.ENTER_AGAIN, disable_web_page_preview=True,
-                                       parse_mode=types.ParseMode.MARKDOWN)
+            await self.sendMessage(str(translatedResponse), disable_web_page_preview=True,
+                                   parse_mode=types.ParseMode.MARKDOWN)
 
         except Exception as e:
             print("Exception proccess", e)

@@ -2,6 +2,7 @@ from aiogram.utils.exceptions import BadRequest
 
 from bot import dp, bot, types
 from utils.events import sendError
+from utils.exception import AiogramException
 from .generate import LexicaAi
 from filters.bound_filters import IsPrivate
 from utils import text, constants
@@ -40,7 +41,13 @@ async def handleArt(message: types.Message):
     sentMessage = await bot.send_message(message.chat.id, "⏳")
     await message.answer_chat_action("typing")
 
-    images = await LexicaAi.generate(message.chat.id, query)
+    try:
+        images = await LexicaAi.generate(message.chat.id, query)
+    except AiogramException as e:
+        await bot.delete_message(userChat.id, message_id=sentMessage.message_id)
+        await bot.send_message(userChat.id, e.message_text)
+        return
+
     images = LexicaAi.getRandomImages(images, 6)
 
     chatActivity = ChatActivity.getOrCreate(message.chat.id)
@@ -49,9 +56,9 @@ async def handleArt(message: types.Message):
     media_group = [types.InputMediaPhoto(media=url) for url in images]
     media_group[0].caption = f"\n🌄 {message.text}\n\n@muloqataibot"
     
-    await bot.delete_message(message.chat.id, message_id=sentMessage.message_id)
+    await bot.delete_message(userChat.id, message_id=sentMessage.message_id)
 
     try:
-        await bot.send_media_group(message.chat.id, media=media_group)
+        await bot.send_media_group(userChat.id, media=media_group)
     except BadRequest as e:
-        await bot.send_message(message.chat.id, "Rasm generatsiya qilishda xatolik. Iltimos boshqatan so'rov yuboring!")
+        await bot.send_message(userChat.id, "Rasm generatsiya qilishda xatolik. Iltimos boshqatan so'rov yuboring!")

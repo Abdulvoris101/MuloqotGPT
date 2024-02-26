@@ -6,7 +6,7 @@ from filters.permission import isGroupAllowed
 from db.setup import session
 from db.proccessors import MessageProcessor
 from sqlalchemy import cast, String, func, desc, and_
-from datetime import datetime
+from datetime import datetime, timedelta
 from apps.subscription.models import ChatQuota
 
 
@@ -54,10 +54,13 @@ class ChatManager:
 
     @classmethod
     def activeMonthlyUsers(cls):
-        currentMonthRecords = session.query(Chat).filter(
-             func.extract('month', Chat.lastUpdated) == datetime.now().month).count()
+        thirtyDaysAgo = datetime.now() - timedelta(days=30)
 
-        return currentMonthRecords
+        last_30_days_records = session.query(Chat).filter(
+            Chat.lastUpdated >= thirtyDaysAgo
+        ).count()
+
+        return last_30_days_records
 
     @classmethod
     def activeDailyUsers(cls):
