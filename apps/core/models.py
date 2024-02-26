@@ -13,7 +13,6 @@ class Chat(Base):
     chatId = Column(BigInteger, unique=True)
     createdAt = Column(DateTime, nullable=True)
     lastUpdated = Column(DateTime, nullable=True)
-    
     chatActivity = relationship('ChatActivity', backref='chat', lazy='dynamic')
 
     def __init__(self, chatId, chatName, username):
@@ -41,10 +40,9 @@ class Chat(Base):
         session.commit()
 
     @classmethod
-    def delete(self, chatId):
+    def delete(cls, chatId):
         chat = session.query(Chat).filter_by(chatId=chatId).first()
         session.delete(chat)
-
 
 
 class ChatActivity(Base):
@@ -67,13 +65,23 @@ class ChatActivity(Base):
         session.commit()
 
     @classmethod
-    def delete(self, chatId):
+    def delete(cls, chatId):
         chatActivity = session.query(Chat).filter_by(chatId=chatId).first()
         session.delete(chatActivity)
 
     @classmethod
     def get(cls, chatId):
         chatActivity = session.query(ChatActivity).filter_by(chatId=chatId).first()
+        return chatActivity
+
+    @classmethod
+    def getOrCreate(cls, chatId):
+        chatActivity = ChatActivity.get(chatId)
+
+        if chatActivity is None:
+            ChatActivity(chatId=chatId).save()
+            chatActivity = ChatActivity.get(chatId)
+
         return chatActivity
 
     def save(self):
@@ -102,8 +110,7 @@ class Message(Base):
 
         return int(last_message.id)
     
-    
     @classmethod
-    def delete(self, chatId):
+    def delete(cls, chatId):
         session.query(Message).filter_by(chatId=chatId).delete()
 

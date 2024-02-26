@@ -3,11 +3,10 @@ from aiogram import types
 
 checkPaymentMenu = types.ReplyKeyboardMarkup([
         [
-            types.KeyboardButton("Skrinshotni yuborish"),
-            
+            types.KeyboardButton("Skrinshotni yuborish")
         ],
         [
-            types.KeyboardButton("Bekor qilish"),
+            types.KeyboardButton("Bekor qilish")
         ]
     ], resize_keyboard=True, one_time_keyboard=True
 )
