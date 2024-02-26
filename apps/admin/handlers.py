@@ -1,7 +1,7 @@
 from aiogram.dispatcher import FSMContext
 from bot import dp, types, bot
 from db.state import AdminLoginState, AdminSystemMessageState, SendMessageWithInlineState,  AdminSendMessage, TopupState, RejectState
-from utils.message import fetchUsersByType, sendAnyMessages
+from utils.message import fetchUsersByType, SendAny
 from .models import Admin
 from apps.core.managers import ChatManager, MessageManager, ChatActivityManager
 from apps.core.models import ChatActivity, Message
@@ -32,7 +32,6 @@ async def admin(message: types.Message):
 
     await AdminLoginState.password.set()
     return await message.answer("Parolni kiriting!")
-
 
 
 @dp.message_handler(state=AdminLoginState.password)
@@ -206,9 +205,9 @@ async def sendToUsersMessage(message: types.Message, state=FSMContext):
 
     if not users:
         await state.finish()
-        return await message.answer("Bekor qilindi!", reply_markup=adminKeyboards)
+        return await message.answer("Foydalanuvchilar yo'q!", reply_markup=adminKeyboards)
 
-    blockedUsersCount = await sendAnyMessages(users, message)
+    blockedUsersCount = await SendAny(message=message).sendAnyMessages(users)
 
     await sendError(f"Bot was blocked by {blockedUsersCount} users")
     await state.finish()
@@ -246,8 +245,9 @@ async def sendMessageWithInline(message: types.Message, state=FSMContext):
     inlineKeyboards = extractInlineButtons(inlineKeyboardsText)
 
     users = PlanManager.getFreePlanUsers()
-    blockedUsersCount = sendAnyMessages(users, message,
-                                        getInlineMenu(inlineKeyboards))
+
+    blockedUsersCount = await SendAny(message=message).sendAnyMessages(
+        users=users, inlineKeyboards=getInlineMenu(inlineKeyboards))
 
     await sendError(f"Bot was blocked by {blockedUsersCount} users")
     await state.finish()

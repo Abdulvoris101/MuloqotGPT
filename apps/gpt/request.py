@@ -23,12 +23,13 @@ class ResponseHandler:
                 await sendError(f"<b>#error</b>\n{errorMessage}\n\n#user {self.chatId} 429")
                 raise AiogramException(self.chatId,
                                        "Shoshilmang yana 5 sekund ⏳")
+
             else:
                 raise AiogramException(self.chatId,
                                        "Chatgptda uzilish, Iltimos birozdan so'ng yana qayta urinib ko'ring")
 
         raise AiogramException(self.chatId,
-                               "Chatgptda uzilish, Iltimos birozdan so'ng yana qayta urinib ko'ring")
+                               "Shoshilmang yana 5 sekund ⏳")
 
     async def getMessage(self):
         choices = self.response.get('choices', False)
@@ -109,4 +110,4 @@ class GptRequest:
         except Exception as e:
             await sendError(f"<b>#error</b>\n{e}\n\\n#user {self.chatId}")
             raise AiogramException(self.chatId,
-                                   "Shoshilmang yana 5 sekund ⏳")
+                                   "Chatgptda uzilish, Iltimos birozdan so'ng yana qayta urinib ko'ring")

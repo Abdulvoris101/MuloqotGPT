@@ -2,6 +2,7 @@
 
 """Basic command texts and greetings"""
 
+START_BOT_TEXT = """Botni boshlash uchun /start kommandasini yuboring!"""
 
 def getGreetingsText(firstName):
     return f"""Salom! {firstName}
