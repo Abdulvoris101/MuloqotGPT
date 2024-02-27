@@ -1,5 +1,5 @@
 import asyncio
-from aiogram.utils.exceptions import BotBlocked
+from aiogram.utils.exceptions import BotBlocked, UserDeactivated, BotKicked
 from apps.core.managers import ChatManager
 from apps.subscription.managers import PlanManager
 from bot import bot
@@ -18,8 +18,14 @@ class SendAny:
             else:
                 await bot.send_photo(chatId, self.message.photo[-1].file_id,
                                      caption=self.message.caption, reply_markup=kb)
+        except UserDeactivated:
+            self.blockedUsersCount += 1
+        except BotKicked:
+            self.blockedUsersCount += 1
         except BotBlocked:
             self.blockedUsersCount += 1
+        except:
+            pass
 
     async def sendMessage(self, chatId, kb=None):
         try:
@@ -27,8 +33,14 @@ class SendAny:
                 await bot.send_message(chatId, self.message.text)
             else:
                 await bot.send_message(chatId, self.message.text, reply_markup=kb)
+        except UserDeactivated:
+            self.blockedUsersCount += 1
+        except BotKicked:
+            self.blockedUsersCount += 1
         except BotBlocked:
             self.blockedUsersCount += 1
+        except:
+            pass
 
     async def sendVideo(self, chatId, kb=None):
         try:
@@ -37,8 +49,14 @@ class SendAny:
             else:
                 await bot.send_video(chatId, video=self.message.video.file_id, caption=self.message.caption,
                                      reply_markup=kb)
+        except UserDeactivated:
+            self.blockedUsersCount += 1
+        except BotKicked:
+            self.blockedUsersCount += 1
         except BotBlocked:
             self.blockedUsersCount += 1
+        except:
+            pass
 
     async def sendAnimation(self, chatId, kb=None):
         try:
@@ -47,8 +65,14 @@ class SendAny:
             else:
                 await bot.send_animation(chatId, animation=self.message.animation.file_id, caption=self.message.caption,
                                          reply_markup=kb)
+        except UserDeactivated:
+            self.blockedUsersCount += 1
+        except BotKicked:
+            self.blockedUsersCount += 1
         except BotBlocked:
             self.blockedUsersCount += 1
+        except:
+            pass
 
     async def process_user(self, user, inlineKeyboards=None):
 

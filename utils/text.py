@@ -185,6 +185,9 @@ def getStatisticsText(
         usersCount,
         activeUsers,
         activeUsersOfDay,
+        usersUsedOneDay,
+        usersUsedOneWeek,
+        usersUsedOneMonth,
         premiumUsers,
         limitReachedUsers,
         allMessages,
@@ -193,6 +196,9 @@ def getStatisticsText(
     return f"""👤 Foydalanuvchilar - {usersCount}
 💥 Aktiv Foydalanuvchilar - {activeUsers}
 💯 Kunlik Aktiv Foydalanuvchilar - {activeUsersOfDay}
+1️⃣  kun ishlatgan foydalanuvchilar - {usersUsedOneDay}
+📆 1 hafta ishlatgan Foydalanuvchilar - {usersUsedOneWeek}
+🗓  1 oy ishlatgan Foydalanuvchilar - {usersUsedOneMonth}
 🎁 Premium Foydalanuvchilar - {premiumUsers}
 🛑 Bugungi limiti tugagan Foydalanuvchilar - {limitReachedUsers}
 📨 Xabarlar - {allMessages}

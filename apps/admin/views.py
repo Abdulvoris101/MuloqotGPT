@@ -23,7 +23,7 @@ async def admin(request: Request, page: int = Query(1, gt=0)):
         "chats": query.all(),
         "groups": ChatManager.groupsCount(),
         "messages": Message.count(),
-        "activeUsers": ChatManager.activeMonthlyUsers(),
+        "activeUsers": ChatActivityManager.getCurrentMonthUsers(),
         "countOfAllInputTokens": ChatActivityManager.countOfAllInputTokens(),
         "countOfAllOutputTokens": ChatActivityManager.countOfAllOutputTokens(),
         "request": request,
@@ -41,7 +41,7 @@ async def systemMessages(request: Request):
         "messages": Message.count(),
         "countOfAllInputTokens": ChatActivityManager.countOfAllInputTokens(),
         "countOfAllOutputTokens": ChatActivityManager.countOfAllOutputTokens(),
-        "activeUsers": ChatManager.activeMonthlyUsers(),
+        "activeUsers": ChatActivityManager.getCurrentMonthUsers(),
         "request": request,
         "users": ChatManager.usersCount(),
         "all_systemMessages": MessageManager.getSystemMessages()

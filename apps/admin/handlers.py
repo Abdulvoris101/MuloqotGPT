@@ -74,8 +74,11 @@ async def getStatistics(message: types.Message):
 
     return await message.answer(text.getStatisticsText(
         usersCount,
-        ChatManager.activeMonthlyUsers(),
-        ChatManager.activeDailyUsers(),
+        ChatActivityManager.getCurrentMonthUsers(),
+        ChatActivityManager.getTodayActiveUsers(),
+        ChatActivityManager.getUsersUsedOneDay(),
+        ChatActivityManager.getUsersUsedOneWeek(),
+        ChatActivityManager.getUsersUsedOneMonth(),
         SubscriptionManager.getPremiumUsersCount(),
         ChatActivityManager.getLimitReachedUsers(),
         allMessages,
@@ -167,8 +170,6 @@ async def rejectReason(message: types.Message, state=FSMContext):
 
 
 # Send Message command
-
-# todo: test this section
 
 @dp.message_handler(IsAdmin(), Text(equals="📤 Xabar yuborish.!"))
 async def sendMessageToUsers(message: types.Message):

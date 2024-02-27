@@ -345,7 +345,7 @@ class LimitManager:
     @classmethod
     def getUsedRequests(cls, chatId, messageType):
         if messageType == "GPT":
-            return ChatActivityManager.getTodayMessages(chatId)
+            return ChatActivityManager.getTodayMessagesCount(chatId)
         elif messageType == "IMAGE":
             return ChatActivityManager.getTodayImages(chatId)
 
