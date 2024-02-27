@@ -13,8 +13,6 @@ from apps.imageai.handlers import handleArt
 import utils.text as text
 import asyncio
 
-# todo: check each handler
-
 
 class AIChatHandler:
     def __init__(self, message):
@@ -23,16 +21,16 @@ class AIChatHandler:
         self.full_name = message.chat.full_name
         self.text = str(message.text)
 
-    async def sendMessage(self, message, *args, **kwargs):
+    async def sendMessage(self, text, *args, **kwargs):
         if self.message.chat.type == "private":
-            sentMessage = await bot.send_message(self.chatId, message, *args, **kwargs)
+            sentMessage = await bot.send_message(self.chatId, text, *args, **kwargs)
             return sentMessage.message_id
         else:
             try:
-                sentMessage = await self.message.reply(message, *args, **kwargs)
+                sentMessage = await self.message.reply(text, *args, **kwargs)
                 return sentMessage.message_id
             except BadRequest:
-                sentMessage = await bot.send_message(self.chatId, message, *args, **kwargs)
+                sentMessage = await bot.send_message(self.chatId, text, *args, **kwargs)
                 return sentMessage.message_id
 
     async def isPermitted(self):
