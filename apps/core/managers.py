@@ -52,22 +52,7 @@ class ChatManager:
 
         return True
 
-    @classmethod
-    def activeMonthlyUsers(cls):
-        thirtyDaysAgo = datetime.now() - timedelta(days=30)
-
-        last_30_days_records = session.query(Chat).filter(
-            Chat.lastUpdated >= thirtyDaysAgo
-        ).count()
-
-        return last_30_days_records
-
-    @classmethod
-    def activeDailyUsers(cls):
-        currentDayRecords = session.query(Chat).filter(
-            func.extract('day', Chat.lastUpdated) == datetime.now().day).count()
-
-        return currentDayRecords
+# Analytics
 
 
 class ChatActivityManager:
@@ -95,7 +80,7 @@ class ChatActivityManager:
         return inputTokens
 
     @staticmethod
-    def getTodayMessages(chatId):
+    def getTodayMessagesCount(chatId):
         chatActivity = session.query(ChatActivity).filter_by(chatId=chatId).first()
         return 1 if chatActivity is None else chatActivity.todaysMessages
 
@@ -161,6 +146,64 @@ class ChatActivityManager:
         limitReachedUsers = session.query(ChatActivity).filter_by(todaysMessages=16).count()
 
         return limitReachedUsers
+
+    @classmethod
+    def getCurrentMonthUsers(cls):
+        thirtyDaysAgo = datetime.now() - timedelta(days=30)
+
+        last_30_days_records = session.query(Chat).filter(
+            Chat.lastUpdated >= thirtyDaysAgo
+        ).count()
+
+        return last_30_days_records
+
+    @classmethod
+    def getTodayActiveUsers(cls):
+        currentDayRecords = session.query(Chat).filter(
+            func.extract('day', Chat.lastUpdated) == datetime.now().day).count()
+
+        return currentDayRecords
+
+    @classmethod
+    def getUsersUsedOneDay(cls):
+        users = (
+            session.query(Chat)
+            .filter(
+                Chat.lastUpdated != None,  # Exclude records where lastUpdated is None
+                Chat.lastUpdated - Chat.createdAt <= timedelta(days=1)
+            )
+            .count()
+        )
+
+        return users
+
+    @classmethod
+    def getUsersUsedOneWeek(cls):
+        users = (
+            session.query(Chat)
+            .filter(
+                Chat.lastUpdated != None,  # Exclude records where lastUpdated is None
+                Chat.lastUpdated - Chat.createdAt <= timedelta(days=7),
+                Chat.lastUpdated - Chat.createdAt > timedelta(days=1)
+            )
+            .count()
+        )
+
+        return users
+
+    @classmethod
+    def getUsersUsedOneMonth(cls):
+        users = (
+            session.query(Chat)
+            .filter(
+                Chat.lastUpdated != None,  # Exclude records where lastUpdated is None
+                Chat.lastUpdated - Chat.createdAt <= timedelta(days=30),
+                Chat.lastUpdated - Chat.createdAt > timedelta(days=7)
+            )
+            .count()
+        )
+
+        return users
 
 
 class MessageManager:

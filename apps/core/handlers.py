@@ -180,7 +180,7 @@ async def profile(message: types.Message):
     try:
         return await message.answer(text.getProfileText(
             "Premium" if premium is not None else "Free",
-            ChatActivityManager.getTodayMessages(userChat.id),
+            ChatActivityManager.getTodayMessagesCount(userChat.id),
             ChatActivityManager.getTodayImages(userChat.id)
         ))
     except BadRequest:
