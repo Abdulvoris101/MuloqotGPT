@@ -197,8 +197,7 @@ class ChatActivityManager:
             session.query(Chat)
             .filter(
                 Chat.lastUpdated != None,  # Exclude records where lastUpdated is None
-                Chat.lastUpdated - Chat.createdAt <= timedelta(days=30),
-                Chat.lastUpdated - Chat.createdAt > timedelta(days=7)
+                Chat.lastUpdated - Chat.createdAt <= timedelta(days=30)
             )
             .count()
         )
