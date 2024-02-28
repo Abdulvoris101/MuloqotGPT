@@ -73,16 +73,16 @@ async def getStatistics(message: types.Message):
     avgUsersMessagesCount = allMessages / usersCount
 
     return await message.answer(text.getStatisticsText(
-        usersCount,
-        ChatActivityManager.getCurrentMonthUsers(),
-        ChatActivityManager.getTodayActiveUsers(),
-        ChatActivityManager.getUsersUsedOneDay(),
-        ChatActivityManager.getUsersUsedOneWeek(),
-        ChatActivityManager.getUsersUsedOneMonth(),
-        SubscriptionManager.getPremiumUsersCount(),
-        ChatActivityManager.getLimitReachedUsers(),
-        allMessages,
-        avgUsersMessagesCount
+        usersCount=usersCount,
+        activeUsers=ChatActivityManager.getCurrentMonthUsers(),
+        activeUsersOfDay=ChatActivityManager.getTodayActiveUsers(),
+        usersUsedOneDay=ChatActivityManager.getUsersUsedOneDay(),
+        usersUsedOneWeek=ChatActivityManager.getUsersUsedOneWeek(),
+        usersUsedOneMonth=ChatActivityManager.getUsersUsedOneMonth(),
+        premiumUsers=SubscriptionManager.getPremiumUsersCount(),
+        limitReachedUsers=ChatActivityManager.getLimitReachedUsers(),
+        allMessages=allMessages,
+        avgUsersMessagesCount=avgUsersMessagesCount
     ))
 
 
