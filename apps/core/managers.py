@@ -39,6 +39,7 @@ class ChatManager:
 
         if chatObj is None:
             chatObj = Chat(userChat.id, userChat.full_name, userChat.username).save()
+            MessageProcessor.createSystemMessages(userChat.id, userChat.type)
             await sendEvent(
                 f"#new\nid: {chatObj.id}\ntelegramId: {userChat.id}"
                 f"\nusername: @{userChat.username}\nname: {userChat.full_name}")
@@ -46,7 +47,7 @@ class ChatManager:
         ChatActivity.getOrCreate(userChat.id)
         ChatQuota.getOrCreate(userChat.id)
 
-        MessageProcessor.createSystemMessages(userChat.id, userChat.type)
+
 
         session.commit()
 
