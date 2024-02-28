@@ -1,3 +1,5 @@
+from collections import defaultdict
+
 from .models import Chat, Message, ChatActivity
 from utils import countTokenOfMessage, constants
 from utils.translate import skipCodeTranslation
@@ -5,7 +7,7 @@ from utils.events import sendEvent
 from filters.permission import isGroupAllowed
 from db.setup import session
 from db.proccessors import MessageProcessor
-from sqlalchemy import cast, String, func, desc, and_
+from sqlalchemy import cast, String, func, desc, and_, distinct
 from datetime import datetime, timedelta, date
 from apps.subscription.models import ChatQuota
 
@@ -259,10 +261,22 @@ class MessageManager:
             .scalar_subquery()
         )
 
-        system_messages = session.query(Message).filter_by(role="system", chatId=chatId).all()
+        # system_messages = session.query(Message).filter_by(role="system", chatId=chatId).all()
+        #
+        # for message in system_messages[1:-1]:
+        #     session.delete(message)
 
-        for message in system_messages[1:-1]:
-            session.delete(message)
+        unique_system_messages = session.query(distinct(Message.content)).filter_by(
+            role="system", chatId=chatId).all()
+
+        for message_content, in unique_system_messages:
+            messages_to_delete = session.query(Message).filter_by(role="system", chatId=chatId,
+                                                                  content=message_content).all()
+            for i, message in enumerate(messages_to_delete):
+                if i == 0:
+                    continue
+
+                session.delete(message)
 
         messages = session.query(Message).filter(and_(Message.chatId == chatId,
                                                       Message.id != max_id_subquery),
