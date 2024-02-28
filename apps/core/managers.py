@@ -6,7 +6,7 @@ from filters.permission import isGroupAllowed
 from db.setup import session
 from db.proccessors import MessageProcessor
 from sqlalchemy import cast, String, func, desc, and_
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 from apps.subscription.models import ChatQuota
 
 
@@ -159,16 +159,17 @@ class ChatActivityManager:
 
     @classmethod
     def getTodayActiveUsers(cls):
-        currentDayRecords = session.query(Chat).filter(
-            func.extract('day', Chat.lastUpdated) == datetime.now().day).count()
+        today_users = session.query(Chat.chatId).filter(
+            func.date(Chat.lastUpdated) <= date.today()
+        ).distinct().count()
 
-        return currentDayRecords
+        return today_users
 
     @classmethod
     def getUsersUsedOneDay(cls):
 
         users_one_day_usage = session.query(Chat.chatId).filter(
-            func.coalesce(Chat.lastUpdated, Chat.createdAt) - Chat.createdAt >= timedelta(days=1)
+            func.coalesce(Chat.lastUpdated, Chat.createdAt) - Chat.createdAt >= timedelta(minutes=1)
         ).distinct().count()
 
         return users_one_day_usage

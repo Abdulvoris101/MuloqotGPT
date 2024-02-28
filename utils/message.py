@@ -3,7 +3,7 @@ from aiogram.utils.exceptions import BotBlocked, UserDeactivated, BotKicked
 from apps.core.managers import ChatManager
 from apps.subscription.managers import PlanManager
 from bot import bot
-
+import re
 
 class SendAny:
     def __init__(self, message):
@@ -105,4 +105,30 @@ def fetchUsersByType(contentType):
         return False
 
     return users
+
+
+# todo: fix
+def fixMessageMarkdown(text):
+    fixed_text = ""
+    in_code_block = False
+
+    for line in text.split('\n'):
+        if line.startswith('```'):
+            # Toggle code block state
+            in_code_block = not in_code_block
+
+        if in_code_block:
+            fixed_text += line + '\n'
+        else:
+            # Check if the line is empty
+            if not line.strip():
+                fixed_text += line + '\n'
+            else:
+                # Add triple backticks to lines with python code
+                fixed_text += '```python\n' + line + '\n```\n'
+
+    return fixed_text
+
+
+
 
