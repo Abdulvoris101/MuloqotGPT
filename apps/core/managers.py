@@ -166,43 +166,28 @@ class ChatActivityManager:
 
     @classmethod
     def getUsersUsedOneDay(cls):
-        users = (
-            session.query(Chat)
-            .filter(
-                Chat.lastUpdated != None,  # Exclude records where lastUpdated is None
-                Chat.lastUpdated - Chat.createdAt <= timedelta(days=1)
-            )
-            .count()
-        )
 
-        return users
+        users_one_day_usage = session.query(Chat.chatId).filter(
+            func.coalesce(Chat.lastUpdated, Chat.createdAt) - Chat.createdAt >= timedelta(days=1)
+        ).distinct().count()
+
+        return users_one_day_usage
 
     @classmethod
     def getUsersUsedOneWeek(cls):
-        users = (
-            session.query(Chat)
-            .filter(
-                Chat.lastUpdated != None,  # Exclude records where lastUpdated is None
-                Chat.lastUpdated - Chat.createdAt <= timedelta(days=7),
-                Chat.lastUpdated - Chat.createdAt > timedelta(days=1)
-            )
-            .count()
-        )
+        users_one_day_usage = session.query(Chat.chatId).filter(
+            func.coalesce(Chat.lastUpdated, Chat.createdAt) - Chat.createdAt >= timedelta(days=7)
+        ).distinct().count()
 
-        return users
+        return users_one_day_usage
 
     @classmethod
     def getUsersUsedOneMonth(cls):
-        users = (
-            session.query(Chat)
-            .filter(
-                Chat.lastUpdated != None,  # Exclude records where lastUpdated is None
-                Chat.lastUpdated - Chat.createdAt <= timedelta(days=30)
-            )
-            .count()
-        )
+        users_one_day_usage = session.query(Chat.chatId).filter(
+            func.coalesce(Chat.lastUpdated, Chat.createdAt) - Chat.createdAt >= timedelta(days=30)
+        ).distinct().count()
 
-        return users
+        return users_one_day_usage
 
 
 class MessageManager:
