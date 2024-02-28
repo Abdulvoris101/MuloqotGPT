@@ -109,25 +109,19 @@ def fetchUsersByType(contentType):
 
 # todo: fix
 def fixMessageMarkdown(text):
-    fixed_text = ""
-    in_code_block = False
+    code_block_pattern = r'```(.*?)```'
 
-    for line in text.split('\n'):
-        if line.startswith('```'):
-            # Toggle code block state
-            in_code_block = not in_code_block
+    # Find all code blocks in the text
+    code_blocks = re.findall(code_block_pattern, text, re.DOTALL)
 
-        if in_code_block:
-            fixed_text += line + '\n'
-        else:
-            # Check if the line is empty
-            if not line.strip():
-                fixed_text += line + '\n'
-            else:
-                # Add triple backticks to lines with python code
-                fixed_text += '```python\n' + line + '\n```\n'
+    # Replace each code block with a fixed version
+    for code_block in code_blocks:
+        fixed_code_block = code_block.replace("\t", "    ")  # Replace tabs with 4 spaces
+        fixed_code_block = fixed_code_block.rstrip()  # Remove trailing whitespace
+        text = text.replace(f'```{code_block}```', f'```\n{fixed_code_block}\n```')
 
-    return fixed_text
+    return text
+
 
 
 
