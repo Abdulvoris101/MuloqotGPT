@@ -1,3 +1,5 @@
+from collections import defaultdict
+
 from .models import Chat, Message, ChatActivity
 from utils import countTokenOfMessage, constants
 from utils.translate import skipCodeTranslation
@@ -5,8 +7,8 @@ from utils.events import sendEvent
 from filters.permission import isGroupAllowed
 from db.setup import session
 from db.proccessors import MessageProcessor
-from sqlalchemy import cast, String, func, desc, and_
-from datetime import datetime, timedelta
+from sqlalchemy import cast, String, func, desc, and_, distinct
+from datetime import datetime, timedelta, date
 from apps.subscription.models import ChatQuota
 
 
@@ -39,6 +41,7 @@ class ChatManager:
 
         if chatObj is None:
             chatObj = Chat(userChat.id, userChat.full_name, userChat.username).save()
+            MessageProcessor.createSystemMessages(userChat.id, userChat.type)
             await sendEvent(
                 f"#new\nid: {chatObj.id}\ntelegramId: {userChat.id}"
                 f"\nusername: @{userChat.username}\nname: {userChat.full_name}")
@@ -46,7 +49,7 @@ class ChatManager:
         ChatActivity.getOrCreate(userChat.id)
         ChatQuota.getOrCreate(userChat.id)
 
-        MessageProcessor.createSystemMessages(userChat.id, userChat.type)
+
 
         session.commit()
 
@@ -159,16 +162,17 @@ class ChatActivityManager:
 
     @classmethod
     def getTodayActiveUsers(cls):
-        currentDayRecords = session.query(Chat).filter(
-            func.extract('day', Chat.lastUpdated) == datetime.now().day).count()
+        today_users = session.query(Chat.chatId).filter(
+            func.date(Chat.lastUpdated) <= date.today()
+        ).distinct().count()
 
-        return currentDayRecords
+        return today_users
 
     @classmethod
     def getUsersUsedOneDay(cls):
 
         users_one_day_usage = session.query(Chat.chatId).filter(
-            func.coalesce(Chat.lastUpdated, Chat.createdAt) - Chat.createdAt >= timedelta(days=1)
+            func.coalesce(Chat.lastUpdated, Chat.createdAt) - Chat.createdAt >= timedelta(minutes=1)
         ).distinct().count()
 
         return users_one_day_usage
@@ -257,15 +261,26 @@ class MessageManager:
             .scalar_subquery()
         )
 
-        system_messages = session.query(Message).filter_by(role="system", chatId=chatId).all()
+        # system_messages = session.query(Message).filter_by(role="system", chatId=chatId).all()
+        #
+        # for message in system_messages[1:-1]:
+        #     session.delete(message)
 
-        for i, message in enumerate(system_messages):
-            if i != 0:
+        unique_system_messages = session.query(distinct(Message.content)).filter_by(
+            role="system", chatId=chatId).all()
+
+        for message_content, in unique_system_messages:
+            messages_to_delete = session.query(Message).filter_by(role="system", chatId=chatId,
+                                                                  content=message_content).all()
+            for i, message in enumerate(messages_to_delete):
+                if i == 0:
+                    continue
+
                 session.delete(message)
 
         messages = session.query(Message).filter(and_(Message.chatId == chatId,
                                                       Message.id != max_id_subquery),
-                                                 Message.role != "system").order_by(Message.id).offset(1).limit(1).all()
+                                                 Message.role != "system").order_by(Message.id).limit(1).all()
 
         for message in messages:
             session.delete(message)

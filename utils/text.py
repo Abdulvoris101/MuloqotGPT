@@ -195,7 +195,7 @@ def getStatisticsText(
 ):
     return f"""👤 Foydalanuvchilar - {usersCount}
 💥 Aktiv Foydalanuvchilar - {activeUsers}
-1️⃣  Kunlik Aktiv Foydalanuvchilar - {activeUsersOfDay}
+✨  Bugungi Aktiv Foydalanuvchilar - {activeUsersOfDay}
 1️⃣  Kun ishlatgan foydalanuvchilar - {usersUsedOneDay}
 📆 1 hafta ishlatgan Foydalanuvchilar - {usersUsedOneWeek}
 🗓  1 oy ishlatgan Foydalanuvchilar - {usersUsedOneMonth}

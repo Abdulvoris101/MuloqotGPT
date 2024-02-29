@@ -3,7 +3,7 @@ from aiogram.utils.exceptions import BotBlocked, UserDeactivated, BotKicked
 from apps.core.managers import ChatManager
 from apps.subscription.managers import PlanManager
 from bot import bot
-
+import re
 
 class SendAny:
     def __init__(self, message):
@@ -105,4 +105,28 @@ def fetchUsersByType(contentType):
         return False
 
     return users
+
+
+# todo: fix
+def fixMessageMarkdown(text):
+    code_blocks = re.findall(r"(```)", text)
+
+    # Check if number of opening and closing backticks are equal
+    if len(code_blocks) % 2 != 0:
+        # Add missing closing backtick if necessary
+        text += "```"
+
+    return text
+
+
+
+
+
+
+
+
+
+
+
+
 

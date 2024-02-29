@@ -4,7 +4,9 @@ from aiogram.utils.exceptions import BadRequest
 from bot import dp, bot, types
 from apps.gpt import GptRequest
 from filters.bound_filters import isBotMentioned
+from utils.events import sendError
 from utils.exception import AiogramException
+from utils.message import fixMessageMarkdown
 from .managers import ChatManager, MessageManager, ChatActivityManager
 from utils.translate import translateMessage, detect
 from utils import checkTokens, countTokenOfMessage, constants, containsAnyWord
@@ -104,12 +106,12 @@ class AIChatHandler:
             translatedResponse = MessageManager.assistantRole(message=response, instance=self.message,
                                                               is_translate=self.isTranslate)
             await bot.delete_message(chatId, progressMessageId)
-            await self.sendMessage(str(translatedResponse), disable_web_page_preview=True,
+            validatedText = fixMessageMarkdown(translatedResponse)
+            await self.sendMessage(str(validatedText), disable_web_page_preview=True,
                                    parse_mode=types.ParseMode.MARKDOWN)
 
         except Exception as e:
-            print("Exception proccess", e)
-            # Handle errors from requestGpt
+            await sendError(str(e))
             await self.sendMessage(text.ENTER_AGAIN)
 
 
