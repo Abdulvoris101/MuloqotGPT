@@ -85,7 +85,7 @@ class GptRequest:
                 data = {
                     "model": "gpt-3.5-turbo",
                     "messages": messages,
-                    "max_tokens": 200,
+                    "max_tokens": 300,
                     "frequency_penalty": self.frequency_penalty
                 }
 

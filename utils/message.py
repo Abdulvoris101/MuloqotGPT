@@ -109,18 +109,22 @@ def fetchUsersByType(contentType):
 
 # todo: fix
 def fixMessageMarkdown(text):
-    code_block_pattern = r'```(.*?)```'
+    code_blocks = re.findall(r"(```)", text)
 
-    # Find all code blocks in the text
-    code_blocks = re.findall(code_block_pattern, text, re.DOTALL)
-
-    # Replace each code block with a fixed version
-    for code_block in code_blocks:
-        fixed_code_block = code_block.replace("\t", "    ")  # Replace tabs with 4 spaces
-        fixed_code_block = fixed_code_block.rstrip()  # Remove trailing whitespace
-        text = text.replace(f'```{code_block}```', f'```\n{fixed_code_block}\n```')
+    # Check if number of opening and closing backticks are equal
+    if len(code_blocks) % 2 != 0:
+        # Add missing closing backtick if necessary
+        text += "```"
 
     return text
+
+
+
+
+
+
+
+
 
 
 

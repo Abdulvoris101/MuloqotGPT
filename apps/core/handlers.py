@@ -107,7 +107,6 @@ class AIChatHandler:
                                                               is_translate=self.isTranslate)
             await bot.delete_message(chatId, progressMessageId)
             validatedText = fixMessageMarkdown(translatedResponse)
-            print(validatedText)
             await self.sendMessage(str(validatedText), disable_web_page_preview=True,
                                    parse_mode=types.ParseMode.MARKDOWN)
 
