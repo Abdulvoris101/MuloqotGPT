@@ -126,7 +126,7 @@ async def subscribeUser(message: types.Message, state=FSMContext):
     )
     
     chatActivity = ChatActivity.getOrCreate(chatId=chatId)
-    ChatActivity.update(chatActivity, "todaysMessages", 20 - chatActivity.todaysMessages)
+    ChatActivity.update(chatActivity, "todaysMessages", 1)
 
     SubscriptionManager.subscribe(
         chatId=chatId, planId=PlanManager.getPremiumPlanOrCreate().id)

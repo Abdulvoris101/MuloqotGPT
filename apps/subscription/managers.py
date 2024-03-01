@@ -454,5 +454,22 @@ class ConfigurationManager:
         session.commit()
         
         return configuration
-    
+
+    @staticmethod
+    def setIsBetaTrue():
+        configuration = session.query(Configuration).first()
+
+        configuration.isBeta = True
+
+        session.add(configuration)
+        session.commit()
+
+    @staticmethod
+    def setIsBetaFalse():
+        configuration = session.query(Configuration).first()
+
+        configuration.isBeta = False
+
+        session.add(configuration)
+        session.commit()
 

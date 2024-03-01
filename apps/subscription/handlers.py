@@ -35,7 +35,7 @@ async def buyPremium(message: types.Message):
         await message.answer("Siz allaqachon premium obunaga egasiz")
         return
 
-    # await message.answer("Sotib olish")
+    await message.answer("Sotib olish")
     await bot.send_message(
         message.from_user.id,
         text.subscriptionInvoiceText(int(constants.PREMIUM_PRICE)),

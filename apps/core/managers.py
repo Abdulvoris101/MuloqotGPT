@@ -103,7 +103,6 @@ class ChatActivityManager:
 
         for chatActivity in userActivities:
             chatActivity.todaysMessages = 0
-            chatActivity.todaysImages = 0
 
             session.add(chatActivity)
 
@@ -162,9 +161,9 @@ class ChatActivityManager:
 
     @classmethod
     def getTodayActiveUsers(cls):
-        today_users = session.query(Chat.chatId).filter(
-            func.date(Chat.lastUpdated) <= date.today()
-        ).distinct().count()
+        today_users = session.query(ChatActivity.todaysMessages).filter(
+            ChatActivity.todaysMessages >= 1
+        ).count()
 
         return today_users
 
@@ -218,9 +217,8 @@ class MessageManager:
 
     @classmethod
     def userRole(cls, translatedText, instance):
-        text = f"I am {instance.from_user.first_name}, {instance.text}"
 
-        data = cls.saveMessage(instance.chat.id, "user", translatedText, text)
+        data = cls.saveMessage(instance.chat.id, "user", translatedText, instance.text)
 
         chat = Chat.get(instance.chat.id)
         Chat.update(chat, "lastUpdated", datetime.now())
