@@ -5,6 +5,7 @@ from apps.subscription.managers import PlanManager
 from bot import bot
 import re
 
+
 class SendAny:
     def __init__(self, message):
         self.message = message

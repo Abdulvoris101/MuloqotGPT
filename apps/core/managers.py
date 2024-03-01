@@ -217,7 +217,6 @@ class MessageManager:
 
     @classmethod
     def userRole(cls, translatedText, instance):
-
         data = cls.saveMessage(instance.chat.id, "user", translatedText, instance.text)
 
         chat = Chat.get(instance.chat.id)
@@ -258,11 +257,6 @@ class MessageManager:
             .filter(and_(Message.chatId == chatId))
             .scalar_subquery()
         )
-
-        # system_messages = session.query(Message).filter_by(role="system", chatId=chatId).all()
-        #
-        # for message in system_messages[1:-1]:
-        #     session.delete(message)
 
         unique_system_messages = session.query(distinct(Message.content)).filter_by(
             role="system", chatId=chatId).all()
