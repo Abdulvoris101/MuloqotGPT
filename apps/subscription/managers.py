@@ -378,6 +378,16 @@ class LimitManager:
             messageType
     ):
         userSubscription = SubscriptionManager.getUserActiveSubscription(chatId=chatId)
+
+        if userSubscription is None:
+            userSubscription = SubscriptionManager.createSubscription(
+                planId=PlanManager.getFreePlanId(),
+                chatId=chatId,
+                cardholder=None,
+                is_paid=True,
+                isFree=True
+            )
+
         userPlan = PlanManager.get(userSubscription.planId)
 
         if messageType == "GPT":

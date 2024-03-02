@@ -103,6 +103,7 @@ class ChatActivityManager:
 
         for chatActivity in userActivities:
             chatActivity.todaysMessages = 0
+            chatActivity.todaysImages = 0
 
             session.add(chatActivity)
 

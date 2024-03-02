@@ -219,6 +219,11 @@ Misol uchun\n`./Test-t.me//texnomasters\n./Test2-t.me//texnomasters`"""
 PROCESSING_MESSAGE = "⏳"
 ENTER_AGAIN = "Iltimos boshqatan so'rov yuboring"
 TOKEN_REACHED = "Savolni qisqartiribroq yozing"
+def getNewChatMember(firstName):
+    return f"""👋 Assalomu alaykum! {firstName}, 
+Sizni yana bir bor ko'rib turganimdan xursandman. Bugun sizga qanday yordam bera olaman? 
+Men bilan qiziqarli suxbat qurishga tayyormisiz?"
+"""
 
 # ERRORS
 

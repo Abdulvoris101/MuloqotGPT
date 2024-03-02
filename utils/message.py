@@ -10,15 +10,20 @@ class SendAny:
     def __init__(self, message):
         self.message = message
         self.blockedUsersCount = 0
+        self.receivedUsersCount = 0
 
     async def sendPhoto(self, chatId, kb=None):
         try:
             if kb is None:
                 await bot.send_photo(chatId, self.message.photo[-1].file_id,
                                      caption=self.message.caption)
+
             else:
                 await bot.send_photo(chatId, self.message.photo[-1].file_id,
                                      caption=self.message.caption, reply_markup=kb)
+
+            self.receivedUsersCount += 1
+
         except UserDeactivated:
             self.blockedUsersCount += 1
         except BotKicked:
@@ -34,6 +39,9 @@ class SendAny:
                 await bot.send_message(chatId, self.message.text)
             else:
                 await bot.send_message(chatId, self.message.text, reply_markup=kb)
+
+            self.receivedUsersCount += 1
+
         except UserDeactivated:
             self.blockedUsersCount += 1
         except BotKicked:
@@ -41,6 +49,7 @@ class SendAny:
         except BotBlocked:
             self.blockedUsersCount += 1
         except:
+            self.blockedUsersCount += 1
             pass
 
     async def sendVideo(self, chatId, kb=None):
@@ -50,6 +59,9 @@ class SendAny:
             else:
                 await bot.send_video(chatId, video=self.message.video.file_id, caption=self.message.caption,
                                      reply_markup=kb)
+
+            self.receivedUsersCount += 1
+
         except UserDeactivated:
             self.blockedUsersCount += 1
         except BotKicked:
@@ -66,6 +78,8 @@ class SendAny:
             else:
                 await bot.send_animation(chatId, animation=self.message.animation.file_id, caption=self.message.caption,
                                          reply_markup=kb)
+
+            self.receivedUsersCount += 1
         except UserDeactivated:
             self.blockedUsersCount += 1
         except BotKicked:
@@ -94,7 +108,7 @@ class SendAny:
         tasks = [self.process_user(user, inlineKeyboards) for user in users]
         await asyncio.gather(*tasks)
 
-        return self.blockedUsersCount
+        return self.receivedUsersCount, self.blockedUsersCount
 
 
 def fetchUsersByType(contentType):

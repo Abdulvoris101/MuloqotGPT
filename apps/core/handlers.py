@@ -175,6 +175,14 @@ async def sendWelcome(message: types.Message):
     )
 
 
+@dp.message_handler(content_types=types.ContentType.NEW_CHAT_MEMBERS)
+async def newChatMember(message: types.Message):
+    new_chat_members = message.new_chat_members
+
+    for member in new_chat_members:
+        await message.answer(text.getNewChatMember(member.first_name))
+
+
 @dp.message_handler(commands=['profile'])
 async def profile(message: types.Message):
     userChat = message.from_user
