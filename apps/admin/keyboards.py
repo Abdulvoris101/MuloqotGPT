@@ -32,10 +32,10 @@ sendMessageMenu.add(inlineMessage)
 sendMessageMenu.add(simpleMessage)
 
 
-def dynamic_sendMenu(inline_keyboards):
-    sendInlineMenu = types.InlineKeyboardMarkup(row_width=2)
+def getInlineMenu(inline_keyboards):
+    inlineMenu = types.InlineKeyboardMarkup(row_width=2)
 
     for kb in inline_keyboards:
-        sendInlineMenu.add(types.InlineKeyboardButton(text=str(kb["name"]), url=str(kb["callback_url"])))
+        inlineMenu.add(types.InlineKeyboardButton(text=str(kb["name"]), url=str(kb["callback_url"])))
     
-    return sendInlineMenu
+    return inlineMenu

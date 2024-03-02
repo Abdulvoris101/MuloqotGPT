@@ -1,5 +1,5 @@
 from db.setup import Base, session
-from sqlalchemy import Column, Integer, String, UUID, BigInteger, Boolean, DateTime, Text, ForeignKey
+from sqlalchemy import Column, Integer, String, UUID, BigInteger, Boolean, DateTime, ForeignKey
 import uuid
 
 
@@ -32,7 +32,6 @@ class Plan(Base):
         
         super().__init__()
 
-
     def save(self):
         session.add(self)
         session.commit()
@@ -45,11 +44,9 @@ class Plan(Base):
         session.commit()
 
     @classmethod
-    def delete(self, planId):
+    def delete(cls, planId):
         chat = session.query(Plan).filter_by(id=planId).first()
         session.delete(chat)
-        
-
 
 
 class Subscription(Base):
@@ -65,8 +62,10 @@ class Subscription(Base):
     isCanceled = Column(Boolean, default=False)
     canceledAt = Column(DateTime, nullable=True)
 
+    def __init__(self, planId,
+                 cardholder, currentPeriodStart,
+                 currentPeriodEnd, is_paid, chatId):
 
-    def __init__(self, planId, cardholder, currentPeriodStart, currentPeriodEnd, is_paid, chatId):
         self.id = uuid.uuid4()
         self.planId = planId
         self.cardholder = cardholder
@@ -77,13 +76,13 @@ class Subscription(Base):
 
         super().__init__()
 
-
     def save(self):
         session.add(self)
         session.commit()
 
         return self
-    
+
+
 class FreeApiKey(Base):
     __tablename__ = 'freeapikey'
     
@@ -98,14 +97,12 @@ class Configuration(Base):
     
     id = Column(Integer, primary_key=True)
     apikeyPosition = Column(Integer, default=0)
-    
+    isBeta = Column(Boolean, default=False)
     
     def __init__(self, apikeyPosition):
-        
         self.apikeyPosition = apikeyPosition
 
         super().__init__()
-
 
     def save(self):
         session.add(self)
@@ -138,10 +135,24 @@ class ChatQuota(Base):
 
     @classmethod
     def delete(cls, chatId):
-        chatQuota = session.query(ChatQuota).filter_by(chatId=chatId).first()
+        chatQuota = cls.get(chatId)
         session.delete(chatQuota)
 
     @classmethod
     def get(cls, chatId):
         chatQuota = session.query(ChatQuota).filter_by(chatId=chatId).first()
         return chatQuota
+
+    @classmethod
+    def getOrCreate(cls, chatId):
+        chatQuota = cls.get(chatId)
+
+        if chatQuota is None:
+            ChatQuota(
+                chatId=chatId, additionalGptRequests=0,
+                additionalImageRequests=0).save()
+
+        return cls.get(chatId)
+
+
+

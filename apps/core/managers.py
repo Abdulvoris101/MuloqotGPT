@@ -1,16 +1,18 @@
+from collections import defaultdict
+
 from .models import Chat, Message, ChatActivity
-from utils import sendEvent, countTokenOfMessage, constants
-from utils.translate import skip_code_translation
+from utils import countTokenOfMessage, constants
+from utils.translate import skipCodeTranslation
+from utils.events import sendEvent
+from filters.permission import isGroupAllowed
 from db.setup import session
 from db.proccessors import MessageProcessor
-from sqlalchemy import cast, String, func, desc, and_
-from datetime import datetime, timedelta
-from aiogram import types
+from sqlalchemy import cast, String, func, desc, and_, distinct
+from datetime import datetime, timedelta, date
 from apps.subscription.models import ChatQuota
 
+
 class ChatManager:
-    # Chat db queries and filters
-    three_months_ago = datetime.now() - timedelta(days=90)
 
     @classmethod
     def groupsCount(cls):
@@ -27,63 +29,36 @@ class ChatManager:
     @classmethod
     def count(cls):
         return session.query(Chat).count()
-    
+
     @classmethod
-    async def activate(cls, message):
-    
-        telegramChat = message.chat
+    async def activate(cls, message, requestType="GPT"):
+        userChat = message.chat
+        chatType = userChat.type
+        chatObj = Chat.get(userChat.id)
 
-        chat = Chat.get(telegramChat.id)
-        
-        chatType = message.chat.type
-                
-        if chatType in [types.ChatType.GROUP, types.ChatType.SUPERGROUP]:
-            if int(message.chat.id) != int(constants.HOST_GROUP_ID):
-                return False
+        if not isGroupAllowed(chatType, userChat.id, requestType):
+            return False
 
-        if chat is None:
-            chat = Chat(telegramChat.id, telegramChat.full_name, telegramChat.username).save()
-            session.add(chat)
-            session.commit()
-            await sendEvent(f"#new\nid: {chat.id}\ntelegramId: {telegramChat.id}\nusername: @{telegramChat.username}\nname: {telegramChat.full_name}")
-        
-        session.add(chat)
+        if chatObj is None:
+            chatObj = Chat(userChat.id, userChat.full_name, userChat.username).save()
+            MessageProcessor.createSystemMessages(userChat.id, userChat.type)
+            await sendEvent(
+                f"#new\nid: {chatObj.id}\ntelegramId: {userChat.id}"
+                f"\nusername: @{userChat.username}\nname: {userChat.full_name}")
+
+        ChatActivity.getOrCreate(userChat.id)
+        ChatQuota.getOrCreate(userChat.id)
+
+
+
         session.commit()
 
-        chatActivity = ChatActivity.get(telegramChat.id)
+        return True
 
-        if chatActivity is None:
-            chatActivity = ChatActivity(telegramChat.id).save()
-        
-        chatQuota = ChatQuota.get(telegramChat.id)
-
-        if chatQuota is None:
-            chatQuota = ChatQuota(
-                telegramChat.id, additionalGptRequests=0,
-                additionalImageRequests=0).save()
-            
-            chatQuota = ChatQuota.get(telegramChat.id)
-        
-        MessageProcessor.createSystemMessages(telegramChat.id, telegramChat.type)
-
-    @classmethod
-    def activeUsers(cls):
-        currentMonthRecords = session.query(Chat).filter(func.extract('month', Chat.lastUpdated) == datetime.now().month).count()
-
-        return currentMonthRecords
-    
-    @classmethod
-    def activeUsersOfDay(cls):
-        currentDayRecords = session.query(Chat).filter(func.extract('day', Chat.lastUpdated) == datetime.now().day).count()
-
-        return currentDayRecords
-    
-    
-
+# Analytics
 
 
 class ChatActivityManager:
-
 
     @classmethod
     def countOfAllOutputTokens(cls):
@@ -91,12 +66,10 @@ class ChatActivityManager:
         outputTokens = 1
 
         for activity in userActivities:
-            
             if activity.outputTokens is not None:
                 outputTokens += activity.outputTokens
 
         return outputTokens
-
 
     @classmethod
     def countOfAllInputTokens(cls):
@@ -104,100 +77,72 @@ class ChatActivityManager:
         inputTokens = 1
 
         for chat in chats:
-            
             if chat.inputTokens is not None:
                 inputTokens += chat.inputTokens
 
         return inputTokens
-    
-    @staticmethod
-    def getTodaysMessage(chatId):
-        chatActivity = session.query(ChatActivity).filter_by(chatId=chatId).first()
-
-        if chatActivity is None:
-            return 1
-        
-        else:
-            return chatActivity.todaysMessages
 
     @staticmethod
-    def getTodaysImages(chatId):
+    def getTodayMessagesCount(chatId):
         chatActivity = session.query(ChatActivity).filter_by(chatId=chatId).first()
+        return 1 if chatActivity is None else chatActivity.todaysMessages
 
-        if chatActivity is None:
-            return 1
-        else:
-            return chatActivity.todaysImages
-        
+    @staticmethod
+    def getTodayImages(chatId):
+        chatActivity = session.query(ChatActivity).filter_by(chatId=chatId).first()
+        return 1 if chatActivity is None else chatActivity.todaysImages
+
     @staticmethod
     def getAllMessagesCount(chatId):
         chatActivity = session.query(ChatActivity).filter_by(chatId=chatId).first()
+        return 1 if chatActivity is None else chatActivity.allMessages
 
-        if chatActivity is None:
-            return 1
-        else:
-            return chatActivity.allMessages
-    
     @staticmethod
-    def clearAllUsersTodaysMessagesAndImages():
+    def clearAllUsersTodayMessagesAndImages():
         userActivities = session.query(ChatActivity).all()
-        
+
         for chatActivity in userActivities:
             chatActivity.todaysMessages = 0
             chatActivity.todaysImages = 0
-            
+
             session.add(chatActivity)
-        
+
         session.commit()
 
     @staticmethod
-    def clearTodaysMessages(
-        chatId
+    def clearTodayMessages(
+            chatId
     ):
         userActivities = session.query(ChatActivity).filter_by(chatId=chatId).first()
-        
+
         for chatActivity in userActivities:
             chatActivity.todaysMessages = 0
             chatActivity.todaysImages = 0
-            
+
             session.add(chatActivity)
-        
+
         session.commit()
 
     @staticmethod
     def increaseMessageStat(chatId):
         chatActivity = ChatActivity.get(chatId=chatId)
-        
-        
+
         if chatActivity is None:
             ChatActivity(chatId=chatId).save()
-
 
         ChatActivity.update(chatActivity, "allMessages", chatActivity.allMessages + 1)
         ChatActivity.update(chatActivity, "todaysMessages", chatActivity.todaysMessages + 1)
 
     @staticmethod
-    def increaseRequestedMessage(chatId):
-        chatActivity = ChatActivity.get(chatId=chatId)
-        
-        
-        if chatActivity is None:
-            ChatActivity(chatId=chatId).save()
-
-        ChatActivity.update(chatActivity, "todays_entered_request", chatActivity.todays_entered_request + 1)
-
-    @staticmethod
     def increaseOutputTokens(chatId, message):
         chatActivity = ChatActivity.get(chatId=chatId)
-        
+
         outputTokens = countTokenOfMessage(message)
-        
+
         if chatActivity is None:
             ChatActivity(chatId=chatId).save()
 
-
-        ChatActivity.update(chatActivity, "outputTokens",  chatActivity.outputTokens + outputTokens)
-
+        ChatActivity.update(chatActivity, "outputTokens", chatActivity.outputTokens + outputTokens)
 
     @classmethod
     def getLimitReachedUsers(cls):
@@ -205,68 +150,92 @@ class ChatActivityManager:
 
         return limitReachedUsers
 
+    @classmethod
+    def getCurrentMonthUsers(cls):
+        thirtyDaysAgo = datetime.now() - timedelta(days=30)
+
+        last_30_days_records = session.query(Chat).filter(
+            Chat.lastUpdated >= thirtyDaysAgo
+        ).count()
+
+        return last_30_days_records
+
+    @classmethod
+    def getTodayActiveUsers(cls):
+        today_users = session.query(ChatActivity.todaysMessages).filter(
+            ChatActivity.todaysMessages >= 1
+        ).count()
+
+        return today_users
+
+    @classmethod
+    def getUsersUsedOneDay(cls):
+
+        users_one_day_usage = session.query(Chat.chatId).filter(
+            func.coalesce(Chat.lastUpdated, Chat.createdAt) - Chat.createdAt >= timedelta(minutes=1)
+        ).distinct().count()
+
+        return users_one_day_usage
+
+    @classmethod
+    def getUsersUsedOneWeek(cls):
+        users_one_day_usage = session.query(Chat.chatId).filter(
+            func.coalesce(Chat.lastUpdated, Chat.createdAt) - Chat.createdAt >= timedelta(days=7)
+        ).distinct().count()
+
+        return users_one_day_usage
+
+    @classmethod
+    def getUsersUsedOneMonth(cls):
+        users_one_day_usage = session.query(Chat.chatId).filter(
+            func.coalesce(Chat.lastUpdated, Chat.createdAt) - Chat.createdAt >= timedelta(days=30)
+        ).distinct().count()
+
+        return users_one_day_usage
+
 
 class MessageManager:
-    # Message manager
-    
-    # Get all data messages
 
     @classmethod
     def all(cls, chatId):
         messages = session.query(Message).filter_by(chatId=chatId).order_by(Message.id).all()
-
         listed_messages = []
-        
+
         for message in messages:
             data = {"content": message.content, "role": message.role}
-
-            listed_messages.append(data)    
+            listed_messages.append(data)
 
         return listed_messages
-    
-    
+
     @classmethod
     def saveMessage(cls, chatId, role, content, uzMessage):
-        
-        obj = Message(role=role, content=str(content), uzMessage=uzMessage, chatId=chatId, createdAt=datetime.now())
+        obj = Message(role=role, content=str(content),
+                      uzMessage=uzMessage, chatId=chatId,
+                      createdAt=datetime.now())
         obj.save()
-        
+
         return {"role": role, "content": str(content), "uzMessage": uzMessage}
-    
-    
+
     @classmethod
-    def userRole(cls, translated_text, instance):
-        original_message = instance.text
-        
-        original_message = f"I am {instance.from_user.first_name}, {original_message}"
-
-
-        data = cls.saveMessage(instance.chat.id, "user", translated_text, original_message)
+    def userRole(cls, translatedText, instance):
+        data = cls.saveMessage(instance.chat.id, "user", translatedText, instance.text)
 
         chat = Chat.get(instance.chat.id)
-
         Chat.update(chat, "lastUpdated", datetime.now())
 
-        chatActivity = ChatActivity.get(instance.chat.id)
+        chatActivity = ChatActivity.getOrCreate(instance.chat.id)
 
-        inputTokens = countTokenOfMessage(translated_text)
+        ChatActivity.update(chatActivity, "inputTokens",
+                            chatActivity.inputTokens + countTokenOfMessage(translatedText))
 
-        if chatActivity is None:
-            ChatActivity(chatId=instance.chat.id).save()
-            chatActivity = ChatActivity.get(instance.chat.id)
+        del data["uzMessage"]  # deleting uzMessage before it requests to openai
 
-
-        ChatActivity.update(chatActivity, "inputTokens", chatActivity.inputTokens + inputTokens)
-
-        del data["uzMessage"] # deleting uzMessage before it requests to openai
-    
         return data
 
-    
     @classmethod
     def assistantRole(cls, message, instance, is_translate):
-        translated_message = skip_code_translation(message, instance.chat.id, is_translate) # returns uz text  
-        
+        translated_message = skipCodeTranslation(message, is_translate)
+
         cls.saveMessage(instance.chat.id, "assistant", message, translated_message)
 
         return translated_message
@@ -275,54 +244,53 @@ class MessageManager:
     def system_role(cls, instance):
         cls.saveMessage(instance.chat.id, "system", instance.text, None)
 
-
     @classmethod
-    def systemToAllchat(cls, text):
+    def systemToAllChat(cls, text):
         chats = ChatManager.all()
 
         for chat in chats:
             cls.saveMessage(chat.chatId, "system", text, None)
 
-
     @classmethod
-    def deleteByLimit(self, chatId):
+    def deleteByLimit(cls, chatId):
         max_id_subquery = (
             session.query(func.max(Message.id))
             .filter(and_(Message.chatId == chatId))
             .scalar_subquery()
         )
-        
-        system_messages = session.query(Message).filter_by(role="system", chatId=chatId).all()
-        
-        for i, message in enumerate(system_messages):
-            if i != 0:
+
+        unique_system_messages = session.query(distinct(Message.content)).filter_by(
+            role="system", chatId=chatId).all()
+
+        for message_content, in unique_system_messages:
+            messages_to_delete = session.query(Message).filter_by(role="system", chatId=chatId,
+                                                                  content=message_content).all()
+            for i, message in enumerate(messages_to_delete):
+                if i == 0:
+                    continue
+
                 session.delete(message)
-        
+
         messages = session.query(Message).filter(and_(Message.chatId == chatId,
-                                                      Message.id != max_id_subquery), Message.role != "system").order_by(Message.id).offset(1).limit(1).all()
-        
+                                                      Message.id != max_id_subquery),
+                                                 Message.role != "system").order_by(Message.id).limit(1).all()
+
         for message in messages:
             session.delete(message)
 
         session.commit()
 
-
-    
     @classmethod
     def getSystemMessages(cls):
         chat = session.query(Chat).order_by(desc(Chat.id)).first()
 
         messages = session.query(Message).filter_by(chatId=chat.chatId).all()
-
         listed_messages = []
-                
+
         for message in messages:
             data = {"content": message.content, "role": message.role}
-            
+
             if data["role"] == "system":
-                listed_messages.append(data)    
+                listed_messages.append(data)
 
         return listed_messages
-
-    
-    
