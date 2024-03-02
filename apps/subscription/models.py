@@ -97,6 +97,7 @@ class Configuration(Base):
     
     id = Column(Integer, primary_key=True)
     apikeyPosition = Column(Integer, default=0)
+    isBeta = Column(Boolean, default=False)
     
     def __init__(self, apikeyPosition):
         self.apikeyPosition = apikeyPosition

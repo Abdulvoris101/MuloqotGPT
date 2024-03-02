@@ -107,7 +107,10 @@ class AIChatHandler:
                                                               is_translate=self.isTranslate)
             await bot.delete_message(chatId, progressMessageId)
             validatedText = fixMessageMarkdown(translatedResponse)
-            await self.sendMessage(str(validatedText), disable_web_page_preview=True,
+
+            msg = f"{self.message.from_user.first_name}, {validatedText}"
+
+            await self.sendMessage(str(msg), disable_web_page_preview=True,
                                    parse_mode=types.ParseMode.MARKDOWN)
 
         except Exception as e:
@@ -170,6 +173,14 @@ async def sendWelcome(message: types.Message):
         is_paid=True,
         isFree=isFree
     )
+
+
+@dp.message_handler(content_types=types.ContentType.NEW_CHAT_MEMBERS)
+async def newChatMember(message: types.Message):
+    new_chat_members = message.new_chat_members
+
+    for member in new_chat_members:
+        await message.answer(text.getNewChatMember(member.first_name))
 
 
 @dp.message_handler(commands=['profile'])

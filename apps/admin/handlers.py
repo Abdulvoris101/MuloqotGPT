@@ -126,7 +126,7 @@ async def subscribeUser(message: types.Message, state=FSMContext):
     )
     
     chatActivity = ChatActivity.getOrCreate(chatId=chatId)
-    ChatActivity.update(chatActivity, "todaysMessages", 20 - chatActivity.todaysMessages)
+    ChatActivity.update(chatActivity, "todaysMessages", 1)
 
     SubscriptionManager.subscribe(
         chatId=chatId, planId=PlanManager.getPremiumPlanOrCreate().id)
@@ -208,9 +208,11 @@ async def sendToUsersMessage(message: types.Message, state=FSMContext):
         await state.finish()
         return await message.answer("Foydalanuvchilar yo'q!", reply_markup=adminKeyboards)
 
-    blockedUsersCount = await SendAny(message=message).sendAnyMessages(users)
+    receivedUsersCount, blockedUsersCount = await SendAny(message=message).sendAnyMessages(users)
 
+    await sendError(f"Message sent to {receivedUsersCount} users")
     await sendError(f"Bot was blocked by {blockedUsersCount} users")
+
     await state.finish()
 
     return await message.answer("Xabar yuborildi!")
@@ -247,9 +249,10 @@ async def sendMessageWithInline(message: types.Message, state=FSMContext):
 
     users = PlanManager.getFreePlanUsers()
 
-    blockedUsersCount = await SendAny(message=message).sendAnyMessages(
+    receivedUsersCount, blockedUsersCount = await SendAny(message=message).sendAnyMessages(
         users=users, inlineKeyboards=getInlineMenu(inlineKeyboards))
 
+    await sendError(f"Message sent to {receivedUsersCount} users")
     await sendError(f"Bot was blocked by {blockedUsersCount} users")
     await state.finish()
 
