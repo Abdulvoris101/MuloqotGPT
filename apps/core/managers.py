@@ -7,7 +7,7 @@ from utils.events import sendEvent
 from filters.permission import isGroupAllowed
 from db.setup import session
 from db.proccessors import MessageProcessor
-from sqlalchemy import cast, String, func, desc, and_, distinct
+from sqlalchemy import cast, String, func, desc, and_, distinct, Date
 from datetime import datetime, timedelta, date
 from apps.subscription.models import ChatQuota
 
@@ -314,3 +314,8 @@ class MessageManager:
                 listed_messages.append(data)
 
         return listed_messages
+
+    @classmethod
+    def getTodayMessagesCount(cls):
+        return session.query(func.count(Message.id)). \
+                filter(cast(Message.createdAt, Date) == date.today()).scalar()

@@ -82,7 +82,8 @@ async def getStatistics(message: types.Message):
         premiumUsers=SubscriptionManager.getPremiumUsersCount(),
         limitReachedUsers=ChatActivityManager.getLimitReachedUsers(),
         allMessages=allMessages,
-        avgUsersMessagesCount=avgUsersMessagesCount
+        avgUsersMessagesCount=avgUsersMessagesCount,
+        todayMessages=MessageManager.getTodayMessagesCount()
     ))
 
 

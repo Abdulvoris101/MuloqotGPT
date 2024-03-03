@@ -195,7 +195,8 @@ def getStatisticsText(
         premiumUsers,
         limitReachedUsers,
         allMessages,
-        avgUsersMessagesCount
+        avgUsersMessagesCount,
+        todayMessages
 ):
     return f"""👤 Foydalanuvchilar - {usersCount}
 💥 Aktiv Foydalanuvchilar - {activeUsers}
@@ -206,7 +207,9 @@ def getStatisticsText(
 🎁 Premium Foydalanuvchilar - {premiumUsers}
 🛑 Bugungi limiti tugagan Foydalanuvchilar - {limitReachedUsers}
 📨 Xabarlar - {allMessages}
-📩 User uchun o'rtacha xabar - {avgUsersMessagesCount}"""
+📩 User uchun o'rtacha xabar - {avgUsersMessagesCount}
+✉️ Bugungi xabarlar - {todayMessages}"""
+
 
 
 def getRejectReason(reason):

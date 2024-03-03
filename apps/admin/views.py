@@ -49,18 +49,15 @@ async def admin(request: Request, page: int = Query(1, gt=0)):
         limit(rowsPerPage).\
         offset(offset)
 
-    todays_messages_count = session.query(func.count(Message.id)). \
-        filter(cast(Message.createdAt, Date) == date.today()).scalar()
-
     return templates.TemplateResponse("active.html", {
         "chats": query.all(),
         "groups": ChatManager.groupsCount(),
-        "messages": todays_messages_count,
+        "messages": MessageManager.getTodayMessagesCount(),
         "activeUsers": ChatActivityManager.getCurrentMonthUsers(),
         "countOfAllInputTokens": ChatActivityManager.countOfTodayInputTokens(),
         "countOfAllOutputTokens": ChatActivityManager.countOfTodayOutputTokens(),
         "request": request,
-        "users": ChatManager.usersCount(),
+        "users": query.count(),
         "all_chats": ChatManager.all(),
         "total_pages": totalPages,
         "current_page": page
