@@ -250,12 +250,14 @@ class SubscriptionManager:
         group_subscription = cls.getHostGroupSubscription(chatId=chatId,
                                                           planId=PlanManager.getHostPlanId())
 
+        users_used_requests = ChatActivityManager.getAllMessagesCount(chatId)
+
         if subscription is not None:
             return True
         elif group_subscription is not None:
             return True
-
-        return False
+        elif users_used_requests < 3:
+            return True
 
     @classmethod
     def rejectPremiumRequest(cls, chatId):
