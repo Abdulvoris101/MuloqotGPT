@@ -215,7 +215,10 @@ class ChatActivityManager:
 
     @classmethod
     def getLatestChat(cls):
-        return session.query(Chat).order_by(desc(Chat.lastUpdated)).first()
+        return session.query(Chat).\
+            filter(Chat.lastUpdated.isnot(None)).\
+            order_by(desc(Chat.lastUpdated)).first()
+
 
 
 
