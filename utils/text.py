@@ -16,10 +16,11 @@ Men sizga ko'p vazifalarni hal qilishda yordam bera olaman. Masalan:
 - uy vazifasini bajarish
 - xattoki men sizning shaxsiy psixologingiz bo'lishim xam mumkin
 
-Botning rasmiy <b>guruhi</b> - @muloqotaigr
+Men sizga eng yangi va eng chuqur ma'lumotlarni taqdim etish bilan shug'ullanaman. Ishonch bilan xizmat qilaman 💪
 
 🖼 Rasm chizish uchun so'rov boshiga ushbu so'zlarni qo'shishingiz kerak - <b>generate</b> yokida <b>imagine</b>
 Misol uchun - <code>imagine developer</code>
+
 Batafsil ma'lumot uchun - /help
 """
 
@@ -197,7 +198,8 @@ def getStatisticsText(
         allMessages,
         avgUsersMessagesCount,
         todayMessages,
-        lastUpdate
+        lastUpdate,
+        latestUser
 ):
     return f"""👤 Foydalanuvchilar - {usersCount}
 💥 Aktiv Foydalanuvchilar - {activeUsers}
@@ -211,7 +213,8 @@ def getStatisticsText(
 📩 User uchun o'rtacha xabar - {avgUsersMessagesCount}
 ✉️ Bugungi xabarlar - {todayMessages}
 
-Eng oxirgi aktivlik - {lastUpdate}"""
+Eng oxirgi aktivlik - {lastUpdate}
+Eng oxirgi aktivlik ko'rstgan user - {latestUser}"""
 
 
 

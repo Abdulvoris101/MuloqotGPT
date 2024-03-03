@@ -181,7 +181,7 @@ async def sendWelcome(message: types.Message):
         return await bot.send_message(userChat.id, text.NOT_AVAILABLE_GROUP)
 
     await bot.send_message(userChat.id, text.getGreetingsText(message.from_user.first_name))
-
+    await bot.send_message(userChat.id, "Menga o'zingiz qiziqayotgan savol yoki so'rovingizni yuboring!")
     planId = PlanManager.getFreePlanId() if userChat.type == "private" \
         else PlanManager.getHostPlanId()
     isFree = True if userChat.type == "private" else False
