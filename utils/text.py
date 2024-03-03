@@ -54,7 +54,7 @@ def getProfileText(
 
 ):
 
-    availableGptRequests = "70" if planType == "Premium" else "16"
+    availableGptRequests = "75" if planType == "Premium" else "16"
     availableImageAiRequests = "30" if planType == "Premium" else "5"
 
     isFree = True if planType == "Free" else False
@@ -63,7 +63,7 @@ def getProfileText(
 
 Premium obunaga nimalar kiradi?
 
-✅ Chatgptga turboga har kuni 70 ta so'rov;
+✅ Chatgptga turboga har kuni 75 ta so'rov;
 ⭐️ AI bilan har kuni 20 ta rasm generatsiya qilish;
 ✅ Avtotarjimon funksiyasi;
 ✅ Xechqanday reklama yo'q;
@@ -131,10 +131,10 @@ Xozirgi obuna quyidagilarni o'z ichiga oladi:
 ✅ Avtotarjimon funksiyasi;
 ✅ So’rovlar orasida pauza yo’q;
 
-Ko'proq kerakmi? 26.000 so'm evaziga bir oylik premium tarifga obuna bo'ling.
+Ko'proq kerakmi? 25.000 so'm evaziga bir oylik premium tarifga obuna bo'ling.
 
 Premium obuna bilan siz:
-✅ Chatgptga turboga har kuni 70 ta so'rov;
+✅ Chatgptga turboga har kuni 75 ta so'rov;
 ⭐️ AI bilan har kuni 20 ta rasm generatsiya qilish;
 ✅ Avtotarjimon funksiyasi;
 ✅ Xechqanday reklama yo'q;
@@ -146,7 +146,7 @@ Premium obuna bilan siz:
 
 
 def getLimitReached(isPremium):
-    usedRequests = 70 if isPremium else 16
+    usedRequests = 75 if isPremium else 16
     freeText = """ruxsat etilgan maksimal bepul foydalanishga erishdingiz. ChatGPT-ni abadiy bepul taqdim etish biz uchun qimmat.
 Yanada ko'proq so'rov uchun premium tarifga obuna bo'ling. /premium""" if not isPremium else ""
     return f"""Afsuski sizning kunlik limitingiz tugadi, {freeText}

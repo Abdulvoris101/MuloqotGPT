@@ -82,10 +82,12 @@ class GptRequest:
                     "Authorization": f"Bearer {self.apiKey}"
                 }
 
+                maxTokens = 200 if constants.HOST_GROUP_ID == self.chatId else 300
+
                 data = {
-                    "model": "gpt-3.5-turbo",
+                    "model": "gpt-3.5-turbo-0125",
                     "messages": messages,
-                    "max_tokens": 250,
+                    "max_tokens": maxTokens,
                     "frequency_penalty": self.frequency_penalty
                 }
 
