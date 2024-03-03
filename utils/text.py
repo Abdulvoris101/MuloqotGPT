@@ -49,6 +49,9 @@ def getProfileText(
         planType,
         todaysGptRequests,
         todaysImageRequests,
+        additionalGptQuota,
+        additionalImageQuota
+
 ):
 
     availableGptRequests = "70" if planType == "Premium" else "16"
@@ -76,6 +79,8 @@ Premium obunani ulash uchun /premium bo’limiga o’ting."""
 Limitlar: 
 • GPT-3.5 bugungi so’rovlar: {todaysGptRequests}/{availableGptRequests}
 • Rasm generatsiya: {todaysImageRequests}/{availableImageAiRequests}
+• Qo'shimcha GPT-3.5 so'rovlar: {additionalGptQuota}
+• Qo'shimcha rasm so'rovlari: {additionalImageQuota}
 
 {premiumText if isFree else ''}
 """

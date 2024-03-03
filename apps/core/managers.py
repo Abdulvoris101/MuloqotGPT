@@ -59,6 +59,28 @@ class ChatManager:
 class ChatActivityManager:
 
     @classmethod
+    def countOfTodayOutputTokens(cls):
+        chats = session.query(ChatActivity).filter(ChatActivity.todaysMessages >= 1)
+        outputTokens = 1
+
+        for activity in chats:
+            if activity.outputTokens is not None:
+                outputTokens += activity.outputTokens
+
+        return outputTokens
+
+    @classmethod
+    def countOfTodayInputTokens(cls):
+        chats = session.query(ChatActivity).filter(ChatActivity.todaysMessages >= 1)
+        inputTokens = 1
+
+        for chat in chats:
+            if chat.inputTokens is not None:
+                inputTokens += chat.inputTokens
+
+        return inputTokens
+
+    @classmethod
     def countOfAllOutputTokens(cls):
         userActivities = session.query(ChatActivity).all()
         outputTokens = 1

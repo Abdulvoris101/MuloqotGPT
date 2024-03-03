@@ -21,6 +21,7 @@ import asyncio
 
 from .models import ChatActivity
 from ..subscription.keyboards import cancelMenu
+from ..subscription.models import ChatQuota
 
 
 class AIChatHandler:
@@ -204,7 +205,9 @@ async def profile(message: types.Message):
         return await message.answer(text.getProfileText(
             "Premium" if premium is not None else "Free",
             ChatActivityManager.getTodayMessagesCount(userChat.id),
-            ChatActivityManager.getTodayImages(userChat.id)
+            ChatActivityManager.getTodayImages(userChat.id),
+            ChatQuota.getOrCreate(userChat.id).additionalGptRequests,
+            ChatQuota.getOrCreate(userChat.id).additionalImageRequests,
         ))
     except BadRequest:
         print("Bot blocked")
