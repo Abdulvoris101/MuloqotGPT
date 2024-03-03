@@ -32,4 +32,7 @@ class TopupState(StatesGroup):
 class RejectState(StatesGroup):
     chatId = State()
     reason = State()
-    
+
+
+class Comment(StatesGroup):
+    message = State()

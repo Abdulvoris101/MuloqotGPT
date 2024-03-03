@@ -216,9 +216,23 @@ Misol uchun\n`./Test-t.me//texnomasters\n./Test2-t.me//texnomasters`"""
 
 # Ai chat handler
 
+FEEDBACK_MESSAGE = """Bot bilan bo'lgan tajribangizni yozib qoldiring, bu bilan siz botni rivoji uchun xissa qo'shgan bo'lasiz! 
+Sizning fikr-mulohazalaringiz xizmatimizni yaxshilashga yordam beradi. Biz sizning har bir fikringizni qadrlaymiz! ✨"""
+
+FEEDBACK_GUIDE_MESSAGE = """Ushbu savollarga javob berib bizga yordam bering
+1. Bot siz uchun qanchalik foydali 0-10 gacha baxolang
+2. Botda yana qanday jihatlarni ko'rishni xoxlar edingiz? 
+3. Bot bilan suxbatlashayotganda sizda qandaydir xatolik ro'y berdimi? Bo'lgan bo'lsa qanday xatolik?
+4. Botni qayerdan eshitib kirdingiz?
+
+Ushbu savollarga qisqagina javob yo'llab bizga yordam bering 😊
+"""
+
 PROCESSING_MESSAGE = "⏳"
 ENTER_AGAIN = "Iltimos boshqatan so'rov yuboring"
 TOKEN_REACHED = "Savolni qisqartiribroq yozing"
+
+
 def getNewChatMember(firstName):
     return f"""👋 Assalomu alaykum! {firstName}, 
 Sizni yana bir bor ko'rib turganimdan xursandman. Bugun sizga qanday yordam bera olaman? 

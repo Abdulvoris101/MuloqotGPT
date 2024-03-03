@@ -49,8 +49,6 @@ class ChatManager:
         ChatActivity.getOrCreate(userChat.id)
         ChatQuota.getOrCreate(userChat.id)
 
-
-
         session.commit()
 
         return True

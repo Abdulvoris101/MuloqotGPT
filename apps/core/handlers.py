@@ -1,19 +1,26 @@
+import time
+
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters import Text
-from aiogram.utils.exceptions import BadRequest
+from aiogram.utils.exceptions import BadRequest, MessageToDeleteNotFound
 from bot import dp, bot, types
 from apps.gpt import GptRequest
+from db.state import Comment
 from filters.bound_filters import isBotMentioned
-from utils.events import sendError
+from utils.events import sendError, sendCommentEvent
 from utils.exception import AiogramException
 from utils.message import fixMessageMarkdown
+from .keyboards import feedbackMarkup, cancelMarkup
 from .managers import ChatManager, MessageManager, ChatActivityManager
 from utils.translate import translateMessage, detect
 from utils import checkTokens, countTokenOfMessage, constants, containsAnyWord
-from apps.subscription.managers import SubscriptionManager, PlanManager, LimitManager
+from apps.subscription.managers import SubscriptionManager, PlanManager, LimitManager, ConfigurationManager
 from apps.imageai.handlers import handleArt
 import utils.text as text
 import asyncio
+
+from .models import ChatActivity
+from ..subscription.keyboards import cancelMenu
 
 
 class AIChatHandler:
@@ -90,6 +97,14 @@ class AIChatHandler:
                            chatId=self.chatId,
                            progressMessageId=await self.sendMessage(text.PROCESSING_MESSAGE)))
 
+    async def getFeedback(self):
+        chatActivity = ChatActivity.get(self.chatId)
+        configuration = ConfigurationManager.getFirst()
+
+        if configuration.isBeta:
+            if chatActivity.allMessages == 10 and self.message.chat.type == "private":
+                await bot.send_message(self.chatId, text.FEEDBACK_MESSAGE, reply_markup=feedbackMarkup)
+
     async def sendToGpt(self, messages, chatId, progressMessageId):
         try:
             gptRequest = GptRequest(chatId,
@@ -112,6 +127,9 @@ class AIChatHandler:
 
             await self.sendMessage(str(msg), disable_web_page_preview=True,
                                    parse_mode=types.ParseMode.MARKDOWN)
+
+            time.sleep(2)
+            await self.getFeedback()
 
         except Exception as e:
             await sendError(str(e))
@@ -175,14 +193,6 @@ async def sendWelcome(message: types.Message):
     )
 
 
-@dp.message_handler(content_types=types.ContentType.NEW_CHAT_MEMBERS)
-async def newChatMember(message: types.Message):
-    new_chat_members = message.new_chat_members
-
-    for member in new_chat_members:
-        await message.answer(text.getNewChatMember(member.first_name))
-
-
 @dp.message_handler(commands=['profile'])
 async def profile(message: types.Message):
     userChat = message.from_user
@@ -200,12 +210,71 @@ async def profile(message: types.Message):
         print("Bot blocked")
 
 
+@dp.message_handler(commands=['feedback'])
+async def feedback(message: types.Message):
+    userChat = message.from_user
+    await bot.send_message(userChat.id, text.FEEDBACK_MESSAGE, reply_markup=feedbackMarkup)
+
+
 @dp.message_handler(commands=['help'])
 async def helpCommand(message: types.Message):
     await message.answer(text.HELP_COMMAND)
 
 
-@dp.message_handler(Text(equals="Bekor qilish"), state='*')
-async def cancelSubscription(message: types.Message, state: FSMContext):
+# Callbacks for feeedback
+@dp.callback_query_handler(text="feedback_callback")
+async def feedbackCallback(callback: types.CallbackQuery):
+    user = callback.from_user
+
+    await callback.answer("Izoh qoldirish")
+    await bot.delete_message(user.id, callback.message.message_id)
+
+    await bot.send_message(
+        chat_id=user.id,
+        text=text.FEEDBACK_GUIDE_MESSAGE,
+        reply_markup=cancelMarkup)
+
+    await Comment.message.set()
+
+
+@dp.message_handler(state=Comment.message)
+async def setFeedbackMessage(message: types.Message, state=FSMContext):
+    feedbackMessage = f"""#chat-id: {message.from_user.id}
+#username: @{message.from_user.username}
+#xabar: \n\n{message.text}
+    """
+
+    await sendCommentEvent(feedbackMessage)
     await state.finish()
-    return await bot.send_message(message.chat.id, "Obuna bekor qilindi!", reply_markup=types.ReplyKeyboardRemove())
+    return await message.answer("Izoh uchun rahmat!")
+
+
+# Callbacks for feeedback cancelation
+@dp.callback_query_handler(text="cancel_feedback", state='*')
+async def cancelInlineFeedback(callback: types.CallbackQuery, state: FSMContext):
+    user = callback.from_user
+
+    try:
+        await bot.delete_message(user.id, callback.message.message_id)
+    except MessageToDeleteNotFound:
+        pass
+
+    await callback.answer("Bekor qilindi!")
+    await state.finish()
+
+
+@dp.message_handler(Text(equals="Bekor qilish"), state='*')
+async def cancelButton(message: types.Message, state: FSMContext):
+    await state.finish()
+    return await bot.send_message(message.chat.id, "Bekor qilindi!", reply_markup=types.ReplyKeyboardRemove())
+
+
+# events
+
+
+@dp.message_handler(content_types=types.ContentType.NEW_CHAT_MEMBERS)
+async def newChatMember(message: types.Message):
+    new_chat_members = message.new_chat_members
+
+    for member in new_chat_members:
+        await bot.send_message(message.chat.id, text.getNewChatMember(member.first_name))

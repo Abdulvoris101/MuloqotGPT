@@ -22,6 +22,7 @@ REDIS_URL = os.environ.get("REDIS_URL")
 REDIS_HOST = os.environ.get("REDIS_HOST")
 HOST_GROUP_ID = int(os.environ.get("HOST_GROUP_ID"))
 IMAGE_GEN_GROUP_ID = int(os.environ.get("IMAGE_GEN_GROUP_ID"))
+COMMENTS_GROUP_ID = int(os.environ.get("COMMENTS_GROUP_ID"))
 ALLOWED_GROUPS = [HOST_GROUP_ID, IMAGE_GEN_GROUP_ID]
 AVAILABLE_GROUP_TYPES = [types.ChatType.GROUP, types.ChatType.SUPERGROUP]
 

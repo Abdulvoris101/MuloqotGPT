@@ -226,8 +226,8 @@ class SubscriptionManager:
     @classmethod
     async def cancelExpiredSubscriptions(cls):
         subscriptions = session.query(Subscription).filter(
-            Subscription.is_paid is True,
-            Subscription.isCanceled is False,
+            Subscription.is_paid == True,
+            Subscription.isCanceled == False,
             Subscription.planId == PlanManager.getPremiumPlanId(),
             Subscription.currentPeriodEnd < datetime.datetime.now()
         ).all()
@@ -250,13 +250,9 @@ class SubscriptionManager:
         group_subscription = cls.getHostGroupSubscription(chatId=chatId,
                                                           planId=PlanManager.getHostPlanId())
 
-        users_used_requests = ChatActivityManager.getAllMessagesCount(chatId)
-
         if subscription is not None:
             return True
         elif group_subscription is not None:
-            return True
-        elif users_used_requests < 10:
             return True
 
         return False
