@@ -213,6 +213,12 @@ class ChatActivityManager:
 
         return users_one_day_usage
 
+    @classmethod
+    def getLatestChat(cls):
+        return session.query(Chat).order_by(desc(Chat.lastUpdated)).first()
+
+
+
 
 class MessageManager:
 
@@ -319,3 +325,4 @@ class MessageManager:
     def getTodayMessagesCount(cls):
         return session.query(func.count(Message.id)). \
                 filter(cast(Message.createdAt, Date) == date.today()).scalar()
+

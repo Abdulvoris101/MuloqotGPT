@@ -83,7 +83,8 @@ async def getStatistics(message: types.Message):
         limitReachedUsers=ChatActivityManager.getLimitReachedUsers(),
         allMessages=allMessages,
         avgUsersMessagesCount=avgUsersMessagesCount,
-        todayMessages=MessageManager.getTodayMessagesCount()
+        todayMessages=MessageManager.getTodayMessagesCount(),
+        lastUpdate=ChatActivityManager.getLatestChat().lastUpdated
     ))
 
 
