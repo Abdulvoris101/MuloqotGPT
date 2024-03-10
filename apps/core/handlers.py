@@ -124,9 +124,7 @@ class AIChatHandler:
             await bot.delete_message(chatId, progressMessageId)
             validatedText = fixMessageMarkdown(translatedResponse)
 
-            msg = f"{self.message.from_user.first_name}, {validatedText}"
-
-            await self.sendMessage(str(msg), disable_web_page_preview=True,
+            await self.sendMessage(str(validatedText), disable_web_page_preview=True,
                                    parse_mode=types.ParseMode.MARKDOWN)
 
             time.sleep(2)
