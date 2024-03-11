@@ -178,8 +178,15 @@ async def sendWelcome(message: types.Message):
     if not status:
         return await bot.send_message(userChat.id, text.NOT_AVAILABLE_GROUP)
 
-    await bot.send_message(userChat.id, text.getGreetingsText(message.from_user.first_name))
-    await bot.send_message(userChat.id, "Menga o'zingiz qiziqayotgan savol yoki so'rovingizni yuboring!")
+    streaming_text = text.getGreetingsText(message.from_user.first_name)
+
+    msg = await bot.send_message(userChat.id, streaming_text[:20])
+
+    # Stream the remaining text
+    for i in range(20, len(streaming_text), 20):
+        await asyncio.sleep(0.1)  # Adjust the delay between messages as needed
+        await bot.edit_message_text(chat_id=userChat.id, message_id=msg.message_id, text=streaming_text[:i + 10])
+
     planId = PlanManager.getFreePlanId() if userChat.type == "private" \
         else PlanManager.getHostPlanId()
     isFree = True if userChat.type == "private" else False
@@ -200,6 +207,7 @@ async def profile(message: types.Message):
         chatId=userChat.id,
         planId=PlanManager.getPremiumPlanId())
     try:
+
         return await message.answer(text.getProfileText(
             "Premium" if premium is not None else "Free",
             ChatActivityManager.getTodayMessagesCount(userChat.id),

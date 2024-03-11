@@ -12,16 +12,13 @@ Men sizga ko'p vazifalarni hal qilishda yordam bera olaman. Masalan:
 - ijtimoiy tarmoqlar uchun post, insho xabarini yozish
 - kodni yozish/to'g'rilash
 - rasm chizish
-– matnni istalgan tilga Google Translator’dan yaxshiroq tarjima qilish
 - uy vazifasini bajarish
-- xattoki men sizning shaxsiy psixologingiz bo'lishim xam mumkin
 
 Men sizga eng yangi va eng chuqur ma'lumotlarni taqdim etish bilan shug'ullanaman. Ishonch bilan xizmat qilaman 💪
 
-🖼 Rasm chizish uchun so'rov boshiga ushbu so'zlarni qo'shishingiz kerak - <b>generate</b> yokida <b>imagine</b>
-Misol uchun - <code>imagine developer</code>
+🖼 Rasm chizish uchun so'rov boshiga ushbu so'zlarni qo'shishingiz kerak - generate yokida imagine
 
-Batafsil ma'lumot uchun - /help
+Menga o'zingiz qiziqayotgan savol yoki so'rovingizni yuboring!
 """
 
 
