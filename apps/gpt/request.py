@@ -35,7 +35,8 @@ class ResponseHandler:
         choices = self.response.get('choices', False)
 
         if choices:
-            ChatActivityManager.increaseMessageStat(chatId=self.chatId)
+            ChatActivityManager.increaseActivityField(chatId=self.chatId, column="allMessages")
+            ChatActivityManager.increaseActivityField(chatId=self.chatId, column="todaysMessages")
             ChatActivityManager.increaseOutputTokens(chatId=self.chatId,
                                                      message=self.response['choices'][0]['message']['content'])
             return self.response['choices'][0]['message']['content']

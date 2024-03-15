@@ -10,7 +10,7 @@ from filters.bound_filters import isBotMentioned
 from utils.events import sendError, sendCommentEvent
 from utils.exception import AiogramException
 from utils.message import fixMessageMarkdown
-from .keyboards import feedbackMarkup, cancelMarkup
+from .keyboards import feedbackMarkup, cancelMarkup, messageMarkup
 from .managers import ChatManager, MessageManager, ChatActivityManager
 from utils.translate import translateMessage, detect
 from utils import checkTokens, countTokenOfMessage, constants, containsAnyWord
@@ -20,7 +20,6 @@ import utils.text as text
 import asyncio
 
 from .models import ChatActivity
-from ..subscription.keyboards import cancelMenu
 from ..subscription.models import ChatQuota
 
 
@@ -124,8 +123,10 @@ class AIChatHandler:
             await bot.delete_message(chatId, progressMessageId)
             validatedText = fixMessageMarkdown(translatedResponse)
 
+            markup = messageMarkup if self.message.chat.type == "private" and not self.isTranslate else None
+
             await self.sendMessage(str(validatedText), disable_web_page_preview=True,
-                                   parse_mode=types.ParseMode.MARKDOWN)
+                                   parse_mode=types.ParseMode.MARKDOWN, reply_markup=markup)
 
             time.sleep(2)
             await self.getFeedback()
@@ -244,6 +245,28 @@ async def feedbackCallback(callback: types.CallbackQuery):
         reply_markup=cancelMarkup)
 
     await Comment.message.set()
+
+
+@dp.callback_query_handler(text="translate_callback")
+async def translateCallback(callback: types.CallbackQuery):
+    user = callback.from_user
+
+    payedSubscription = SubscriptionManager.getPremiumSubscription(
+        user.id, PlanManager.getPremiumPlanId())
+
+    if ChatActivityManager.getTranslatedMessageCounts(user.id) >= 5 and payedSubscription is None:
+        return await bot.send_message(
+            chat_id=user.id,
+            text=text.LIMIT_TRANSLATION_REACHED)
+
+    ChatActivityManager.increaseActivityField(user.id, "translatedMessagesCount")
+    translatedMessage = translateMessage(callback.message.text, "auto",
+                                         "uz", isTranslate=True)
+
+    await bot.edit_message_text(
+        chat_id=user.id,
+        message_id=callback.message.message_id,
+        text=translatedMessage)
 
 
 @dp.message_handler(state=Comment.message)

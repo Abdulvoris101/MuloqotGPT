@@ -4,6 +4,7 @@
 
 START_BOT_TEXT = """Botni boshlash uchun /start kommandasini yuboring!"""
 
+
 def getGreetingsText(firstName):
     return f"""Salom! {firstName}
 Men dunyodagi eng ilg'or Sun'iy intellektman
@@ -49,7 +50,6 @@ def getProfileText(
         todaysImageRequests,
         additionalGptQuota,
         additionalImageQuota
-
 ):
 
     availableGptRequests = "75" if planType == "Premium" else "16"
@@ -59,14 +59,14 @@ def getProfileText(
 
     premiumText = """Ko’proq so’rovlar kerakmi? Unda oylik Premium obunani ulang va yanada ko’proq foydalaning!
 
-Premium obunaga nimalar kiradi?
-
-✅ Chatgptga turboga har kuni 75 ta so'rov;
+Premium obuna bilan siz:
+✅ Chatgpt turboga har kuni 75 ta so'rov;
 ⭐️ AI bilan har kuni 20 ta rasm generatsiya qilish;
 ✅ Avtotarjimon funksiyasi;
 ✅ Xechqanday reklama yo'q;
 ✅ So’rovlar orasida pauza yo’q;
-✅ Javoblar kreativroq..
+✅ Xabarlarni cheksiz tarjima qilish.
+✅ Javoblar kreativroq.
 
 Premium obunani ulash uchun /premium bo’limiga o’ting."""
 
@@ -127,16 +127,18 @@ Xozirgi obuna quyidagilarni o'z ichiga oladi:
 ✅ Chatgptga har kuni 16 ta so'rov;
 ⭐️ AI bilan 5 ta rasm generatsiya qilish;
 ✅ Avtotarjimon funksiyasi;
-✅ So’rovlar orasida pauza yo’q;
+✅ 5ta xabarni tarjima qilish.
+
 
 Ko'proq kerakmi? 25.000 so'm evaziga bir oylik premium tarifga obuna bo'ling.
 
 Premium obuna bilan siz:
-✅ Chatgptga turboga har kuni 75 ta so'rov;
+✅ Chatgpt turboga har kuni 75 ta so'rov;
 ⭐️ AI bilan har kuni 20 ta rasm generatsiya qilish;
 ✅ Avtotarjimon funksiyasi;
 ✅ Xechqanday reklama yo'q;
 ✅ So’rovlar orasida pauza yo’q;
+✅ Xabarlarni cheksiz tarjima qilish.
 ✅ Javoblar kreativroq.
 """
 
@@ -214,7 +216,6 @@ Eng oxirgi aktivlik - {lastUpdate}
 Eng oxirgi aktivlik ko'rstgan user - {latestUser}"""
 
 
-
 def getRejectReason(reason):
     return f"""Afsuski sizning premium obunaga bo'lgan so'rovingiz bekor qilindi.
 Sababi: {reason}
@@ -250,8 +251,12 @@ Sizni yana bir bor ko'rib turganimdan xursandman. Bugun sizga qanday yordam bera
 Men bilan qiziqarli suxbat qurishga tayyormisiz?"
 """
 
+
+NOT_SUBSCRIBED = "Bu xizmatdan foydalanish uchun premiumga obuna bo'lishingiz kerak. /premium buyrug'i yordamida obuna bo'ling"
+LIMIT_TRANSLATION_REACHED = "Afsuski sizning tarjima uchun limitingiz tugadi. Cheksiz tarjima uchun premiumga obuna bo'lishingiz kerak /premium "
 # ERRORS
 
 NOT_AVAILABLE_GROUP = """Bu guruhda rasm generatsiya qilib bo'lmaydi!"""
 IMAGE_GEN_NOT_AVAILABLE = """Bu guruhda rasm generatsiya qilib bo'lmaydi!"""
 IMAGE_GEN_ERROR = """Rasm generatsiyasi jarayonida xatolik yuz berdi. Iltimos, keyinroq urinib ko'ring."""
+

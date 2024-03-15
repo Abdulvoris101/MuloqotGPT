@@ -55,6 +55,7 @@ class ChatActivity(Base):
     allMessages = Column(BigInteger, default=0)
     todaysImages = Column(BigInteger, default=0)
     todaysMessages = Column(BigInteger, default=0)
+    translatedMessagesCount = Column(BigInteger, default=0)
 
     def __init__(self, chatId):
         self.chatId = chatId

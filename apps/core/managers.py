@@ -1,5 +1,3 @@
-from collections import defaultdict
-
 from .models import Chat, Message, ChatActivity
 from utils import countTokenOfMessage, constants
 from utils.translate import skipCodeTranslation
@@ -113,6 +111,16 @@ class ChatActivityManager:
         return 1 if chatActivity is None else chatActivity.todaysImages
 
     @staticmethod
+    def getTranslatedMessageCounts(chatId):
+        chatActivity = session.query(ChatActivity).filter_by(chatId=chatId).first()
+        if chatActivity.translatedMessagesCount is None:
+            chatActivity.translatedMessagesCount = 0
+            session.add(chatActivity)
+
+        session.commit()
+        return chatActivity.translatedMessagesCount
+
+    @staticmethod
     def getAllMessagesCount(chatId):
         chatActivity = session.query(ChatActivity).filter_by(chatId=chatId).first()
         return 1 if chatActivity is None else chatActivity.allMessages
@@ -144,14 +152,15 @@ class ChatActivityManager:
         session.commit()
 
     @staticmethod
-    def increaseMessageStat(chatId):
+    def increaseActivityField(chatId, column):
         chatActivity = ChatActivity.get(chatId=chatId)
 
         if chatActivity is None:
             ChatActivity(chatId=chatId).save()
 
-        ChatActivity.update(chatActivity, "allMessages", chatActivity.allMessages + 1)
-        ChatActivity.update(chatActivity, "todaysMessages", chatActivity.todaysMessages + 1)
+        currentValue = getattr(chatActivity, column)
+
+        ChatActivity.update(chatActivity, column, currentValue + 1)
 
     @staticmethod
     def increaseOutputTokens(chatId, message):
@@ -218,9 +227,6 @@ class ChatActivityManager:
         return session.query(Chat).\
             filter(Chat.lastUpdated.isnot(None)).\
             order_by(desc(Chat.lastUpdated)).first()
-
-
-
 
 
 class MessageManager:

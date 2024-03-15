@@ -259,6 +259,8 @@ class SubscriptionManager:
         elif users_used_requests < 3:
             return True
 
+        return False
+
     @classmethod
     def rejectPremiumRequest(cls, chatId):
         subscription = cls.getInActivePremiumSubscription(

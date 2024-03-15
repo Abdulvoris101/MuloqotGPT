@@ -7,6 +7,10 @@ feedbackCancelBtn = types.InlineKeyboardButton(text="❌ Bekor qilish", callback
 feedbackMarkup.add(feedbackBtn)
 feedbackMarkup.add(feedbackCancelBtn)
 
+messageMarkup = types.InlineKeyboardMarkup(row_width=1)
+translateBtn = types.InlineKeyboardButton(text="✨ Tarjima qilish", callback_data="translate_callback")
+messageMarkup.add(translateBtn)
+
 cancelMarkup = types.InlineKeyboardMarkup(row_width=1)
 cancelMarkup.add(feedbackCancelBtn)
 
