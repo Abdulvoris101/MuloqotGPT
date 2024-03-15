@@ -5,9 +5,8 @@ from apps.core.managers import ChatActivityManager
 from apps.subscription.managers import SubscriptionManager, FreeApiKeyManager
 
 
-def cancelExpiredSubscriptions():
-    loop = asyncio.get_event_loop()
-    loop.run_until_complete(SubscriptionManager.cancelExpiredSubscriptions())
+async def cancelExpiredSubscriptions():
+    await SubscriptionManager.cancelExpiredSubscriptions()
 
     print("Canceled Expired Subscriptions!")
 

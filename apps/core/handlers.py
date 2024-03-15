@@ -3,6 +3,8 @@ import time
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters import Text
 from aiogram.utils.exceptions import BadRequest, MessageToDeleteNotFound
+
+import tasks
 from bot import dp, bot, types
 from apps.gpt import GptRequest
 from db.state import Comment
