@@ -188,7 +188,10 @@ async def sendWelcome(message: types.Message):
     # Stream the remaining text
     for i in range(20, len(streaming_text), 20):
         await asyncio.sleep(0.1)  # Adjust the delay between messages as needed
-        await bot.edit_message_text(chat_id=userChat.id, message_id=msg.message_id, text=streaming_text[:i + 10])
+        try:
+            await bot.edit_message_text(chat_id=userChat.id, message_id=msg.message_id, text=streaming_text[:i + 10])
+        except Exception as e:
+            pass
 
     planId = PlanManager.getFreePlanId() if userChat.type == "private" \
         else PlanManager.getHostPlanId()
