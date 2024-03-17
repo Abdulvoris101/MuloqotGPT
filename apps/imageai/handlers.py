@@ -3,7 +3,7 @@ from aiogram.utils.exceptions import BadRequest
 from bot import dp, bot, types
 from utils.events import sendError
 from utils.exception import AiogramException
-from .generate import LexicaAi
+from .generate import ImageGen
 from filters.bound_filters import IsPrivate
 from utils import text, constants
 from utils.translate import translateMessage
@@ -42,13 +42,13 @@ async def handleArt(message: types.Message):
     await message.answer_chat_action("typing")
 
     try:
-        images = await LexicaAi.generate(message.chat.id, query)
+        images = await ImageGen.generate(message.chat.id, query)
     except AiogramException as e:
         await bot.delete_message(userChat.id, message_id=sentMessage.message_id)
         await bot.send_message(userChat.id, e.message_text)
         return
 
-    images = LexicaAi.getRandomImages(images, 6)
+    images = ImageGen.getRandomImages(images, 6)
 
     chatActivity = ChatActivity.getOrCreate(message.chat.id)
     ChatActivity.update(chatActivity, "todaysImages", chatActivity.todaysImages + 1)
