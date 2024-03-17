@@ -5,7 +5,6 @@ import asyncio
 from utils.exception import AiogramException
 from utils import text
 from bs4 import BeautifulSoup
-from requests_html import AsyncHTMLSession
 
 
 class ImageGen:
