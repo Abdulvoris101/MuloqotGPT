@@ -1,26 +1,23 @@
 # tasks.py
-from apps.subscription.managers import SubscriptionManager, FreeApiKeyManager
-from apps.core.managers import MessageStatManager
 import asyncio
 
-def say_hello():
-    print("hello")
+from apps.core.managers import ChatActivityManager
+from apps.subscription.managers import SubscriptionManager, FreeApiKeyManager
 
-def cancelExpiredSubscriptions():
-    loop = asyncio.get_event_loop()
-    loop.run_until_complete(SubscriptionManager.cancelExpiredSubscriptions())
-    
+
+async def cancelExpiredSubscriptions():
+    await SubscriptionManager.cancelExpiredSubscriptions()
+
     print("Canceled Expired Subscriptions!")
 
 
 def unsetExpiredKeys():
     FreeApiKeyManager.unExpireKeys()
-    
+
     print("unsetExpiredKeys")
 
+
 def clearAllTodaysMessages():
-    MessageStatManager.clearAllUsersTodaysMessagesAndImages()
-    
+    ChatActivityManager.clearAllUsersTodayMessagesAndImages()
 
     print("clearedAllTodaysMessages")
-    

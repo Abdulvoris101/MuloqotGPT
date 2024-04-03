@@ -1,0 +1,254 @@
+{% extends "base/base.html" %} 
+{% block title %}MuloqotAi Admin{% endblock %} 
+
+{% block content %}
+
+<div
+  id="main-wrapper"
+  data-layout="vertical"
+  data-navbarbg="skin5"
+  data-sidebartype="full"
+  data-sidebar-position="absolute"
+  data-header-position="absolute"
+  data-boxed-layout="full"
+>
+  {% include "include/nav.html" %} 
+  {% include "include/header.html" %}
+
+  <div class="container-fluid">
+    <!-- ============================================================== -->
+    <!-- Three charts -->
+    <!-- ============================================================== -->
+    <div class="row justify-content-center">
+      <div class="col-lg-2 col-md-12">
+        <div class="white-box analytics-info">
+          <h3 class="box-title">Today's Users</h3>
+          <ul class="list-inline two-part d-flex align-items-center mb-0">
+            <li>
+              <div id="sparklinedash">
+                <canvas
+                  width="67"
+                  height="30"
+                  style="
+                    display: inline-block;
+                    width: 67px;
+                    height: 30px;
+                    vertical-align: top;
+                  "
+                ></canvas>
+              </div>
+            </li>
+            <li class="ms-auto">
+              <span class="counter text-success">{{ users }}</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+      <div class="col-lg-2 col-md-12">
+        <div class="white-box analytics-info">
+          <h3 class="box-title">Groups</h3>
+          <ul class="list-inline two-part d-flex align-items-center mb-0">
+            <li>
+              <div id="sparklinedash2">
+                <canvas
+                  width="67"
+                  height="30"
+                  style="
+                    display: inline-block;
+                    width: 67px;
+                    height: 30px;
+                    vertical-align: top;
+                  "
+                ></canvas>
+              </div>
+            </li>
+            <li class="ms-auto">
+              <span class="counter text-purple">{{ groups }}</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+      <div class="col-lg-2 col-md-12">
+        <div class="white-box analytics-info">
+          <h3 class="box-title">Today Messages</h3>
+          <ul class="list-inline two-part d-flex align-items-center mb-0">
+            <li>
+              <div id="sparklinedash3">
+                <canvas
+                  width="67"
+                  height="30"
+                  style="
+                    display: inline-block;
+                    width: 67px;
+                    height: 30px;
+                    vertical-align: top;
+                  "
+                ></canvas>
+              </div>
+            </li>
+            <li class="ms-auto">
+              <span class="counter text-info">{{ messages }}</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="col-lg-2 col-md-12">
+        <div class="white-box analytics-info">
+          <h3 class="box-title">Today Input Tokens</h3>
+          <ul class="list-inline two-part d-flex align-items-center mb-0">
+            <li>
+              <div id="sparklinedash3">
+                <canvas
+                  width="67"
+                  height="30"
+                  style="
+                    display: inline-block;
+                    width: 67px;
+                    height: 30px;
+                    vertical-align: top;
+                  "
+                ></canvas>
+              </div>
+            </li>
+            <li class="ms-auto">
+              <span class="counter text-info">{{ countOfAllInputTokens }}</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="col-lg-2 col-md-12">
+        <div class="white-box analytics-info">
+          <h3 class="box-title">All Output Tokens</h3>
+          <ul class="list-inline two-part d-flex align-items-center mb-0">
+            <li>
+              <div id="sparklinedash3">
+                <canvas
+                  width="67"
+                  height="30"
+                  style="
+                    display: inline-block;
+                    width: 67px;
+                    height: 30px;
+                    vertical-align: top;
+                  "
+                ></canvas>
+              </div>
+            </li>
+            <li class="ms-auto">
+              <span class="counter text-info">{{ countOfAllOutputTokens }}</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ============================================================== -->
+    <!-- Chats -->
+    <!-- ============================================================== -->
+    <div class="row">
+      <div class="col-md-12 col-lg-12 col-sm-12">
+        <div class="white-box">
+          <div class="d-md-flex mb-3">
+            <h3 class="box-title mb-0">Today active Chats</h3>
+            <div class="col-md-3 col-sm-4 col-xs-6 ms-auto">
+              <input
+                type="text"
+                id="searchInput"
+                placeholder="Search..."
+                class="form-control"
+              />
+            </div>
+          </div>
+
+          <div class="table-responsive">
+            <table class="table no-wrap">
+              <thead>
+                <tr>
+                  <th class="border-top-0">Id</th>
+                  <th class="border-top-0">Chat Id</th>
+                  <th class="border-top-0">Chat Name</th>
+                  <th class="border-top-0">Username</th>
+                  <th class="border-top-0">Input Tokens</th>
+                  <th class="border-top-0">Output Tokens</th>
+                  <th class="border-top-0">Todays Messages</th>
+                  <th class="border-top-0">All Messages</th>
+                  <th class="border-top-0">Last Updated</th>
+
+                  <th class="border-top-0">
+                    Created At
+                    <input
+                      type="checkbox"
+                      class="ms-2 form-check-input"
+                      id="sortDate"
+                    />
+                  </th>
+                </tr>
+              </thead>
+
+                <tbody class="paginated-chats" id="paginated-chats" >
+                    {% for chat in chats %}
+                        <tr>
+                            <td>{{ chat.id }}</td>
+                            <td>{{ chat.chatId }}</td>
+                            <td class="txt-oflo">{{ chat.chatName }}</td>
+                            <td>{{ chat.username }}</td>
+                            <td>{{ chat.chatActivity.first().inputTokens }}</td>
+                            <td>{{ chat.chatActivity.first().outputTokens }}</td>
+                            <td>{{ chat.chatActivity.first().todaysMessages }}</td>
+                            <td>{{ chat.chatActivity.first().allMessages }}</td>
+
+                            <td>{{ chat.lastUpdated }}</td>
+                            <td>{{ chat.createdAt }}</td>
+                        </tr>
+                    {% endfor %}
+
+                </tbody>
+
+                <tbody class="all-chats" style="display: none;" id="allchats">
+                    Allchats
+                  {% for chat in all_chats %}
+                        <tr>
+                            <td>{{ chat.id }}</td>
+                            <td>{{ chat.chatId }}</td>
+                            <td class="txt-oflo">{{ chat.chatName }}</td>
+                            <td>{{ chat.username }}</td>
+                            <td>{{ chat.chatActivity.first().inputTokens }}</td>
+                            <td>{{ chat.chatActivity.first().outputTokens }}</td>
+                            <td>{{ chat.chatActivity.first().todaysMessages }}</td>
+                            <td>{{ chat.chatActivity.first().allMessages }}</td>
+
+                            <td>{{ chat.lastUpdated }}</td>
+                            <td>{{ chat.createdAt }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            <input
+                type="hidden"
+                id="total_pages"
+                value="{{ total_pages }}"
+            />
+            
+            {% include "include/pagination.html" %}
+
+            <!-- Pagination links -->
+
+
+
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <footer class="footer text-center">2023 © MuloqotAi</footer>
+    
+  </div>
+  <!-- ============================================================== -->
+  <!-- End Page wrapper  -->
+  <!-- ============================================================== -->
+</div>
+
+{% endblock %}

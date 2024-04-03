@@ -1,4 +1,4 @@
-from aiogram import Bot, Dispatcher, executor, types
+from aiogram import Bot, Dispatcher, types
 from aiogram.contrib.fsm_storage.redis import RedisStorage2
 from utils import constants
 

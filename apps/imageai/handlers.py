@@ -1,44 +1,64 @@
+from aiogram.utils.exceptions import BadRequest
+
 from bot import dp, bot, types
-from .generate import LexicaAi
-from filters import IsPrivate
-from utils import text
+from utils.events import sendError
+from utils.exception import AiogramException
+from .generate import ImageGen
+from filters.bound_filters import IsPrivate
+from utils import text, constants
+from utils.translate import translateMessage
 from apps.subscription.managers import LimitManager
-from apps.core.models import MessageStats
+from apps.core.models import ChatActivity
+from apps.subscription.managers import SubscriptionManager
+
 
 dp.filters_factory.bind(IsPrivate)
 
 
+async def isPermitted(chatId, message):
+    if not LimitManager.checkRequestsDailyLimit(message.chat.id, messageType="IMAGE"):
+        if chatId == constants.IMAGE_GEN_GROUP_ID:
+            await message.answer(text.LIMIT_GROUP_REACHED)
+            return False
 
-@dp.message_handler(commands=["art"], is_private=True)
+        await message.answer(text.getLimitReached(SubscriptionManager.isPremiumToken(chatId)))
+        return False
+
+    return True
+
+
 async def handleArt(message: types.Message):
-    query = message.get_args()
+    userChat = message.chat
 
-    if not query:
-        return await message.answer("Iltimos so'rovingizni kiriting:\n` /art prompt` ", parse_mode="MARKDOWN")
-    
-    if not LimitManager.checkImageaiRequestsDailyLimit(message.from_user.id):
-        return await message.answer(text.LIMIT_REACHED)
+    query = translateMessage(message.text,
+                             from_="auto",
+                             to="en",
+                             isTranslate=True)
 
-    sent_message = await bot.send_message(message.chat.id, "...")
+    if not await isPermitted(chatId=userChat.id, message=message):
+        return
 
+    sentMessage = await bot.send_message(message.chat.id, "⏳")
     await message.answer_chat_action("typing")
 
-    images = await LexicaAi.generate(message.chat.id, query)
+    try:
+        images = await ImageGen.generate(message.chat.id, query)
+    except AiogramException as e:
+        await bot.delete_message(userChat.id, message_id=sentMessage.message_id)
+        await bot.send_message(userChat.id, e.message_text)
+        return
 
-    messageStat = MessageStats.get(message.chat.id)
+    images = ImageGen.getRandomImages(images, 6)
 
-    if messageStat is None:
-        return await message.answer("Iltimos so'rovingizni boshqatan kiriting! ", parse_mode="MARKDOWN")
- 
-    MessageStats.update(messageStat, "todaysImages", messageStat.todaysImages + 1)
-
-    images = LexicaAi.getRandomImages(images, 6)
+    chatActivity = ChatActivity.getOrCreate(message.chat.id)
+    ChatActivity.update(chatActivity, "todaysImages", chatActivity.todaysImages + 1)
 
     media_group = [types.InputMediaPhoto(media=url) for url in images]
-
-    media_group[0].caption = f"\n🌄 {query}\n\n@muloqataibot"
+    media_group[0].caption = f"\n🌄 {message.text}\n\n@muloqataibot"
     
-    await bot.delete_message(message.chat.id, message_id=sent_message.message_id)
-    await bot.send_media_group(message.chat.id, media=media_group)
+    await bot.delete_message(userChat.id, message_id=sentMessage.message_id)
 
-
+    try:
+        await bot.send_media_group(userChat.id, media=media_group)
+    except BadRequest as e:
+        await bot.send_message(userChat.id, "Rasm generatsiya qilishda xatolik. Iltimos boshqatan so'rov yuboring!")

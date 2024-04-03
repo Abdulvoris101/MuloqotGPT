@@ -1,8 +1,8 @@
-from sqlalchemy import Column, Integer, String, Enum, Boolean, Text, BigInteger, DateTime, ForeignKey
+from sqlalchemy import Column, Integer, desc, String, Enum, Boolean, Text, BigInteger, DateTime, ForeignKey
 from db.setup import session, Base
 from datetime import datetime
-import json
 from sqlalchemy.orm import relationship
+
 
 class Chat(Base):
     __tablename__ = 'chat'
@@ -10,19 +10,16 @@ class Chat(Base):
     id = Column(Integer, primary_key=True)
     chatName = Column(String)
     username = Column(String, nullable=True)
-    isActivated = Column(Boolean)
     chatId = Column(BigInteger, unique=True)
     createdAt = Column(DateTime, nullable=True)
     lastUpdated = Column(DateTime, nullable=True)
-    
-    messageStats = relationship('MessageStats', backref='chat', lazy='dynamic')
+    chatActivity = relationship('ChatActivity', backref='chat', lazy='dynamic')
 
-    def __init__(self, chatId, chatName, username, isActivated=True):
+    def __init__(self, chatId, chatName, username):
         self.chatName = chatName
         self.chatId = chatId
         self.username = username
         self.createdAt = datetime.now()
-        self.isActivated = isActivated
         super().__init__()
 
     def save(self):
@@ -35,7 +32,6 @@ class Chat(Base):
     def get(cls, chatId):
         chat = session.query(Chat).filter_by(chatId=chatId).first()
 
-
         return chat
 
     @classmethod
@@ -44,13 +40,13 @@ class Chat(Base):
         session.commit()
 
     @classmethod
-    def delete(self, chatId):
+    def delete(cls, chatId):
         chat = session.query(Chat).filter_by(chatId=chatId).first()
         session.delete(chat)
 
 
-class MessageStats(Base):
-    __tablename__ = 'messageStats'
+class ChatActivity(Base):
+    __tablename__ = 'chat_activity'
 
     id = Column(Integer, primary_key=True)
     chatId = Column(BigInteger, ForeignKey('chat.chatId'))
@@ -59,11 +55,10 @@ class MessageStats(Base):
     allMessages = Column(BigInteger, default=0)
     todaysImages = Column(BigInteger, default=0)
     todaysMessages = Column(BigInteger, default=0)
-
+    translatedMessagesCount = Column(BigInteger, default=0)
 
     def __init__(self, chatId):
         self.chatId = chatId
-
 
     @classmethod
     def update(cls, instance, column, value):
@@ -71,14 +66,24 @@ class MessageStats(Base):
         session.commit()
 
     @classmethod
-    def delete(self, chatId):
-        messageStat = session.query(Chat).filter_by(chatId=chatId).first()
-        session.delete(messageStat)
+    def delete(cls, chatId):
+        chatActivity = session.query(Chat).filter_by(chatId=chatId).first()
+        session.delete(chatActivity)
 
     @classmethod
     def get(cls, chatId):
-        messageStat = session.query(MessageStats).filter_by(chatId=chatId).first()
-        return messageStat
+        chatActivity = session.query(ChatActivity).filter_by(chatId=chatId).first()
+        return chatActivity
+
+    @classmethod
+    def getOrCreate(cls, chatId):
+        chatActivity = ChatActivity.get(chatId)
+
+        if chatActivity is None:
+            ChatActivity(chatId=chatId).save()
+            chatActivity = ChatActivity.get(chatId)
+
+        return chatActivity
 
     def save(self):
         session.add(self)
@@ -89,40 +94,24 @@ class Message(Base):
     __tablename__ = 'message'
 
     id = Column(Integer, primary_key=True)
-    
     content = Column(Text)
     role = Column(Enum('user', 'system', 'assistant', name="role_enum", create_type=False))
     uzMessage = Column(Text, nullable=True)
-    
     chatId = Column(BigInteger)
     createdAt = Column(DateTime, nullable=True)
 
     def save(self):
         self.createdAt = datetime.now()
-                
         session.add(self)
         session.commit()
     
-    
     @classmethod
     def count(cls):
-        messageStats = session.query(MessageStats).all()
-        msg_counts = 1
+        last_message = session.query(Message).order_by(desc(Message.createdAt)).first()
 
-        for messageStat in messageStats:
-            messages_count = messageStat.allMessages
-            
-            if messages_count is not None:
-                msg_counts += messages_count
-
-        # Calculate the total count of messages from all chats
-        totalMessagesCount = msg_counts
-
-        return totalMessagesCount
-
-
+        return int(last_message.id)
     
     @classmethod
-    def delete(self, chatId):
+    def delete(cls, chatId):
         session.query(Message).filter_by(chatId=chatId).delete()
 

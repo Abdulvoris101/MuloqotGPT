@@ -2,8 +2,9 @@ import schedule
 import time
 from rq import Queue
 from redis import Redis
-from utils import constants
+
 import tasks
+from utils import constants
 
 # Connect to Redis and create an RQ queue
 redis_conn = Redis.from_url(constants.REDIS_URL)
