@@ -1,5 +1,7 @@
 from fastapi import FastAPI
 from aiogram import types
+
+from tasks import cancelExpiredSubscriptions
 from utils import constants
 from aiogram.dispatcher.dispatcher import Dispatcher, Bot
 import uvicorn
@@ -13,9 +15,8 @@ from apps.admin.views import router
 
 from fastapi.staticfiles import StaticFiles
 from fastapi_pagination import add_pagination
-
 from celery import Celery
-
+import asyncio
 
 celery = Celery(
     'tasks',

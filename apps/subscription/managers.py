@@ -1,3 +1,4 @@
+from utils.events import sendEvent, sendError
 from utils.exception import AiogramException
 from .models import Subscription, Plan, FreeApiKey, Configuration, ChatQuota
 import datetime
@@ -236,9 +237,11 @@ class SubscriptionManager:
             subscription.isCanceled = True
             subscription.is_paid = False
             subscription.canceledAt = datetime.datetime.now()
-            session.add(subscription)
 
-            await bot.send_message(subscription.chatId, text.SUBSCRIPTION_END)
+            try:
+                await bot.send_message(subscription.chatId, text.SUBSCRIPTION_END)
+            except Exception as e:
+                await sendError(f"<b>#subscription end can not send</b>\n{str(e)}\n\n#user {subscription.chatId}")
 
         session.commit()
 
