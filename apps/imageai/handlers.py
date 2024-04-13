@@ -1,7 +1,5 @@
-from aiogram.utils.exceptions import BadRequest
-
-from bot import dp, bot, types
-from utils.events import sendError
+from aiogram.exceptions import TelegramBadRequest
+from bot import dp, bot
 from utils.exception import AiogramException
 from .generate import ImageGen
 from filters.bound_filters import IsPrivate
@@ -10,9 +8,7 @@ from utils.translate import translateMessage
 from apps.subscription.managers import LimitManager
 from apps.core.models import ChatActivity
 from apps.subscription.managers import SubscriptionManager
-
-
-dp.filters_factory.bind(IsPrivate)
+from aiogram import types
 
 
 async def isPermitted(chatId, message):
@@ -39,7 +35,7 @@ async def handleArt(message: types.Message):
         return
 
     sentMessage = await bot.send_message(message.chat.id, "⏳")
-    await message.answer_chat_action("typing")
+    await bot.send_chat_action(chat_id=message.chat.id, action="typing")
 
     try:
         images = await ImageGen.generate(message.chat.id, query)
@@ -55,10 +51,10 @@ async def handleArt(message: types.Message):
 
     media_group = [types.InputMediaPhoto(media=url) for url in images]
     media_group[0].caption = f"\n🌄 {message.text}\n\n@muloqataibot"
-    
+
     await bot.delete_message(userChat.id, message_id=sentMessage.message_id)
 
     try:
         await bot.send_media_group(userChat.id, media=media_group)
-    except BadRequest as e:
+    except TelegramBadRequest as e:
         await bot.send_message(userChat.id, "Rasm generatsiya qilishda xatolik. Iltimos boshqatan so'rov yuboring!")

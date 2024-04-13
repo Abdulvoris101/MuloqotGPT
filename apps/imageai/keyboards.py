@@ -1,9 +1,5 @@
-from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
+from aiogram.utils import keyboard
 
-
-refreshMenu = InlineKeyboardMarkup(row_width=2)
-regenerateBtn = InlineKeyboardButton(text="🔄", callback_data="regenerate")
-
-refreshMenu.insert(regenerateBtn)
-
-
+refreshBuilder = keyboard.InlineKeyboardBuilder()
+refreshBuilder.button(text="🔄", callback_data="regenerate")
+refreshMenu = keyboard.InlineKeyboardMarkup(inline_keyboard=refreshBuilder.export())

@@ -5,51 +5,47 @@ from utils.events import sendEvent
 from filters.permission import isGroupAllowed
 from db.setup import session
 from db.proccessors import MessageProcessor
-from sqlalchemy import cast, String, func, desc, and_, distinct, Date
+from sqlalchemy import cast, String, func, desc, and_, distinct, Date, exists
 from datetime import datetime, timedelta, date
 from apps.subscription.models import ChatQuota
+from aiogram import types
+from utils import text
 
 
 class ChatManager:
 
     @classmethod
     def groupsCount(cls):
-        return session.query(Chat).filter(cast(Chat.chatId, String).startswith('-')).count()
+        return session.query(Chat).filter_by(chatType='supergroup').count()
 
     @classmethod
     def usersCount(cls):
-        return session.query(Chat).count()
+        return session.query(Chat).filter_by(chatType='private').count()
 
     @classmethod
     def all(cls):
         return session.query(Chat).all()
 
     @classmethod
-    def count(cls):
-        return session.query(Chat).count()
+    def isExistsByUserId(cls, userId: int):
+        return session.query(exists().where(Chat.chatId == userId)).scalar()
 
     @classmethod
-    async def activate(cls, message, requestType="GPT"):
-        userChat = message.chat
-        chatType = userChat.type
-        chatObj = Chat.get(userChat.id)
+    async def register(cls, chat: types.Chat):
+        chatObj = cls.isExistsByUserId(chat.id)
 
-        if not isGroupAllowed(chatType, userChat.id, requestType):
-            return False
+        if not chatObj:
+            Chat(chatId=chat.id, chatName=chat.full_name, chatType=chat.type,
+                 username=chat.username).save()
+            MessageProcessor.createSystemMessages(chat.id, chat.type)
 
-        if chatObj is None:
-            chatObj = Chat(userChat.id, userChat.full_name, userChat.username).save()
-            MessageProcessor.createSystemMessages(userChat.id, userChat.type)
-            await sendEvent(
-                f"#new\nid: {chatObj.id}\ntelegramId: {userChat.id}"
-                f"\nusername: @{userChat.username}\nname: {userChat.full_name}")
+            await sendEvent(text=text.getUserRegisterEventText(chat=chat))
 
-        ChatActivity.getOrCreate(userChat.id)
-        ChatQuota.getOrCreate(userChat.id)
+        ChatActivity.getOrCreate(chat.id)
+        ChatQuota.getOrCreate(chat.id)
 
         session.commit()
 
-        return True
 
 # Analytics
 

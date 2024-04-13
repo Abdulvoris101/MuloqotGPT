@@ -1,14 +1,18 @@
-from aiogram.dispatcher.dispatcher import FSMContext
-from bot import dp, bot, types
+from aiogram import Router, F, types
+from aiogram.filters import CommandObject, Command
+from aiogram.fsm.context import FSMContext
+from bot import bot
 from utils import text, constants
 from utils.events import sendSubscriptionEvent
 from db.state import PaymentState
 from .keyboards import checkPaymentMenu, cancelMenu, buySubscriptionMenu
-from aiogram.dispatcher.filters import Text
 from apps.subscription.managers import SubscriptionManager, PlanManager
 
 
-@dp.message_handler(commands=["premium"])
+subscriptionRouter = Router(name="subscriptionRouter")
+
+
+@subscriptionRouter.message(Command("premium"))
 async def premium(message: types.Message):
     if message.chat.type == "private":
         await bot.send_message(
@@ -18,8 +22,8 @@ async def premium(message: types.Message):
         )
 
 
-@dp.callback_query_handler(text="subscribe_premium")
-async def buyPremium(message: types.Message):
+@subscriptionRouter.callback_query(F.data == "subscribe_premium")
+async def buyPremium(message: types.Message, state: FSMContext):
     user = message.from_user
     premiumPlanId = PlanManager.getPremiumPlanId()
 
@@ -41,27 +45,25 @@ async def buyPremium(message: types.Message):
         text.subscriptionInvoiceText(int(constants.PREMIUM_PRICE)),
         reply_markup=checkPaymentMenu)
 
-    await PaymentState.first_step.set()
+    await state.set_state(PaymentState.first_step)
 
 
-@dp.message_handler(Text(equals="Skrinshotni yuborish"), state=PaymentState.first_step)
-async def checkThePayment(message: types.Message, state=FSMContext):
-    async with state.proxy() as data:
-        data["price"] = constants.PREMIUM_PRICE
-        
+@subscriptionRouter.message(F.text == "Skrinshotni yuborish", PaymentState.first_step)
+async def checkThePayment(message: types.Message, state: FSMContext):
     sentMessage = await message.answer("Biroz kuting...")
 
+    await state.update_data(price=constants.PREMIUM_PRICE)
     await bot.delete_message(message.chat.id, sentMessage.message_id)
     await message.answer(text.PAYMENT_STEP_1, reply_markup=cancelMenu)
 
-    await PaymentState.next()
+    await state.set_state(PaymentState.second_step)
 
 
-@dp.message_handler(state=PaymentState.second_step, content_types=types.ContentTypes.PHOTO)
-async def createSubscription(message: types.Message, state=FSMContext):
-    async with state.proxy() as data:
-        price = data["price"]
-        
+@subscriptionRouter.message(PaymentState.second_step, F.photo)
+async def createSubscription(message: types.Message, state: FSMContext):
+    data = await state.get_data()
+    price = data.get("price")
+
     photoFileId = message.photo[-1].file_id
 
     subscription = SubscriptionManager.createSubscription(
@@ -77,9 +79,9 @@ async def createSubscription(message: types.Message, state=FSMContext):
     await bot.send_photo(constants.SUBSCRIPTION_CHANNEL_ID, photoFileId)
     await message.answer(text.PAYMENT_STEP_2, reply_markup=types.ReplyKeyboardRemove())
     
-    await state.finish()
+    await state.clear()
 
 
-@dp.message_handler(commands=["donate"])
+@subscriptionRouter.message(Command("donate"))
 async def donate(message: types.Message):
     return await message.reply(text.DONATE)

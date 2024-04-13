@@ -1,14 +1,13 @@
 import time
-
-from aiogram.dispatcher import FSMContext
-from aiogram.dispatcher.filters import Text
-from aiogram.utils.exceptions import BadRequest, MessageToDeleteNotFound
-
-import tasks
-from bot import dp, bot, types
+from aiogram import Router, F, types
+from aiogram.exceptions import TelegramBadRequest, TelegramNotFound
+from aiogram.filters import Command, CommandObject, or_f, and_f, CommandStart
+from aiogram.fsm.context import FSMContext
+from bot import bot
 from apps.gpt import GptRequest
 from db.state import Comment
 from filters.bound_filters import isBotMentioned
+from filters.permission import isGroupAllowed
 from utils.events import sendError, sendCommentEvent
 from utils.exception import AiogramException
 from utils.message import fixMessageMarkdown
@@ -20,9 +19,10 @@ from apps.subscription.managers import SubscriptionManager, PlanManager, LimitMa
 from apps.imageai.handlers import handleArt
 import utils.text as text
 import asyncio
-
 from .models import ChatActivity
 from ..subscription.models import ChatQuota
+
+coreRouter = Router(name="coreRouter")
 
 
 class AIChatHandler:
@@ -32,19 +32,21 @@ class AIChatHandler:
         self.full_name = message.chat.full_name
         self.text = str(message.text)
 
-    async def sendMessage(self, text, *args, **kwargs):
-        if self.message.chat.type == "private":
-            sentMessage = await bot.send_message(self.chatId, text, *args, **kwargs)
-            return sentMessage.message_id
-        else:
-            try:
-                sentMessage = await self.message.reply(text, *args, **kwargs)
-                return sentMessage.message_id
-            except BadRequest:
-                sentMessage = await bot.send_message(self.chatId, text, *args, **kwargs)
-                return sentMessage.message_id
+    async def sendMessage(self, text: str, *args, **kwargs) -> str:
+        """Sends a message to the user, handling private and group chats differently."""
 
-    async def isPermitted(self):
+        try:
+            if self.message.chat.type == "private":
+                sentMessage = await bot.send_message(self.chatId, text, **kwargs)
+            else:
+                sentMessage = await self.message.reply(text, **kwargs)
+        except TelegramBadRequest:
+            # Fallback to sending a direct message if reply fails
+            sentMessage = await bot.send_message(self.chatId, text, **kwargs)
+
+        return sentMessage.message_id
+
+    async def isPermitted(self) -> bool:
         if not LimitManager.checkRequestsDailyLimit(self.chatId, messageType="GPT"):
             if self.message.chat.type in constants.AVAILABLE_GROUP_TYPES:
                 await self.sendMessage(text.LIMIT_GROUP_REACHED)
@@ -72,17 +74,18 @@ class AIChatHandler:
         return messages
 
     async def getTranslatedMessage(self):
+        """Detects the language of the message and translates it if necessary."""
         try:
             lang_code = detect(self.text)
-        except:
+        except Exception:
             lang_code = "en"
 
-        self.isTranslate = True if lang_code == "uz" else False
+        should_translate = (lang_code == "uz")
+        if should_translate:
+            translated_message = translateMessage(self.text, to='en')
+            return translated_message if translated_message is not None else self.text
 
-        message_en = translateMessage(message=self.text,
-                                      to='en', isTranslate=self.isTranslate)
-
-        return self.text if message_en is None else message_en
+        return self.text
 
     async def handle(self):
         if not await self.isPermitted():
@@ -117,7 +120,7 @@ class AIChatHandler:
             except AiogramException as e:
                 await bot.delete_message(chatId, progressMessageId)
                 await self.sendMessage(e.message_text, disable_web_page_preview=True,
-                                       parse_mode=types.ParseMode.MARKDOWN)
+                                       parse_mode="MARKDOWN")
                 return
 
             translatedResponse = MessageManager.assistantRole(message=response, instance=self.message,
@@ -128,7 +131,7 @@ class AIChatHandler:
             markup = messageMarkup if self.message.chat.type == "private" and not self.isTranslate else None
 
             await self.sendMessage(str(validatedText), disable_web_page_preview=True,
-                                   parse_mode=types.ParseMode.MARKDOWN, reply_markup=markup)
+                                   parse_mode="MARKDOWN", reply_markup=markup)
 
             time.sleep(2)
             await self.getFeedback()
@@ -138,19 +141,14 @@ class AIChatHandler:
             await self.sendMessage(text.ENTER_AGAIN)
 
 
-@dp.message_handler(lambda message: all([
-    not message.text.startswith('/'),
-    not message.text.endswith('.!'),
-    not message.text.startswith('✅'),
-    not message.text.startswith("Bekor qilish"),
-    message.chat.type == 'private'
-]))
+@coreRouter.message((~F.text.startswith(('/', '✅', "Bekor qilish")) &
+                    ~F.text.endswith('.!') & F.chat.type == "private"))
 async def handlePrivateMessages(message: types.Message):
-    userChat = message.chat
-    status = await ChatManager.activate(message)
+    chat = message.chat
+    await ChatManager.register(message)
 
-    if not status:
-        return await bot.send_message(userChat.id, text.NOT_AVAILABLE_GROUP)
+    if not isGroupAllowed(chatType=chat.type, chatId=chat.id, requestType='GPT'):
+        return await bot.send_message(chat.id, text.NOT_AVAILABLE_GROUP)
 
     if containsAnyWord(message.text, constants.IMAGE_GENERATION_WORDS):
         return await handleArt(message)
@@ -158,14 +156,14 @@ async def handlePrivateMessages(message: types.Message):
     await AIChatHandler(message=message).handle()
 
 
-@dp.message_handler(isBotMentioned())
+@coreRouter.message(isBotMentioned())
 async def handleGroupReply(message: types.Message):
-    userChat = message.chat
+    chat = message.chat
     requestType = "IMAGE" if containsAnyWord(message.text, constants.IMAGE_GENERATION_WORDS) else "GPT"
-    status = await ChatManager.activate(message, requestType=requestType)
+    await ChatManager.register(message)
 
-    if not status:
-        return await bot.send_message(userChat.id, text.NOT_AVAILABLE_GROUP)
+    if not isGroupAllowed(chatType=chat.type, chatId=chat.id, requestType=requestType):
+        return await bot.send_message(chat.id, text.NOT_AVAILABLE_GROUP)
 
     if containsAnyWord(message.text, constants.IMAGE_GENERATION_WORDS):
         return await handleArt(message)
@@ -173,39 +171,39 @@ async def handleGroupReply(message: types.Message):
     await AIChatHandler(message=message).handle()
 
 
-@dp.message_handler(commands=['start'])
+@coreRouter.message(Command("start"))
 async def sendWelcome(message: types.Message):
-    status = await ChatManager.activate(message)
-    userChat = message.chat
+    chat = message.chat
+    await ChatManager.register(chat)
 
-    if not status:
-        return await bot.send_message(userChat.id, text.NOT_AVAILABLE_GROUP)
+    if not isGroupAllowed(chatType=chat.type, chatId=chat.id, requestType='GPT'):
+        return await bot.send_message(chat.id, text.NOT_AVAILABLE_GROUP)
 
     streaming_text = text.getGreetingsText(message.from_user.first_name)
 
-    msg = await bot.send_message(userChat.id, streaming_text[:20])
+    msg = await bot.send_message(chat.id, streaming_text[:20])
 
     # Stream the remaining text
     for i in range(20, len(streaming_text), 20):
         await asyncio.sleep(0.1)  # Adjust the delay between messages as needed
         try:
-            await bot.edit_message_text(chat_id=userChat.id, message_id=msg.message_id, text=streaming_text[:i + 10])
+            await bot.edit_message_text(chat_id=chat.id, message_id=msg.message_id, text=streaming_text[:i + 10])
         except Exception as e:
             pass
 
-    planId = PlanManager.getFreePlanId() if userChat.type == "private" \
+    planId = PlanManager.getFreePlanId() if chat.type == "private" \
         else PlanManager.getHostPlanId()
-    isFree = True if userChat.type == "private" else False
+    isFree = True if chat.type == "private" else False
 
     SubscriptionManager.getSubscriptionOrCreate(
         planId=planId,
-        chatId=userChat.id,
+        chatId=chat.id,
         is_paid=True,
         isFree=isFree
     )
 
 
-@dp.message_handler(commands=['profile'])
+@coreRouter.message(Command("profile"))
 async def profile(message: types.Message):
     userChat = message.from_user
 
@@ -221,24 +219,24 @@ async def profile(message: types.Message):
             ChatQuota.getOrCreate(userChat.id).additionalGptRequests,
             ChatQuota.getOrCreate(userChat.id).additionalImageRequests,
         ))
-    except BadRequest:
+    except TelegramBadRequest:
         print("Bot blocked")
 
 
-@dp.message_handler(commands=['feedback'])
+@coreRouter.message(Command("feedback"))
 async def feedback(message: types.Message):
     userChat = message.from_user
     await bot.send_message(userChat.id, text.FEEDBACK_MESSAGE, reply_markup=feedbackMarkup)
 
 
-@dp.message_handler(commands=['help'])
+@coreRouter.message(Command("help"))
 async def helpCommand(message: types.Message):
     await message.answer(text.HELP_COMMAND)
 
 
 # Callbacks for feeedback
-@dp.callback_query_handler(text="feedback_callback")
-async def feedbackCallback(callback: types.CallbackQuery):
+@coreRouter.callback_query(F.data == "feedback_callback")
+async def feedbackCallback(callback: types.CallbackQuery, state: FSMContext):
     user = callback.from_user
 
     await callback.answer("Izoh qoldirish")
@@ -249,10 +247,10 @@ async def feedbackCallback(callback: types.CallbackQuery):
         text=text.FEEDBACK_GUIDE_MESSAGE,
         reply_markup=cancelMarkup)
 
-    await Comment.message.set()
+    await state.set_state(Comment.message)
 
 
-@dp.callback_query_handler(text="translate_callback")
+@coreRouter.callback_query(F.data == "translate_callback")
 async def translateCallback(callback: types.CallbackQuery):
     user = callback.from_user
 
@@ -274,42 +272,42 @@ async def translateCallback(callback: types.CallbackQuery):
         text=translatedMessage)
 
 
-@dp.message_handler(state=Comment.message)
-async def setFeedbackMessage(message: types.Message, state=FSMContext):
+@coreRouter.message(Comment.message)
+async def setFeedbackMessage(message: types.Message, state: FSMContext):
     feedbackMessage = f"""#chat-id: {message.from_user.id}
 #username: @{message.from_user.username}
 #xabar: \n\n{message.text}
     """
 
     await sendCommentEvent(feedbackMessage)
-    await state.finish()
+    await state.clear()
     return await message.answer("Izoh uchun rahmat!")
 
 
 # Callbacks for feeedback cancelation
-@dp.callback_query_handler(text="cancel_feedback", state='*')
+@coreRouter.callback_query(F.data == "cancel")
 async def cancelInlineFeedback(callback: types.CallbackQuery, state: FSMContext):
     user = callback.from_user
 
     try:
         await bot.delete_message(user.id, callback.message.message_id)
-    except MessageToDeleteNotFound:
+    except TelegramNotFound:
         pass
 
     await callback.answer("Bekor qilindi!")
-    await state.finish()
+    await state.clear()
 
 
-@dp.message_handler(Text(equals="Bekor qilish"), state='*')
+@coreRouter.message(F.text == "Bekor qilish")
 async def cancelButton(message: types.Message, state: FSMContext):
-    await state.finish()
+    await state.clear()
     return await bot.send_message(message.chat.id, "Bekor qilindi!", reply_markup=types.ReplyKeyboardRemove())
 
 
 # events
 
 
-@dp.message_handler(content_types=types.ContentType.NEW_CHAT_MEMBERS)
+@coreRouter.message(F.NEW_CHAT_MEMBERS)
 async def newChatMember(message: types.Message):
     new_chat_members = message.new_chat_members
 

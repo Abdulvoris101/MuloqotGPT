@@ -1,4 +1,5 @@
 # All texts
+from aiogram import types
 
 """Basic command texts and greetings"""
 
@@ -42,6 +43,13 @@ Qachonki o'zbek tilida so'rov kiritsangiz avtotarjima o'zi avtomatik tarzda yona
 Botning rasmiy guruhi - @muloqotaigr
 Botning rasmiy kanali - @muloqotai
 """
+
+USER_REGISTER_EVENT_TEXT = """#new\nid: {chat.id}\ntelegramId: {chat.id}
+\nusername: @{chat.username}\nname: {chat.full_name}"""
+
+
+def getUserRegisterEventText(chat: types.Chat):
+    return USER_REGISTER_EVENT_TEXT.format(chat)
 
 
 def getProfileText(

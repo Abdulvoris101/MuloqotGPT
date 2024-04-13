@@ -1,6 +1,7 @@
 from dotenv import load_dotenv
 import os
-from aiogram import types
+from aiogram import types, F
+from aiogram.enums import chat_type
 
 load_dotenv()
 
@@ -24,7 +25,7 @@ HOST_GROUP_ID = int(os.environ.get("HOST_GROUP_ID"))
 IMAGE_GEN_GROUP_ID = int(os.environ.get("IMAGE_GEN_GROUP_ID"))
 COMMENTS_GROUP_ID = int(os.environ.get("COMMENTS_GROUP_ID"))
 ALLOWED_GROUPS = [HOST_GROUP_ID, IMAGE_GEN_GROUP_ID]
-AVAILABLE_GROUP_TYPES = [types.ChatType.GROUP, types.ChatType.SUPERGROUP]
+AVAILABLE_GROUP_TYPES = [chat_type.ChatType.GROUP, chat_type.ChatType.SUPERGROUP]
 
 IMAGE_GENERATION_WORDS = ["generate", "imagine"]
 
