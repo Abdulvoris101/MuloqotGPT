@@ -1,10 +1,13 @@
-from aiogram import Bot, Dispatcher, types
-from aiogram.contrib.fsm_storage.redis import RedisStorage2
+from aiogram import Bot, Dispatcher
+from aiogram.fsm.storage.redis import RedisStorage
+from aioredis import Redis
+
 from utils import constants
 
+redis = Redis(host=constants.REDIS_HOST, port=6379, db=1)
 
 bot = Bot(token=constants.BOT_TOKEN, parse_mode='HTML')
-storage = RedisStorage2(constants.REDIS_HOST, 6379, db=1, pool_size=10)
+storage = RedisStorage(redis=redis)
 
 
-dp = Dispatcher(bot, storage=storage)
+dp = Dispatcher(storage=storage)

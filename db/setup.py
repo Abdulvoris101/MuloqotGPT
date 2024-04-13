@@ -8,7 +8,6 @@ from utils import constants
 
 try:
    engine = create_engine(constants.DB_URL)
-
 except Exception as error:
     print("Error while connecting to PostgreSQL:", error)
 

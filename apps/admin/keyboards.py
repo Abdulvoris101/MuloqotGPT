@@ -1,41 +1,38 @@
-from aiogram import types
-
-adminKeyboards = types.ReplyKeyboardMarkup([
-        [
-            types.KeyboardButton("📤 Xabar yuborish.!"),
-            types.KeyboardButton("🤖 System xabar yuborish.!")
-        ],
-        [
-            types.KeyboardButton("📊 Statistika.!"),
-            types.KeyboardButton("🎁 Premium obuna.!")
-        ],
-        [
-            types.KeyboardButton("✖️ Premiumni rad etish.!")
-        ]
-    ], resize_keyboard=True, one_time_keyboard=True
-)
+from aiogram.types import ReplyKeyboardMarkup, InlineKeyboardMarkup
+from aiogram.utils.keyboard import ReplyKeyboardBuilder, InlineKeyboardBuilder
 
 
-cancelKeyboards = types.ReplyKeyboardMarkup([
-        [
-            types.KeyboardButton("/cancel"),
-        ],
-    ], resize_keyboard=True, one_time_keyboard=True
-)
+adminKeyboardsBuilder = ReplyKeyboardBuilder()
+adminKeyboardsBuilder.button(text="📤 Xabar yuborish.!")
+adminKeyboardsBuilder.button(text="🤖 System xabar yuborish.!")
+adminKeyboardsBuilder.button(text="📊 Statistika.!")
+adminKeyboardsBuilder.button(text="✖️ Premiumni rad etish.!")
+adminKeyboardsBuilder.adjust(2, 2, 1)
 
-sendMessageMenu = types.InlineKeyboardMarkup(row_width=1)
+adminKeyboardsMarkup = ReplyKeyboardMarkup(keyboard=adminKeyboardsBuilder.export(),
+                                           resize_keyboard=True, one_time_keyboard=True)
 
-inlineMessage = types.InlineKeyboardButton(text="Inline bilan", callback_data="with_inline")
-simpleMessage = types.InlineKeyboardButton(text="Oddiy post", callback_data="without_inline")
 
-sendMessageMenu.add(inlineMessage)
-sendMessageMenu.add(simpleMessage)
+cancelKeyboardsBuilder = ReplyKeyboardBuilder()
+cancelKeyboardsBuilder.button(text="/cancel")
+
+cancelKeyboardsMarkup = ReplyKeyboardMarkup(keyboard=cancelKeyboardsBuilder.export(),
+                                            resize_keyboard=True, one_time_keyboard=True)
+
+
+sendMessageBuilder = InlineKeyboardBuilder()
+sendMessageBuilder.button(text="Inline bilan", callback_data="with_inline")
+sendMessageBuilder.button(text="Oddiy post", callback_data="without_inline")
+
+sendMessageMarkup = InlineKeyboardMarkup(inline_keyboard=sendMessageBuilder.export(),
+                                         resize_keyboard=True)
 
 
 def getInlineMenu(inline_keyboards):
-    inlineMenu = types.InlineKeyboardMarkup(row_width=2)
+    inlineBuilder = InlineKeyboardBuilder()
 
     for kb in inline_keyboards:
-        inlineMenu.add(types.InlineKeyboardButton(text=str(kb["name"]), url=str(kb["callback_url"])))
+        inlineBuilder.button(text=str(kb["name"]),
+                             url=str(kb["callback_url"]))
     
-    return inlineMenu
+    return InlineKeyboardMarkup(inline_keyboard=inlineBuilder.export())

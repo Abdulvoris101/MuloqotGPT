@@ -1,5 +1,5 @@
 import asyncio
-from aiogram.utils.exceptions import BotBlocked, UserDeactivated, BotKicked
+from aiogram.exceptions import TelegramForbiddenError, TelegramUnauthorizedError, TelegramBadRequest
 from apps.core.managers import ChatManager
 from apps.subscription.managers import PlanManager
 from bot import bot
@@ -24,11 +24,11 @@ class SendAny:
 
             self.receivedUsersCount += 1
 
-        except UserDeactivated:
+        except TelegramUnauthorizedError:
             self.blockedUsersCount += 1
-        except BotKicked:
+        except TelegramForbiddenError:
             self.blockedUsersCount += 1
-        except BotBlocked:
+        except TelegramBadRequest:
             self.blockedUsersCount += 1
         except:
             pass
@@ -42,11 +42,11 @@ class SendAny:
 
             self.receivedUsersCount += 1
 
-        except UserDeactivated:
+        except TelegramUnauthorizedError:
             self.blockedUsersCount += 1
-        except BotKicked:
+        except TelegramForbiddenError:
             self.blockedUsersCount += 1
-        except BotBlocked:
+        except TelegramBadRequest:
             self.blockedUsersCount += 1
         except:
             self.blockedUsersCount += 1
@@ -62,11 +62,11 @@ class SendAny:
 
             self.receivedUsersCount += 1
 
-        except UserDeactivated:
+        except TelegramUnauthorizedError:
             self.blockedUsersCount += 1
-        except BotKicked:
+        except TelegramForbiddenError:
             self.blockedUsersCount += 1
-        except BotBlocked:
+        except TelegramBadRequest:
             self.blockedUsersCount += 1
         except:
             pass
@@ -80,11 +80,11 @@ class SendAny:
                                          reply_markup=kb)
 
             self.receivedUsersCount += 1
-        except UserDeactivated:
+        except TelegramUnauthorizedError:
             self.blockedUsersCount += 1
-        except BotKicked:
+        except TelegramForbiddenError:
             self.blockedUsersCount += 1
-        except BotBlocked:
+        except TelegramBadRequest:
             self.blockedUsersCount += 1
         except:
             pass

@@ -1,11 +1,9 @@
 import time
-
-from aiogram.dispatcher import FSMContext
-from aiogram.dispatcher.filters import Text
-from aiogram.utils.exceptions import BadRequest, MessageToDeleteNotFound
-
-import tasks
-from bot import dp, bot, types
+from aiogram import Router, F, types
+from aiogram.exceptions import TelegramBadRequest, TelegramNotFound
+from aiogram.filters import Command, CommandObject, or_f, and_f, CommandStart
+from aiogram.fsm.context import FSMContext
+from bot import bot
 from apps.gpt import GptRequest
 from db.state import Comment
 from filters.bound_filters import isBotMentioned
@@ -20,9 +18,10 @@ from apps.subscription.managers import SubscriptionManager, PlanManager, LimitMa
 from apps.imageai.handlers import handleArt
 import utils.text as text
 import asyncio
-
 from .models import ChatActivity
 from ..subscription.models import ChatQuota
+
+coreRouter = Router(name="coreRouter")
 
 
 class AIChatHandler:
@@ -40,7 +39,7 @@ class AIChatHandler:
             try:
                 sentMessage = await self.message.reply(text, *args, **kwargs)
                 return sentMessage.message_id
-            except BadRequest:
+            except TelegramBadRequest:
                 sentMessage = await bot.send_message(self.chatId, text, *args, **kwargs)
                 return sentMessage.message_id
 
@@ -138,14 +137,10 @@ class AIChatHandler:
             await self.sendMessage(text.ENTER_AGAIN)
 
 
-@dp.message_handler(lambda message: all([
-    not message.text.startswith('/'),
-    not message.text.endswith('.!'),
-    not message.text.startswith('✅'),
-    not message.text.startswith("Bekor qilish"),
-    message.chat.type == 'private'
-]))
+@coreRouter.message((~F.text.startswith(('/', '✅', "Bekor qilish")) &
+                    ~F.text.endswith('.!') & F.chat.type == "private"))
 async def handlePrivateMessages(message: types.Message):
+    print("True")
     userChat = message.chat
     status = await ChatManager.activate(message)
 
@@ -158,7 +153,7 @@ async def handlePrivateMessages(message: types.Message):
     await AIChatHandler(message=message).handle()
 
 
-@dp.message_handler(isBotMentioned())
+@coreRouter.message(isBotMentioned())
 async def handleGroupReply(message: types.Message):
     userChat = message.chat
     requestType = "IMAGE" if containsAnyWord(message.text, constants.IMAGE_GENERATION_WORDS) else "GPT"
@@ -173,7 +168,7 @@ async def handleGroupReply(message: types.Message):
     await AIChatHandler(message=message).handle()
 
 
-@dp.message_handler(commands=['start'])
+@coreRouter.message(Command("start"))
 async def sendWelcome(message: types.Message):
     status = await ChatManager.activate(message)
     userChat = message.chat
@@ -205,7 +200,7 @@ async def sendWelcome(message: types.Message):
     )
 
 
-@dp.message_handler(commands=['profile'])
+@coreRouter.message(Command("profile"))
 async def profile(message: types.Message):
     userChat = message.from_user
 
@@ -221,24 +216,24 @@ async def profile(message: types.Message):
             ChatQuota.getOrCreate(userChat.id).additionalGptRequests,
             ChatQuota.getOrCreate(userChat.id).additionalImageRequests,
         ))
-    except BadRequest:
+    except TelegramBadRequest:
         print("Bot blocked")
 
 
-@dp.message_handler(commands=['feedback'])
+@coreRouter.message(Command("feedback"))
 async def feedback(message: types.Message):
     userChat = message.from_user
     await bot.send_message(userChat.id, text.FEEDBACK_MESSAGE, reply_markup=feedbackMarkup)
 
 
-@dp.message_handler(commands=['help'])
+@coreRouter.message(Command("help"))
 async def helpCommand(message: types.Message):
     await message.answer(text.HELP_COMMAND)
 
 
 # Callbacks for feeedback
-@dp.callback_query_handler(text="feedback_callback")
-async def feedbackCallback(callback: types.CallbackQuery):
+@coreRouter.callback_query(F.data == "feedback_callback")
+async def feedbackCallback(callback: types.CallbackQuery, state: FSMContext):
     user = callback.from_user
 
     await callback.answer("Izoh qoldirish")
@@ -249,10 +244,10 @@ async def feedbackCallback(callback: types.CallbackQuery):
         text=text.FEEDBACK_GUIDE_MESSAGE,
         reply_markup=cancelMarkup)
 
-    await Comment.message.set()
+    await state.set_state(Comment.message)
 
 
-@dp.callback_query_handler(text="translate_callback")
+@coreRouter.callback_query(F.data == "translate_callback")
 async def translateCallback(callback: types.CallbackQuery):
     user = callback.from_user
 
@@ -274,42 +269,42 @@ async def translateCallback(callback: types.CallbackQuery):
         text=translatedMessage)
 
 
-@dp.message_handler(state=Comment.message)
-async def setFeedbackMessage(message: types.Message, state=FSMContext):
+@coreRouter.message(Comment.message)
+async def setFeedbackMessage(message: types.Message, state: FSMContext):
     feedbackMessage = f"""#chat-id: {message.from_user.id}
 #username: @{message.from_user.username}
 #xabar: \n\n{message.text}
     """
 
     await sendCommentEvent(feedbackMessage)
-    await state.finish()
+    await state.clear()
     return await message.answer("Izoh uchun rahmat!")
 
 
 # Callbacks for feeedback cancelation
-@dp.callback_query_handler(text="cancel_feedback", state='*')
+@coreRouter.callback_query(F.data == "cancel")
 async def cancelInlineFeedback(callback: types.CallbackQuery, state: FSMContext):
     user = callback.from_user
 
     try:
         await bot.delete_message(user.id, callback.message.message_id)
-    except MessageToDeleteNotFound:
+    except TelegramNotFound:
         pass
 
     await callback.answer("Bekor qilindi!")
-    await state.finish()
+    await state.clear()
 
 
-@dp.message_handler(Text(equals="Bekor qilish"), state='*')
+@coreRouter.message(F.text == "Bekor qilish")
 async def cancelButton(message: types.Message, state: FSMContext):
-    await state.finish()
+    await state.clear()
     return await bot.send_message(message.chat.id, "Bekor qilindi!", reply_markup=types.ReplyKeyboardRemove())
 
 
 # events
 
 
-@dp.message_handler(content_types=types.ContentType.NEW_CHAT_MEMBERS)
+@coreRouter.message(F.NEW_CHAT_MEMBERS)
 async def newChatMember(message: types.Message):
     new_chat_members = message.new_chat_members
 

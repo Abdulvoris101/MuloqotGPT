@@ -1,25 +1,19 @@
-from aiogram import types
+from aiogram.utils import keyboard
+
+cancelBuilder = keyboard.ReplyKeyboardBuilder()
+cancelBuilder.button(text="Bekor qilish")
+cancelMenu = keyboard.ReplyKeyboardMarkup(keyboard=cancelBuilder.export(),
+                                          resize_keyboard=True, one_time_keyboard=True)
+
+checkPaymentBuilder = keyboard.ReplyKeyboardBuilder()
+checkPaymentBuilder.button(text="Skrinshotni yuborish")
+checkPaymentBuilder.attach(cancelBuilder)
+checkPaymentMenu = keyboard.ReplyKeyboardMarkup(keyboard=checkPaymentBuilder.export(),
+                                                resize_keyboard=True, one_time_keyboard=True)
 
 
-checkPaymentMenu = types.ReplyKeyboardMarkup([
-        [
-            types.KeyboardButton("Skrinshotni yuborish")
-        ],
-        [
-            types.KeyboardButton("Bekor qilish")
-        ]
-    ], resize_keyboard=True, one_time_keyboard=True
-)
+buySubscriptionBuilder = keyboard.InlineKeyboardBuilder()
+buySubscriptionBuilder.button(text="💎 Sotib olish", callback_data="subscribe_premium")
 
-cancelMenu = types.ReplyKeyboardMarkup([
-        [
-            types.KeyboardButton("Bekor qilish"),
-        ]
-    ], resize_keyboard=True, one_time_keyboard=True
-)
-
-buySubscriptionMenu = types.InlineKeyboardMarkup(row_width=2)
-buySubscriptionBtn = types.InlineKeyboardButton(text="💎 Sotib olish", callback_data="subscribe_premium")
-
-buySubscriptionMenu.insert(buySubscriptionBtn)
+buySubscriptionMenu = keyboard.InlineKeyboardMarkup(inline_keyboard=buySubscriptionBuilder.export())
 

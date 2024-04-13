@@ -1,7 +1,5 @@
-from aiogram.utils.exceptions import BadRequest
-
-from bot import dp, bot, types
-from utils.events import sendError
+from aiogram.exceptions import TelegramBadRequest
+from bot import dp, bot
 from utils.exception import AiogramException
 from .generate import ImageGen
 from filters.bound_filters import IsPrivate
@@ -10,9 +8,7 @@ from utils.translate import translateMessage
 from apps.subscription.managers import LimitManager
 from apps.core.models import ChatActivity
 from apps.subscription.managers import SubscriptionManager
-
-
-dp.filters_factory.bind(IsPrivate)
+from aiogram import types
 
 
 async def isPermitted(chatId, message):
@@ -60,5 +56,5 @@ async def handleArt(message: types.Message):
 
     try:
         await bot.send_media_group(userChat.id, media=media_group)
-    except BadRequest as e:
+    except TelegramBadRequest as e:
         await bot.send_message(userChat.id, "Rasm generatsiya qilishda xatolik. Iltimos boshqatan so'rov yuboring!")
