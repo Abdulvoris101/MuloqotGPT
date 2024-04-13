@@ -7,6 +7,7 @@ from bot import bot
 from apps.gpt import GptRequest
 from db.state import Comment
 from filters.bound_filters import isBotMentioned
+from filters.permission import isGroupAllowed
 from utils.events import sendError, sendCommentEvent
 from utils.exception import AiogramException
 from utils.message import fixMessageMarkdown
@@ -31,19 +32,21 @@ class AIChatHandler:
         self.full_name = message.chat.full_name
         self.text = str(message.text)
 
-    async def sendMessage(self, text, *args, **kwargs):
-        if self.message.chat.type == "private":
-            sentMessage = await bot.send_message(self.chatId, text, *args, **kwargs)
-            return sentMessage.message_id
-        else:
-            try:
-                sentMessage = await self.message.reply(text, *args, **kwargs)
-                return sentMessage.message_id
-            except TelegramBadRequest:
-                sentMessage = await bot.send_message(self.chatId, text, *args, **kwargs)
-                return sentMessage.message_id
+    async def sendMessage(self, text: str, *args, **kwargs) -> str:
+        """Sends a message to the user, handling private and group chats differently."""
 
-    async def isPermitted(self):
+        try:
+            if self.message.chat.type == "private":
+                sentMessage = await bot.send_message(self.chatId, text, **kwargs)
+            else:
+                sentMessage = await self.message.reply(text, **kwargs)
+        except TelegramBadRequest:
+            # Fallback to sending a direct message if reply fails
+            sentMessage = await bot.send_message(self.chatId, text, **kwargs)
+
+        return sentMessage.message_id
+
+    async def isPermitted(self) -> bool:
         if not LimitManager.checkRequestsDailyLimit(self.chatId, messageType="GPT"):
             if self.message.chat.type in constants.AVAILABLE_GROUP_TYPES:
                 await self.sendMessage(text.LIMIT_GROUP_REACHED)
@@ -71,17 +74,18 @@ class AIChatHandler:
         return messages
 
     async def getTranslatedMessage(self):
+        """Detects the language of the message and translates it if necessary."""
         try:
             lang_code = detect(self.text)
-        except:
+        except Exception:
             lang_code = "en"
 
-        self.isTranslate = True if lang_code == "uz" else False
+        should_translate = (lang_code == "uz")
+        if should_translate:
+            translated_message = translateMessage(self.text, to='en')
+            return translated_message if translated_message is not None else self.text
 
-        message_en = translateMessage(message=self.text,
-                                      to='en', isTranslate=self.isTranslate)
-
-        return self.text if message_en is None else message_en
+        return self.text
 
     async def handle(self):
         if not await self.isPermitted():
@@ -116,7 +120,7 @@ class AIChatHandler:
             except AiogramException as e:
                 await bot.delete_message(chatId, progressMessageId)
                 await self.sendMessage(e.message_text, disable_web_page_preview=True,
-                                       parse_mode=types.ParseMode.MARKDOWN)
+                                       parse_mode="MARKDOWN")
                 return
 
             translatedResponse = MessageManager.assistantRole(message=response, instance=self.message,
@@ -127,7 +131,7 @@ class AIChatHandler:
             markup = messageMarkup if self.message.chat.type == "private" and not self.isTranslate else None
 
             await self.sendMessage(str(validatedText), disable_web_page_preview=True,
-                                   parse_mode=types.ParseMode.MARKDOWN, reply_markup=markup)
+                                   parse_mode="MARKDOWN", reply_markup=markup)
 
             time.sleep(2)
             await self.getFeedback()
@@ -140,12 +144,11 @@ class AIChatHandler:
 @coreRouter.message((~F.text.startswith(('/', '✅', "Bekor qilish")) &
                     ~F.text.endswith('.!') & F.chat.type == "private"))
 async def handlePrivateMessages(message: types.Message):
-    print("True")
-    userChat = message.chat
-    status = await ChatManager.activate(message)
+    chat = message.chat
+    await ChatManager.register(message)
 
-    if not status:
-        return await bot.send_message(userChat.id, text.NOT_AVAILABLE_GROUP)
+    if not isGroupAllowed(chatType=chat.type, chatId=chat.id, requestType='GPT'):
+        return await bot.send_message(chat.id, text.NOT_AVAILABLE_GROUP)
 
     if containsAnyWord(message.text, constants.IMAGE_GENERATION_WORDS):
         return await handleArt(message)
@@ -155,12 +158,12 @@ async def handlePrivateMessages(message: types.Message):
 
 @coreRouter.message(isBotMentioned())
 async def handleGroupReply(message: types.Message):
-    userChat = message.chat
+    chat = message.chat
     requestType = "IMAGE" if containsAnyWord(message.text, constants.IMAGE_GENERATION_WORDS) else "GPT"
-    status = await ChatManager.activate(message, requestType=requestType)
+    await ChatManager.register(message)
 
-    if not status:
-        return await bot.send_message(userChat.id, text.NOT_AVAILABLE_GROUP)
+    if not isGroupAllowed(chatType=chat.type, chatId=chat.id, requestType=requestType):
+        return await bot.send_message(chat.id, text.NOT_AVAILABLE_GROUP)
 
     if containsAnyWord(message.text, constants.IMAGE_GENERATION_WORDS):
         return await handleArt(message)
@@ -170,31 +173,31 @@ async def handleGroupReply(message: types.Message):
 
 @coreRouter.message(Command("start"))
 async def sendWelcome(message: types.Message):
-    status = await ChatManager.activate(message)
-    userChat = message.chat
+    chat = message.chat
+    await ChatManager.register(chat)
 
-    if not status:
-        return await bot.send_message(userChat.id, text.NOT_AVAILABLE_GROUP)
+    if not isGroupAllowed(chatType=chat.type, chatId=chat.id, requestType='GPT'):
+        return await bot.send_message(chat.id, text.NOT_AVAILABLE_GROUP)
 
     streaming_text = text.getGreetingsText(message.from_user.first_name)
 
-    msg = await bot.send_message(userChat.id, streaming_text[:20])
+    msg = await bot.send_message(chat.id, streaming_text[:20])
 
     # Stream the remaining text
     for i in range(20, len(streaming_text), 20):
         await asyncio.sleep(0.1)  # Adjust the delay between messages as needed
         try:
-            await bot.edit_message_text(chat_id=userChat.id, message_id=msg.message_id, text=streaming_text[:i + 10])
+            await bot.edit_message_text(chat_id=chat.id, message_id=msg.message_id, text=streaming_text[:i + 10])
         except Exception as e:
             pass
 
-    planId = PlanManager.getFreePlanId() if userChat.type == "private" \
+    planId = PlanManager.getFreePlanId() if chat.type == "private" \
         else PlanManager.getHostPlanId()
-    isFree = True if userChat.type == "private" else False
+    isFree = True if chat.type == "private" else False
 
     SubscriptionManager.getSubscriptionOrCreate(
         planId=planId,
-        chatId=userChat.id,
+        chatId=chat.id,
         is_paid=True,
         isFree=isFree
     )

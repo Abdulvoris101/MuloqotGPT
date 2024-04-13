@@ -12,7 +12,6 @@ feedbackMarkup = keyboard.InlineKeyboardMarkup(inline_keyboard=feedbackBuilder.e
 
 messageBuilder = keyboard.InlineKeyboardBuilder()
 messageBuilder.button(text="✨ Tarjima qilish", callback_data="translate_callback")
-messageBuilder.attach(cancelBuilder)
 messageMarkup = keyboard.InlineKeyboardMarkup(inline_keyboard=messageBuilder.export())
 
 

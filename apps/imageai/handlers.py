@@ -35,7 +35,7 @@ async def handleArt(message: types.Message):
         return
 
     sentMessage = await bot.send_message(message.chat.id, "⏳")
-    await message.answer_chat_action("typing")
+    await bot.send_chat_action(chat_id=message.chat.id, action="typing")
 
     try:
         images = await ImageGen.generate(message.chat.id, query)
@@ -51,7 +51,7 @@ async def handleArt(message: types.Message):
 
     media_group = [types.InputMediaPhoto(media=url) for url in images]
     media_group[0].caption = f"\n🌄 {message.text}\n\n@muloqataibot"
-    
+
     await bot.delete_message(userChat.id, message_id=sentMessage.message_id)
 
     try:

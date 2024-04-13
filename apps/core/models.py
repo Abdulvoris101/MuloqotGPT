@@ -8,16 +8,18 @@ class Chat(Base):
     __tablename__ = 'chat'
 
     id = Column(Integer, primary_key=True)
-    chatName = Column(String)
-    username = Column(String, nullable=True)
     chatId = Column(BigInteger, unique=True)
+    chatName = Column(String)
+    chatType = Column(Enum('private', 'group', 'supergroup'), default='user')
+    username = Column(String, nullable=True)
     createdAt = Column(DateTime, nullable=True)
     lastUpdated = Column(DateTime, nullable=True)
     chatActivity = relationship('ChatActivity', backref='chat', lazy='dynamic')
 
-    def __init__(self, chatId, chatName, username):
+    def __init__(self, chatId, chatName, chatType, username):
         self.chatName = chatName
         self.chatId = chatId
+        self.chatType = chatType
         self.username = username
         self.createdAt = datetime.now()
         super().__init__()
