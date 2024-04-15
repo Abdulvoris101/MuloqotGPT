@@ -1,15 +1,13 @@
-from utils import constants
+from utils import constants, text, countTokenOfMessage
+from aiogram import types
 
 
 def isGroupAllowed(
     chatType,
     chatId,
-    requestType="GPT"
 ) -> bool:
     if chatType in constants.AVAILABLE_GROUP_TYPES:
         if int(chatId) not in constants.ALLOWED_GROUPS:
-            return False
-        if requestType == "IMAGE" and chatId != constants.IMAGE_GEN_GROUP_ID:
             return False
 
     return True

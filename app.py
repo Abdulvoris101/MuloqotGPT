@@ -2,6 +2,8 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from aiogram import types
+
+from apps.common.midlleware import MessageMiddleware, CallbackMiddleware
 from utils import constants
 import uvicorn
 from apps.core.handlers import coreRouter
@@ -30,6 +32,8 @@ async def lifespan(app: FastAPI):
     dp.include_router(coreRouter)
     dp.include_router(adminRouter)
     dp.include_router(subscriptionRouter)
+    dp.message.middleware(MessageMiddleware())
+    dp.callback_query.middleware(CallbackMiddleware())
 
     if webhookInfo.url != WEBHOOK_URL:
         await bot.set_webhook(

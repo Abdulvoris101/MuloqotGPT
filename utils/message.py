@@ -1,4 +1,6 @@
 import asyncio
+
+from aiogram import types
 from aiogram.exceptions import TelegramForbiddenError, TelegramUnauthorizedError, TelegramBadRequest
 from apps.core.managers import ChatManager
 from apps.subscription.managers import PlanManager

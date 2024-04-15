@@ -18,6 +18,6 @@ def unsetExpiredKeys():
 
 
 def clearAllTodaysMessages():
-    ChatActivityManager.clearAllUsersTodayMessagesAndImages()
+    ChatActivityManager.resetTodayCounters()
 
     print("clearedAllTodaysMessages")

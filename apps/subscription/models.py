@@ -1,3 +1,5 @@
+from sqlalchemy.orm import class_mapper
+
 from db.setup import Base, session
 from sqlalchemy import Column, Integer, String, UUID, BigInteger, Boolean, DateTime, ForeignKey
 import uuid
@@ -127,6 +129,10 @@ class ChatQuota(Base):
     def save(self):
         session.add(self)
         session.commit()
+
+    def to_dict(self):
+        """Converts SQL Alchemy model instance to dictionary."""
+        return {c.key: getattr(self, c.key) for c in class_mapper(self.__class__).mapped_table.c}
 
     @classmethod
     def update(cls, instance, column, value):

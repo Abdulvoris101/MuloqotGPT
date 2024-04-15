@@ -1,0 +1,1 @@
+from apps.core.managers import MessageManagerfrom utils import checkTokensasync def trimMessageTokens(chatId: int):    messages = MessageManager.all(chatId)    if checkTokens(messages):        MessageManager.deleteByLimit(chatId)        return await trimMessageTokens(chatId=chatId)    return messages

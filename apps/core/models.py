@@ -1,7 +1,10 @@
+from aiogram import types
 from sqlalchemy import Column, Integer, desc, String, Enum, Boolean, Text, BigInteger, DateTime, ForeignKey
+
+from apps.core.schemes import ChatBase
 from db.setup import session, Base
 from datetime import datetime
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import relationship, class_mapper
 
 
 class Chat(Base):
@@ -10,18 +13,19 @@ class Chat(Base):
     id = Column(Integer, primary_key=True)
     chatId = Column(BigInteger, unique=True)
     chatName = Column(String)
-    chatType = Column(Enum('private', 'group', 'supergroup'), default='user')
+    chatType = Column(Enum('private', 'group', 'supergroup', name="chat_type_enum"), server_default='private')
     username = Column(String, nullable=True)
     createdAt = Column(DateTime, nullable=True)
     lastUpdated = Column(DateTime, nullable=True)
     chatActivity = relationship('ChatActivity', backref='chat', lazy='dynamic')
 
-    def __init__(self, chatId, chatName, chatType, username):
+    def __init__(self, chatId, chatName, chatType, username, createdAt, lastUpdated):
         self.chatName = chatName
         self.chatId = chatId
         self.chatType = chatType
         self.username = username
-        self.createdAt = datetime.now()
+        self.createdAt = createdAt
+        self.lastUpdated = lastUpdated
         super().__init__()
 
     def save(self):
@@ -61,6 +65,10 @@ class ChatActivity(Base):
 
     def __init__(self, chatId):
         self.chatId = chatId
+
+    def to_dict(self):
+        """Converts SQL Alchemy model instance to dictionary."""
+        return {c.key: getattr(self, c.key) for c in class_mapper(self.__class__).mapped_table.c}
 
     @classmethod
     def update(cls, instance, column, value):
@@ -102,8 +110,15 @@ class Message(Base):
     chatId = Column(BigInteger)
     createdAt = Column(DateTime, nullable=True)
 
+    def __init__(self, chat: dict, role: str, content: str,
+                 uzMessage: str, createdAt: datetime):
+        self.chatId = chat.get("chatId")
+        self.role = role
+        self.content = content
+        self.uzMessage = uzMessage
+        self.createdAt = createdAt
+
     def save(self):
-        self.createdAt = datetime.now()
         session.add(self)
         session.commit()
     

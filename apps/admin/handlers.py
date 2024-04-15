@@ -19,19 +19,19 @@ adminRouter = Router(name="adminRouter")
 
 
 @adminRouter.message(Command("cancel"))
-async def cancel(message: types.Message, state: FSMContext):   
+async def cancel(message: types.Message, user: types.User, state: FSMContext):
     await state.clear()
 
-    if Admin.isAdmin(message.from_user.id):
-        return await bot.send_message(message.chat.id, "State bekor qilindi!", reply_markup=adminKeyboardsMarkup)
+    if Admin.isAdmin(user.id):
+        return await bot.send_message(user.id, "State bekor qilindi!", reply_markup=adminKeyboardsMarkup)
     
-    return await bot.send_message(message.chat.id, "Bekor qilindi!", reply_markup=types.ReplyKeyboardRemove())
+    return await bot.send_message(user.id, "Bekor qilindi!", reply_markup=types.ReplyKeyboardRemove())
 
 
 @adminRouter.message(Command('admin'))
-async def admin(message: types.Message, state: FSMContext):
-    if Admin.isAdmin(message.from_user.id):
-        return await bot.send_message(message.from_user.id, "Xush kelibsiz admin!",
+async def admin(message: types.Message, user: types.User, state: FSMContext):
+    if Admin.isAdmin(user.id):
+        return await bot.send_message(user.id, "Xush kelibsiz admin!",
                                       reply_markup=adminKeyboardsMarkup)
 
     await state.set_state(AdminLoginState.password)
@@ -39,9 +39,7 @@ async def admin(message: types.Message, state: FSMContext):
 
 
 @adminRouter.message(AdminLoginState.password)
-async def passwordHandler(message: types.Message, state: FSMContext):
-    user = message.from_user
-
+async def passwordHandler(message: types.Message, user: types.User, state: FSMContext):
     await state.update_data(password=message.text)
 
     if checkPassword(message.text):
@@ -77,9 +75,9 @@ async def getStatistics(message: types.Message):
         usersCount=usersCount,
         activeUsers=ChatActivityManager.getCurrentMonthUsers(),
         activeUsersOfDay=ChatActivityManager.getTodayActiveUsers(),
-        usersUsedOneDay=ChatActivityManager.getUsersUsedOneDay(),
-        usersUsedOneWeek=ChatActivityManager.getUsersUsedOneWeek(),
-        usersUsedOneMonth=ChatActivityManager.getUsersUsedOneMonth(),
+        usersUsedOneDay=ChatActivityManager.getUserActivityTimeFrame(days=1),
+        usersUsedOneWeek=ChatActivityManager.getUserActivityTimeFrame(days=7),
+        usersUsedOneMonth=ChatActivityManager.getUserActivityTimeFrame(days=30),
         premiumUsers=SubscriptionManager.getPremiumUsersCount(),
         limitReachedUsers=ChatActivityManager.getLimitReachedUsers(),
         allMessages=allMessages,
@@ -93,16 +91,16 @@ async def getStatistics(message: types.Message):
 # Subscription handlers
 @adminRouter.message(IsAdmin(), F.text == "🎁 Premium obuna.!")
 async def giveSubscription(message: types.Message, state: FSMContext):
-    await state.set_state(TopupState.chatId)
+    await state.set_state(TopupState.receiverId)
     return await message.answer("Chat id kiriting", reply_markup=cancelKeyboardsMarkup)
 
 
-@adminRouter.message(IsAdmin(), TopupState.chatId)
+@adminRouter.message(IsAdmin(), TopupState.receiverId)
 async def topUpSetChatId(message: types.Message, state: FSMContext):
-    await state.update_data(chatId=message.text)
+    await state.update_data(receiverId=message.text)
 
-    unPaidPremiumSubscription = SubscriptionManager.getUnpaidPremiumSubscription(
-        chatId=message.text, planId=PlanManager.getPremiumPlanOrCreate().id)
+    unPaidPremiumSubscription = SubscriptionManager.getInActiveSubscription(
+        chatId=message.chat.id, planId=PlanManager.getPremiumPlanOrCreate().id)
     
     if not unPaidPremiumSubscription:
         await state.clear()
@@ -117,24 +115,20 @@ async def topUpSetChatId(message: types.Message, state: FSMContext):
 @adminRouter.message(IsAdmin(), TopupState.sure)
 async def subscribeUser(message: types.Message, state: FSMContext):
     data = await state.get_data()
-    chatId = data.get("chatId")
+    receiverId = data.get("receiverId")
 
     if message.text != "Xa":
         await state.clear()
         return await message.answer("Bekor qilindi!", reply_markup=adminKeyboardsMarkup)
     
-    SubscriptionManager.unsubscribe(
-        PlanManager.getFreePlanOrCreate().id,
-        chatId=chatId
-    )
+    SubscriptionManager.unsubscribe(PlanManager.getFreePlanOrCreate().id, chatId=receiverId)
     
-    chatActivity = ChatActivity.getOrCreate(chatId=chatId)
+    chatActivity = ChatActivity.getOrCreate(chatId=receiverId)
     ChatActivity.update(chatActivity, "todaysMessages", 1)
 
-    SubscriptionManager.subscribe(
-        chatId=chatId, planId=PlanManager.getPremiumPlanOrCreate().id)
+    SubscriptionManager.subscribe(chatId=receiverId, planId=PlanManager.getPremiumPlanOrCreate().id)
     
-    await bot.send_message(chatId, text.PREMIUM_GRANTED_TEXT)
+    await bot.send_message(receiverId, text.PREMIUM_GRANTED_TEXT)
     
     await state.clear()
     return await message.answer("Ushbu foydalanuvchi premium obunaga ega bo'ldi 🎉", reply_markup=adminKeyboardsMarkup)
@@ -142,13 +136,13 @@ async def subscribeUser(message: types.Message, state: FSMContext):
 
 @adminRouter.message(IsAdmin(), F.text == "✖️ Premiumni rad etish.!")
 async def cancelSubscription(message: types.Message, state: FSMContext):
-    await state.set_state(RejectState.chatId)
+    await state.set_state(RejectState.receiverId)
     return await message.answer("Chat id kiriting", reply_markup=cancelKeyboardsMarkup)
 
 
-@adminRouter.message(IsAdmin(), RejectState.chatId)
+@adminRouter.message(IsAdmin(), RejectState.receiverId)
 async def setChatIdReject(message: types.Message, state: FSMContext):
-    await state.update_data(chatId=message.text)
+    await state.update_data(receiverId=message.text)
     await state.set_state(RejectState.reason)
     return await message.answer("Sababni kiriting", reply_markup=cancelKeyboardsMarkup)
 
@@ -156,14 +150,14 @@ async def setChatIdReject(message: types.Message, state: FSMContext):
 @adminRouter.message(IsAdmin(), RejectState.reason)
 async def rejectReason(message: types.Message, state: FSMContext):
     data = await state.get_data()
-    chatId = data.get("chatId")
+    receiverId = data.get("receiverId")
 
     try:
-        await bot.send_message(chatId, text.getRejectReason(message.text))
+        await bot.send_message(receiverId, text.getRejectReason(message.text))
     except TelegramBadRequest:
         print("Bot blocked!")
 
-    SubscriptionManager.rejectPremiumRequest(chatId)
+    SubscriptionManager.rejectPremiumRequest(receiverId)
     
     await state.clear()
     return await message.answer("Premium obuna rad etildi", reply_markup=adminKeyboardsMarkup)
@@ -182,16 +176,16 @@ async def sendMessageToUsers(message: types.Message):
 
 # Handlers of send message with inline buttons
 @adminRouter.callback_query(F.data == "without_inline")
-async def setUserTypeToSend(message: types.Message, state: FSMContext):
+async def setUserTypeToSend(message: types.Message, user: types.User, state: FSMContext):
     await state.set_state(AdminSendMessage.userType)
-    await bot.send_message(message.from_user.id, "Kimlarga yuborishni tanlang, FREE/ALL")
+    await bot.send_message(user.id, "Kimlarga yuborishni tanlang, FREE/ALL")
     return await message.answer("Kimlarga yuborishni tanlang, FREE/ALL")
 
 
 @adminRouter.message(AdminSendMessage.userType)
-async def setMessage(message: types.Message, state: FSMContext):
+async def setMessage(message: types.Message, user: types.User, state: FSMContext):
     await state.update_data(contentType=message.text)
-    await bot.send_message(message.from_user.id, "Xabar/Rasm/Video kiriting")
+    await bot.send_message(user.id, "Xabar/Rasm/Video kiriting")
     await state.set_state(AdminSendMessage.message)
 
 
@@ -201,6 +195,7 @@ async def sendToUsersMessage(message: types.Message, state: FSMContext):
     contentType = data.get("contentType")
 
     users = fetchUsersByType(contentType)
+
     if not users:
         await state.clear()
         return await message.answer("Foydalanuvchilar yo'q!", reply_markup=adminKeyboardsMarkup)
@@ -219,9 +214,9 @@ async def sendToUsersMessage(message: types.Message, state: FSMContext):
 
 
 @adminRouter.callback_query(F.data == "with_inline")
-async def checkIsSubscribed_Inline(message: types.Message, state: FSMContext):
+async def checkIsSubscribed_Inline(message: types.Message, user: types.User, state: FSMContext):
     await state.set_state(SendMessageWithInlineState.buttons)
-    await bot.send_message(message.from_user.id,
+    await bot.send_message(user.id,
                            text.INLINE_BUTTONS_GUIDE, parse_mode='MARKDOWN')
     return await message.answer("Inline")
 

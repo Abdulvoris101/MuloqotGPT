@@ -17,7 +17,7 @@ router = APIRouter()
 async def admin(request: Request, page: int = Query(1, gt=0)):
     rowsPerPage = 15
     offset = (page - 1) * rowsPerPage
-    totalItems = ChatManager.count()
+    totalItems = ChatManager.usersCount()
     totalPages = (totalItems // rowsPerPage) + (1 if totalItems % rowsPerPage > 0 else 0)
     query = session.query(Chat).order_by(desc(Chat.id)).limit(rowsPerPage).offset(offset)
 
@@ -26,8 +26,8 @@ async def admin(request: Request, page: int = Query(1, gt=0)):
         "groups": ChatManager.groupsCount(),
         "messages": Message.count(),
         "activeUsers": ChatActivityManager.getCurrentMonthUsers(),
-        "countOfAllInputTokens": ChatActivityManager.countOfAllInputTokens(),
-        "countOfAllOutputTokens": ChatActivityManager.countOfAllOutputTokens(),
+        "countOfAllInputTokens": ChatActivityManager.countTokens(columnName='inputTokens', today=False),
+        "countOfAllOutputTokens": ChatActivityManager.countTokens(columnName='outputTokens', today=False),
         "request": request,
         "users": ChatManager.usersCount(),
         "all_chats": ChatManager.all(),
@@ -40,7 +40,7 @@ async def admin(request: Request, page: int = Query(1, gt=0)):
 async def admin(request: Request, page: int = Query(1, gt=0)):
     rowsPerPage = 15
     offset = (page - 1) * rowsPerPage
-    totalItems = ChatManager.count()
+    totalItems = ChatManager.usersCount()
     totalPages = (totalItems // rowsPerPage) + (1 if totalItems % rowsPerPage > 0 else 0)
     query = session.query(Chat).\
         join(Chat.chatActivity).\
@@ -54,8 +54,8 @@ async def admin(request: Request, page: int = Query(1, gt=0)):
         "groups": ChatManager.groupsCount(),
         "messages": MessageManager.getTodayMessagesCount(),
         "activeUsers": ChatActivityManager.getCurrentMonthUsers(),
-        "countOfAllInputTokens": ChatActivityManager.countOfTodayInputTokens(),
-        "countOfAllOutputTokens": ChatActivityManager.countOfTodayOutputTokens(),
+        "countOfAllInputTokens": ChatActivityManager.countTokens(columnName='inputTokens', today=True),
+        "countOfAllOutputTokens": ChatActivityManager.countTokens(columnName='outputTokens', today=True),
         "request": request,
         "users": query.count(),
         "all_chats": ChatManager.all(),

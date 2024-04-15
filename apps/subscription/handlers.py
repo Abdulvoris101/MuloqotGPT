@@ -15,22 +15,16 @@ subscriptionRouter = Router(name="subscriptionRouter")
 @subscriptionRouter.message(Command("premium"))
 async def premium(message: types.Message):
     if message.chat.type == "private":
-        await bot.send_message(
-            message.chat.id, 
-            text.PLAN_DESCRIPTION_TEXT,
-            reply_markup=buySubscriptionMenu
-        )
+        await bot.send_message(message.chat.id, text.PLAN_DESCRIPTION_TEXT,
+                               reply_markup=buySubscriptionMenu)
 
 
 @subscriptionRouter.callback_query(F.data == "subscribe_premium")
-async def buyPremium(message: types.Message, state: FSMContext):
-    user = message.from_user
+async def buyPremium(message: types.Message, user: types.User, state: FSMContext):
     premiumPlanId = PlanManager.getPremiumPlanId()
 
-    notPaidSubscription = SubscriptionManager.getUnpaidPremiumSubscription(
-        user.id, premiumPlanId)
-    payedSubscription = SubscriptionManager.getPremiumSubscription(
-        user.id, premiumPlanId)
+    notPaidSubscription = SubscriptionManager.getInActiveSubscription(user.id, premiumPlanId)
+    payedSubscription = SubscriptionManager.getActiveSubscription(user.id, premiumPlanId)
 
     if notPaidSubscription is not None:
         await message.answer("Sizning premium obunaga so'rovingiz ko'rib chiqilmoqda")
@@ -40,45 +34,36 @@ async def buyPremium(message: types.Message, state: FSMContext):
         return
 
     await message.answer("Sotib olish")
-    await bot.send_message(
-        message.from_user.id,
-        text.subscriptionInvoiceText(int(constants.PREMIUM_PRICE)),
-        reply_markup=checkPaymentMenu)
-
-    await state.set_state(PaymentState.first_step)
+    await bot.send_message(message.from_user.id, text.INVOICE_TEXT.format(price=constants.PREMIUM_PRICE),
+                           reply_markup=checkPaymentMenu)
+    await state.set_state(PaymentState.awaitingPaymentConfirmation)
 
 
-@subscriptionRouter.message(F.text == "Skrinshotni yuborish", PaymentState.first_step)
-async def checkThePayment(message: types.Message, state: FSMContext):
+@subscriptionRouter.message(F.text == "Skrinshotni yuborish", PaymentState.awaitingPaymentConfirmation)
+async def processPaymentConfirmation(message: types.Message, user: types.User, state: FSMContext):
     sentMessage = await message.answer("Biroz kuting...")
 
     await state.update_data(price=constants.PREMIUM_PRICE)
-    await bot.delete_message(message.chat.id, sentMessage.message_id)
-    await message.answer(text.PAYMENT_STEP_1, reply_markup=cancelMenu)
+    await bot.delete_message(user.id, sentMessage.message_id)
+    await message.answer(text.SEND_PAYMENT_PHOTO, reply_markup=cancelMenu)
 
-    await state.set_state(PaymentState.second_step)
+    await state.set_state(PaymentState.awaitingPhotoProof)
 
 
-@subscriptionRouter.message(PaymentState.second_step, F.photo)
-async def createSubscription(message: types.Message, state: FSMContext):
+@subscriptionRouter.message(PaymentState.awaitingPhotoProof, F.photo)
+async def handlePaymentSubmission(message: types.Message, user: types.User, state: FSMContext):
     data = await state.get_data()
-    price = data.get("price")
-
     photoFileId = message.photo[-1].file_id
 
-    subscription = SubscriptionManager.createSubscription(
-        planId=PlanManager.getPremiumPlanOrCreate().id,
-        chatId=message.from_user.id,
-        cardholder=None,
-        is_paid=False,
-        isFree=False
-    )
+    subscription = SubscriptionManager.createSubscription(chatId=user.id, is_paid=False, isFree=False,
+                                                          planId=PlanManager.getPremiumPlanOrCreate().id)
 
-    await sendSubscriptionEvent(f"""#payment check-in\nchatId: {message.from_user.id},\nsubscription_id: {subscription.id},\nfile id: {photoFileId},\nprice: {price}""")
+    await sendSubscriptionEvent(text.SUBSCRIPTION_SEND_EVENT_TEXT.format(price=data.get("price"),
+                                                                         subscriptionId=subscription.id,
+                                                                         userId=user.id))
 
     await bot.send_photo(constants.SUBSCRIPTION_CHANNEL_ID, photoFileId)
-    await message.answer(text.PAYMENT_STEP_2, reply_markup=types.ReplyKeyboardRemove())
-    
+    await message.answer(text.COMPLETED_PAYMENT, reply_markup=types.ReplyKeyboardRemove())
     await state.clear()
 
 

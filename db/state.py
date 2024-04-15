@@ -20,19 +20,19 @@ class SendMessageWithInlineState(StatesGroup):
 
 
 class PaymentState(StatesGroup):
-    first_step = State()
-    second_step = State()
+    awaitingPaymentConfirmation = State()
+    awaitingPhotoProof = State()
 
 
 class TopupState(StatesGroup):
-    chatId = State()
+    receiverId = State()
     sure = State()
 
 
 class RejectState(StatesGroup):
-    chatId = State()
+    receiverId = State()
     reason = State()
 
 
-class Comment(StatesGroup):
-    message = State()
+class FeedbackMessageState(StatesGroup):
+    text = State()

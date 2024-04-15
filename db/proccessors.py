@@ -1,4 +1,9 @@
+import datetime
 import json
+
+from aiogram import types
+
+from apps.core.schemes import MessageCreateScheme, ChatBase
 from .setup import *
 from apps.core.models import Message
 
@@ -14,7 +19,7 @@ engagementPrompt = """present options for the user to choose from to guide the c
 class MessageProcessor:
 
     @classmethod
-    def createSystemMessages(cls, chatId, type_):
+    def createSystemMessages(cls, chat: types.Chat):
         grSystemMessages = [
             {"role": "system", "content": gr_rule, "uzMessage": "system"}
         ]
@@ -23,11 +28,16 @@ class MessageProcessor:
             {"role": "system", "content": engagementPrompt, "uzMessage": "system"},
         ]
 
-        if type_ != "private":
+        chatScheme = ChatBase(**chat.model_dump())
+        chatObj = chatScheme.model_dump()
+
+        if chat.type != "private":
             for message in grSystemMessages:
-                Message(chatId=chatId, role=message["role"], content=message["content"], uzMessage=None).save()
-        elif type_ == "private":
+                Message(chat=chatObj, role=message["role"], content=message["content"], uzMessage="",
+                        createdAt=datetime.datetime.now()).save()
+        elif chat.type == "private":
             for message in systemMessages:
-                Message(chatId=chatId, role=message["role"], content=message["content"], uzMessage=None).save()
+                Message(chat=chatObj, role=message["role"], content=message["content"], uzMessage="",
+                        createdAt=datetime.datetime.now()).save()
 
 

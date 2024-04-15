@@ -16,7 +16,7 @@ def translateMessage(message, from_='uz', to='en', isTranslate=False):
     return translated_message
 
 
-def skipCodeTranslation(text, isTranslate=False):
+def skipCodeTranslation(text, isTranslate=False) -> str:
     if text.find("`") == -1:
         return translateMessage(message=text, from_='auto',
                                 to='uz', isTranslate=isTranslate)
@@ -58,3 +58,9 @@ def detect(text):
     language = languages[0]
 
     return language[1]
+
+
+def getMessageIsTranslate(text: str) -> bool:
+    lang_code = detect(text) or 'en'
+    isTranslate = (lang_code == 'uz')
+    return isTranslate

@@ -1,13 +1,14 @@
 # All texts
 from aiogram import types
 
+from apps.core.schemes import ChatScheme, ChatActivityGetScheme
+from apps.subscription.schemes import ChatQuotaGetScheme
+
 """Basic command texts and greetings"""
 
 START_BOT_TEXT = """Botni boshlash uchun /start kommandasini yuboring!"""
 
-
-def getGreetingsText(firstName):
-    return f"""Salom! {firstName}
+GREETINGS_TEXT = """Salom!
 Men dunyodagi eng ilg'or Sun'iy intellektman
 
 Men sizga ko'p vazifalarni hal qilishda yordam bera olaman. Masalan:
@@ -44,29 +45,10 @@ Botning rasmiy guruhi - @muloqotaigr
 Botning rasmiy kanali - @muloqotai
 """
 
-USER_REGISTER_EVENT_TEXT = """#new\nid: {chat.id}\ntelegramId: {chat.id}
-\nusername: @{chat.username}\nname: {chat.full_name}"""
+USER_REGISTER_EVENT_TEXT = """#new\nid: {chat_id}\ntelegramId: {telegram_id}
+\nusername: @{username}\nname: {full_name}"""
 
-
-def getUserRegisterEventText(chat: types.Chat):
-    return USER_REGISTER_EVENT_TEXT.format(chat)
-
-
-def getProfileText(
-        planType,
-        todaysGptRequests,
-        todaysImageRequests,
-        additionalGptQuota,
-        additionalImageQuota
-):
-
-    availableGptRequests = "75" if planType == "Premium" else "16"
-    availableImageAiRequests = "30" if planType == "Premium" else "5"
-
-    isFree = True if planType == "Free" else False
-
-    premiumText = """Ko’proq so’rovlar kerakmi? Unda oylik Premium obunani ulang va yanada ko’proq foydalaning!
-
+PREMIUM_TEXT = """Ko'proq kerakmi? 25.000 so'm evaziga bir oylik premium tarifga obuna bo'ling.
 Premium obuna bilan siz:
 ✅ Chatgpt turboga har kuni 75 ta so'rov;
 ⭐️ AI bilan har kuni 20 ta rasm generatsiya qilish;
@@ -78,25 +60,50 @@ Premium obuna bilan siz:
 
 Premium obunani ulash uchun /premium bo’limiga o’ting."""
 
-
-    return f"""⚡️ Obuna turi: {planType}
+PROFILE_TEXT = """⚡️ Obuna turi: {planType}
 🤖 GPT modeli: gpt-3.5-turbo
 
-Limitlar: 
-• GPT-3.5 bugungi so’rovlar: {todaysGptRequests}/{availableGptRequests}
-• Rasm generatsiya: {todaysImageRequests}/{availableImageAiRequests}
-• Qo'shimcha GPT-3.5 so'rovlar: {additionalGptQuota}
-• Qo'shimcha rasm so'rovlari: {additionalImageQuota}
+Limitlar:
+• GPT-3.5 bugungi so’rovlar: {todaysMessages}/{availableGptRequests}
+• Rasm generatsiya: {todaysImages}/{availableImageAiRequests}
+• Qo'shimcha GPT-3.5 so'rovlar: {additionalGptRequests}
+• Qo'shimcha rasm so'rovlari: {additionalImageRequests}
 
-{premiumText if isFree else ''}
+{PREMIUM_TEXT}
 """
+
+
+def getUserRegisterEventText(chat: ChatScheme):
+    return USER_REGISTER_EVENT_TEXT.format(
+        chat_id=chat.id,
+        telegram_id=chat.chatId,
+        username=chat.username,
+        full_name=chat.chatName
+    )
+
+
+def getProfileText(planType: str, chatActivityScheme: ChatActivityGetScheme,
+                   chatQuotaScheme: ChatQuotaGetScheme):
+    requestLimits = {
+        "Premium plan": {"gpt": "75", "imageAi": "30"},
+        "Free plan": {"gpt": "16", "imageAi": "5"}
+    }
+
+    data = {
+        **chatActivityScheme.model_dump(),
+        **chatQuotaScheme.model_dump(),
+        "planType": planType,
+        "availableGptRequests": requestLimits[planType]['gpt'],
+        "availableImageAiRequests": requestLimits[planType]['imageAi'],
+        "PREMIUM_TEXT": PREMIUM_TEXT if planType == "Free plan" else ""
+    }
+
+    return PROFILE_TEXT.format_map(data)
 
 
 """ Premium and plan texts """
 
-
-def subscriptionInvoiceText(price):
-    return f"""1/2
+INVOICE_TEXT = """1/2
 To'lov tafsilotlari:
 
 <b>Mahsulot:</b> Premium obuna
@@ -115,11 +122,13 @@ Toʻlov jarayonida biror muammoga duch kelsangiz yoki savollaringiz boʻlsa, biz
 """
 
 
-PAYMENT_STEP_1 = """2/2
+
+
+SEND_PAYMENT_PHOTO = """2/2
 To'lovni tasdiqlash uchun bizga to'lov skrinshotini yuboring 👇
 """
 
-PAYMENT_STEP_2 = """
+COMPLETED_PAYMENT = """
 Ajoyib! Sizning to'lovingiz yaqin soatlar ichida tekshirilib chiqib, 
 sizga premium obuna taqdim etiladi. 
 Yaqin soatlar ichida sizga premium obuna bo'yicha xabar keladi.
@@ -130,24 +139,14 @@ Agarda biror savolingiz bo'lsa, bizga murojat qiling - @texnosupportuzbot | @abd
 
 # Plans text
 
-PLAN_DESCRIPTION_TEXT = """
+PLAN_DESCRIPTION_TEXT = f"""
 Xozirgi obuna quyidagilarni o'z ichiga oladi:
 ✅ Chatgptga har kuni 16 ta so'rov;
 ⭐️ AI bilan 5 ta rasm generatsiya qilish;
 ✅ Avtotarjimon funksiyasi;
 ✅ 5ta xabarni tarjima qilish.
 
-
-Ko'proq kerakmi? 25.000 so'm evaziga bir oylik premium tarifga obuna bo'ling.
-
-Premium obuna bilan siz:
-✅ Chatgpt turboga har kuni 75 ta so'rov;
-⭐️ AI bilan har kuni 20 ta rasm generatsiya qilish;
-✅ Avtotarjimon funksiyasi;
-✅ Xechqanday reklama yo'q;
-✅ So’rovlar orasida pauza yo’q;
-✅ Xabarlarni cheksiz tarjima qilish.
-✅ Javoblar kreativroq.
+{PREMIUM_TEXT}
 """
 
 """ Limits """
@@ -191,6 +190,9 @@ Obunangiz muddati tugadi! Premium imtiyozlardan foydalanishda davom etish uchun 
 
 Bizni tanlaganiz uchun tashakkur 🌟
 """
+
+SUBSCRIPTION_SEND_EVENT_TEXT = """#payment check-in\nchatId: {userId},\nsubscription_id: {subscriptionId}, 
+\nprice: {price}"""
 
 
 def getStatisticsText(
@@ -258,6 +260,17 @@ def getNewChatMember(firstName):
 Sizni yana bir bor ko'rib turganimdan xursandman. Bugun sizga qanday yordam bera olaman? 
 Men bilan qiziqarli suxbat qurishga tayyormisiz?"
 """
+
+
+SEND_FEEDBACK_MESSAGE = """#chat-id: {user.id}
+#username: @{user.username}
+#xabar: \n\n{text}
+"""
+
+
+def getSendFeedbackMessage(user: types.User, text):
+    data = {**user.model_dump(), "text": text}
+    return SEND_FEEDBACK_MESSAGE.format_map(data)
 
 
 NOT_SUBSCRIBED = "Bu xizmatdan foydalanish uchun premiumga obuna bo'lishingiz kerak. /premium buyrug'i yordamida obuna bo'ling"
