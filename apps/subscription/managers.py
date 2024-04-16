@@ -169,12 +169,12 @@ class SubscriptionManager:
 
     @classmethod
     def reactivateFreeSubscription(cls, chatId: int) -> bool:
-        inactiveSubscription = cls.getSubscription(chatId=chatId, planId=PlanManager.getFreePlanId(),
-                                                   isCanceled=True, isPaid=False)
+        inactiveSubscription = cls.filterSubscription(chatId=chatId, planId=PlanManager.getFreePlanId(),
+                                                      isCanceled=True, isPaid=False)
         if inactiveSubscription is not None:
             inactiveSubscription.is_paid = True
-            inactiveSubscription.is_canceled = False
-            inactiveSubscription.canceled_at = None
+            inactiveSubscription.isCanceled = False
+            inactiveSubscription.canceledAt = None
             session.commit()
             return True
 
@@ -211,10 +211,10 @@ class SubscriptionManager:
 
     @classmethod
     def rejectPremiumRequest(cls, chatId: int):
-        subscription = cls.getInActiveSubscription(chatId=chatId, planId=PlanManager.getPremiumPlanId())
+        subscription = cls.getActiveSubscription(chatId=chatId, planId=PlanManager.getPremiumPlanId())
 
-        if subscription is None:
-            return
+        if subscription is not None:
+            raise AiogramException(userId=chatId, message_text="Foydalanuvchi allaqachon premium egasi")
 
         subscription.isCanceled = True
         subscription.canceledAt = datetime.datetime.now()
@@ -224,19 +224,19 @@ class SubscriptionManager:
         session.commit()
 
     @classmethod
-    def getSubscription(cls, chatId: int, planId: int, isPaid: bool, isCanceled: bool):
+    def filterSubscription(cls, chatId: int, planId: int, isPaid: bool, isCanceled: bool):
         return session.query(Subscription).filter_by(chatId=chatId, is_paid=isPaid, isCanceled=isCanceled,
                                                      planId=planId).first()
 
-    @staticmethod
-    def getActiveSubscription(chatId: int, planId: int):
-        return session.query(Subscription).filter_by(chatId=chatId, planId=planId,
-                                                     isCanceled=False, is_paid=True).first()
+    @classmethod
+    def getActiveSubscription(cls, chatId: int, planId: int):
+        return cls.filterSubscription(chatId=chatId, planId=planId,
+                                      isCanceled=False, isPaid=True)
 
-    @staticmethod
-    def getInActiveSubscription(chatId: int, planId: int):
-        return session.query(Subscription).filter_by(chatId=chatId, planId=planId,
-                                                     is_paid=False, isCanceled=False).first()
+    @classmethod
+    def getInActiveSubscription(cls, chatId: int, planId: int):
+        return cls.filterSubscription(chatId=chatId, planId=planId,
+                                      isPaid=False, isCanceled=False)
 
     @classmethod
     def getPremiumUsersCount(cls):
@@ -245,15 +245,17 @@ class SubscriptionManager:
 
     @classmethod
     def getChatCurrentSubscription(cls, chatId: int):
-        userActiveSubscription = session.query(Subscription).filter_by(chatId=chatId, is_paid=True,
-                                                                       isCanceled=False).first()
-
-        return userActiveSubscription
+        return session.query(Subscription).filter_by(
+            chatId=chatId, is_paid=True, isCanceled=False
+        ).first() or SubscriptionManager.createSubscription(
+            planId=PlanManager.getFreePlanId(), chatId=chatId, cardholder=None, is_paid=True,
+            isFree=True
+        )
 
 
 class LimitManager:
     @classmethod
-    def getUsedRequests(cls, chatId: int, messageType: str):
+    def getUsedRequestsToday(cls, chatId: int, messageType: str):
         chatActivity = ChatActivity.getOrCreate(chatId=chatId)
         if messageType == "GPT":
             return chatActivity.todaysMessages
@@ -261,96 +263,78 @@ class LimitManager:
             return chatActivity.todaysImages
 
     @classmethod
+    def getDailyRequestLimit(cls, chatId: int, messageType: str) -> int:
+        userSubscription = SubscriptionManager.getChatCurrentSubscription(chatId=chatId)
+        keys = {"GPT": "monthlyLimitedGptRequests", "IMAGE": "monthlyLimitedImageRequests"}
+        userPlan = PlanManager.get(userSubscription.planId)
+        limitKey = keys.get(messageType)
+        return getattr(userPlan, limitKey, 0) // 30
+
+    @classmethod
     def checkRequestsDailyLimit(cls, chatId: int, messageType: str) -> bool:
-        chatPlanLimit = cls.getDailyGptLimitOfUser(chatId, messageType)
-        chatUsedRequests = cls.getUsedRequests(chatId, messageType)
+        planLimit = cls.getDailyRequestLimit(chatId, messageType)
+        chatUsedRequests = cls.getUsedRequestsToday(chatId, messageType)
         chatQuota = ChatQuota.getOrCreate(chatId)
 
-        if chatPlanLimit > chatUsedRequests:
+        additionalKeys = {"GPT": "additionalGptRequests", "IMAGE": "additionalImageRequests"}
+
+        if planLimit > chatUsedRequests:
             return True
 
-        elif chatQuota.additionalGptRequests >= 1 and messageType == "GPT":
-            ChatQuota.update(chatQuota, "additionalGptRequests",
-                             chatQuota.additionalGptRequests - 1)
-            return True
+        key = additionalKeys.get(messageType)
 
-        elif chatQuota.additionalImageRequests >= 1 and messageType == "IMAGE":
-            ChatQuota.update(chatQuota, "additionalImageRequests",
-                             chatQuota.additionalImageRequests - 1)
-
+        if getattr(chatQuota, key, 0) > 0:
+            cls.decrementQuota(chatQuota, key)
             return True
 
         return False
 
     @classmethod
-    def getDailyGptLimitOfUser(cls, chatId: int, messageType: str) -> float:
-        userSubscription = SubscriptionManager.getChatCurrentSubscription(chatId=chatId)
-
-        if userSubscription is None:
-            userSubscription = SubscriptionManager.createSubscription(
-                planId=PlanManager.getFreePlanId(),
-                chatId=chatId,
-                cardholder=None,
-                is_paid=True,
-                isFree=True
-            )
-
-        userPlan = PlanManager.get(userSubscription.planId)
-
-        if messageType == "GPT":
-            return int(userPlan.monthlyLimitedGptRequests) / 30
-        elif messageType == "IMAGE":
-            return int(userPlan.monthlyLimitedImageRequests) / 30
+    def decrementQuota(cls, chatQuota: ChatQuota, key: str):
+        """Decrement the specified key for additional requests in the chat quota."""
+        if getattr(chatQuota, key, 0) > 0:
+            setattr(chatQuota, key, getattr(chatQuota, key) - 1)
+            session.commit()
 
 
 class FreeApiKeyManager:
     
     @staticmethod
-    def getApiKey(num):
-        free_apiKeys = session.query(FreeApiKey).filter_by(isExpired=False).all()
-        return free_apiKeys[num]
+    def getApiKey(index: int) -> FreeApiKey:
+        freeApiKeys = session.query(FreeApiKey).filter_by(isExpired=False).all()
+
+        if index < len(freeApiKeys):
+            return freeApiKeys[index]
+
+        raise IndexError("")
 
     @staticmethod
-    def getMaxNumber():
-        free_apiKeys = session.query(FreeApiKey).filter_by(isExpired=False).all()
-        return len(free_apiKeys)
-    
+    def getTotalActiveKeysCount() -> int:
+        return session.query(FreeApiKey).filter_by(isExpired=False).count()
+
     @staticmethod
-    def increaseRequest(id):
-        free_apiKey = session.query(FreeApiKey).filter_by(id=id).first()
+    def incrementRequest(apiKeyId: int) -> None:
+        """Increment the request count for a specific API key."""
+        freeApiKey = session.query(FreeApiKey).filter_by(id=apiKeyId).first()
 
-        free_apiKey.requests = free_apiKey.requests + 1
-
-        session.add(free_apiKey)
+        freeApiKey.requests += 1
+        if freeApiKey.requests >= 200:
+            freeApiKey.isExpired = True
         session.commit()
 
     @staticmethod
-    def checkAndExpireKey(id):
-        free_apiKey = session.query(FreeApiKey).filter_by(id=id).first()
-
-        if free_apiKey.requests == 200:
-            free_apiKey.isExpired = True
-
-        session.add(free_apiKey)
-        session.commit()
-
-    @staticmethod
-    def unExpireKeys():
-        free_apiKeys = session.query(FreeApiKey).all()
-
-        for free_apiKey in free_apiKeys:
-            free_apiKey.isExpired = False
-            free_apiKey.requests = 0
-
-            session.add(free_apiKey)
-
+    def reactivateAllKeys():
+        session.query(FreeApiKey).update({
+            FreeApiKey.isExpired: False,
+            FreeApiKey.requests: 0
+        })
         session.commit()
 
 
 class ConfigurationManager:
     
     @staticmethod
-    def getFirst():
+    def getConfigs():
         configuration = session.query(Configuration).first()
         
         if configuration is None:
@@ -364,29 +348,9 @@ class ConfigurationManager:
         number
     ):
         configuration = session.query(Configuration).first()
-        
         configuration.apikeyPosition = number
-        
         session.add(configuration)
         session.commit()
-        
         return configuration
 
-    @staticmethod
-    def setIsBetaTrue():
-        configuration = session.query(Configuration).first()
-
-        configuration.isBeta = True
-
-        session.add(configuration)
-        session.commit()
-
-    @staticmethod
-    def setIsBetaFalse():
-        configuration = session.query(Configuration).first()
-
-        configuration.isBeta = False
-
-        session.add(configuration)
-        session.commit()
 

@@ -1,16 +1,32 @@
+from aiogram.filters.callback_data import CallbackData
 from aiogram.types import ReplyKeyboardMarkup, InlineKeyboardMarkup
 from aiogram.utils.keyboard import ReplyKeyboardBuilder, InlineKeyboardBuilder
 
 
-adminKeyboardsBuilder = ReplyKeyboardBuilder()
-adminKeyboardsBuilder.button(text="📤 Xabar yuborish.!")
-adminKeyboardsBuilder.button(text="🤖 System xabar yuborish.!")
-adminKeyboardsBuilder.button(text="📊 Statistika.!")
-adminKeyboardsBuilder.button(text="✖️ Premiumni rad etish.!")
-adminKeyboardsBuilder.adjust(2, 2, 1)
+adminKeyboardsBuilder = InlineKeyboardBuilder()
+adminKeyboardsBuilder.button(text="➡️ Xabar yuborish", callback_data="send_message_to_users")
+adminKeyboardsBuilder.button(text="📈 Statistika", callback_data="statistics")
+adminKeyboardsBuilder.button(text="🎁 Premium obuna", callback_data="give_premium")
+adminKeyboardsBuilder.button(text="✖️ Premiumni rad etish", callback_data="reject_subscription_request")
+adminKeyboardsBuilder.adjust(2, 2)
 
-adminKeyboardsMarkup = ReplyKeyboardMarkup(keyboard=adminKeyboardsBuilder.export(),
-                                           resize_keyboard=True, one_time_keyboard=True)
+adminKeyboardsMarkup = InlineKeyboardMarkup(inline_keyboard=adminKeyboardsBuilder.export())
+
+
+class ConfirmSubscriptionCallback(CallbackData, prefix="subscription"):
+    receiverId: int
+    name: str
+
+
+def getConfirmSubscriptionMarkup(receiverId: int):
+    confirmSubscriptionBuilder = InlineKeyboardBuilder()
+
+    confirmSubscriptionBuilder.button(text="Xa", callback_data=ConfirmSubscriptionCallback(
+        receiverId=receiverId, name="subscribe_yes"))
+
+    confirmSubscriptionBuilder.button(text="Yo'q", callback_data="cancel")
+
+    return InlineKeyboardMarkup(inline_keyboard=confirmSubscriptionBuilder.export())
 
 
 cancelKeyboardsBuilder = ReplyKeyboardBuilder()

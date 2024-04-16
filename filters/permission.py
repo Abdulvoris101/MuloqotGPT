@@ -3,18 +3,17 @@ from aiogram import types
 
 
 def isGroupAllowed(
-    chatType,
-    chatId,
+    chatType: str,
+    chatId: int,
 ) -> bool:
     if chatType in constants.AVAILABLE_GROUP_TYPES:
-        if int(chatId) not in constants.ALLOWED_GROUPS:
+        if chatId not in constants.ALLOWED_GROUPS:
             return False
 
     return True
 
 
 def checkPassword(password) -> bool:
-    if password == str(constants.PASSWORD):
+    if password == constants.PASSWORD:
         return True
-
     return False

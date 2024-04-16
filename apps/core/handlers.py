@@ -24,8 +24,7 @@ from ..subscription.schemes import ChatQuotaGetScheme
 coreRouter = Router(name="coreRouter")
 
 
-@coreRouter.message((~F.text.startswith(('/', '✅', "Bekor qilish")) &
-                    ~F.text.endswith('.!') & F.chat.type == "private"))
+@coreRouter.message((~F.text.startswith(('/', "Bekor qilish")) & F.chat.type == "private"))
 @coreRouter.message(isBotMentioned())
 async def handleMessages(message: types.Message):
     try:
@@ -125,7 +124,7 @@ async def setFeedbackMessage(message: types.Message, user: types.User, state: FS
 
 # Callbacks for feeedback cancelation
 @coreRouter.callback_query(F.data == "cancel")
-async def cancelInlineFeedback(callback: types.CallbackQuery, user: types.User, state: FSMContext):
+async def cancel(callback: types.CallbackQuery, user: types.User, state: FSMContext):
     try:
         await bot.delete_message(user.id, callback.message.message_id)
     except TelegramNotFound:

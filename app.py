@@ -29,9 +29,9 @@ WEBHOOK_URL = constants.WEB_URL + WEBHOOK_PATH
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     webhookInfo = await bot.get_webhook_info()
-    dp.include_router(coreRouter)
     dp.include_router(adminRouter)
     dp.include_router(subscriptionRouter)
+    dp.include_router(coreRouter)
     dp.message.middleware(MessageMiddleware())
     dp.callback_query.middleware(CallbackMiddleware())
 

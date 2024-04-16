@@ -5,10 +5,6 @@ class AdminLoginState(StatesGroup):
     password = State()
 
 
-class AdminSystemMessageState(StatesGroup):
-    message = State()
-
-
 class AdminSendMessage(StatesGroup):
     userType = State()
     message = State()
@@ -24,9 +20,8 @@ class PaymentState(StatesGroup):
     awaitingPhotoProof = State()
 
 
-class TopupState(StatesGroup):
+class ConfirmSubscriptionState(StatesGroup):
     receiverId = State()
-    sure = State()
 
 
 class RejectState(StatesGroup):

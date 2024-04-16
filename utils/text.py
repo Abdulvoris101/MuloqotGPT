@@ -1,6 +1,7 @@
 # All texts
 from aiogram import types
 
+from apps.admin.schemes import StatisticsReadScheme
 from apps.core.schemes import ChatScheme, ChatActivityGetScheme
 from apps.subscription.schemes import ChatQuotaGetScheme
 
@@ -194,36 +195,20 @@ Bizni tanlaganiz uchun tashakkur 🌟
 SUBSCRIPTION_SEND_EVENT_TEXT = """#payment check-in\nchatId: {userId},\nsubscription_id: {subscriptionId}, 
 \nprice: {price}"""
 
-
-def getStatisticsText(
-        usersCount,
-        activeUsers,
-        activeUsersOfDay,
-        usersUsedOneDay,
-        usersUsedOneWeek,
-        usersUsedOneMonth,
-        premiumUsers,
-        limitReachedUsers,
-        allMessages,
-        avgUsersMessagesCount,
-        todayMessages,
-        lastUpdate,
-        latestUser
-):
-    return f"""👤 Foydalanuvchilar - {usersCount}
-💥 Aktiv Foydalanuvchilar - {activeUsers}
-✨  Bugungi Aktiv Foydalanuvchilar - {activeUsersOfDay}
-1️⃣  Kun ishlatgan foydalanuvchilar - {usersUsedOneDay}
-📆 1 hafta ishlatgan Foydalanuvchilar - {usersUsedOneWeek}
-🗓  1 oy ishlatgan Foydalanuvchilar - {usersUsedOneMonth}
-🎁 Premium Foydalanuvchilar - {premiumUsers}
-🛑 Bugungi limiti tugagan Foydalanuvchilar - {limitReachedUsers}
-📨 Xabarlar - {allMessages}
-📩 User uchun o'rtacha xabar - {avgUsersMessagesCount}
-✉️ Bugungi xabarlar - {todayMessages}
+STATISTICS_TEXT = """Foydalanuvchilar - {usersCount}
+Aktiv Foydalanuvchilar - {activeUsers}
+Bugungi Aktiv Foydalanuvchilar - {activeUsersOfDay}
+1 Kun ishlatgan foydalanuvchilar - {usersUsedOneDay}
+1 hafta ishlatgan Foydalanuvchilar - {usersUsedOneWeek}
+1 oy ishlatgan Foydalanuvchilar - {usersUsedOneMonth}
+Premium Foydalanuvchilar - {premiumUsers}
+Bugungi limiti tugagan Foydalanuvchilar - {limitReachedUsers}
+Xabarlar - {allMessages}
+User uchun o'rtacha xabar - {avgUsersMessagesCount}
+Bugungi xabarlar - {todayMessages}
 
 Eng oxirgi aktivlik - {lastUpdate}
-Eng oxirgi aktivlik ko'rstgan user - {latestUser}"""
+Eng oxirgi aktivlik ko'rstgan user - {latestUserId}"""
 
 
 def getRejectReason(reason):

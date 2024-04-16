@@ -111,7 +111,7 @@ class ChatActivityManager:
     def getUserActivityTimeFrame(cls, days=1) -> int:
         timeThreshold = datetime.now() - timedelta(days=days)
         return session.query(ChatActivity).filter(
-            func.coalesce(ChatActivity.lastUpdated, ChatActivity.createdAt) >= timeThreshold
+            func.coalesce(Chat.lastUpdated, Chat.createdAt) >= timeThreshold
         ).count()
 
     @classmethod
@@ -136,7 +136,7 @@ class MessageManager:
         obj.save()
 
     @classmethod
-    def userRole(cls, translatedText, instance: types.Message) -> None:
+    def userRole(cls, translatedText: str, instance: types.Message) -> None:
         messageScheme = MessageCreateScheme(content=translatedText, role='user',
                                             uzMessage=instance.text, **instance.model_dump())
         messageScheme.role = messageScheme.role.value
@@ -171,18 +171,30 @@ class MessageManager:
     @classmethod
     def deleteByLimit(cls, chatId: int):
         """Delete messages by a specific retention limit, excluding the latest system message."""
-        messagesToKeep = session.query(Message.id).filter(
-            Message.chatId == chatId, Message.role == "system"
-        ).order_by(Message.id.desc()).limit(1).subquery()
+        max_id_subquery = (
+            session.query(func.max(Message.id))
+            .filter(and_(Message.chatId == chatId))
+            .scalar_subquery()
+        )
 
-        # Convert subquery to a select() explicitly for use in notin_()
-        messages_to_keep_select = select([messagesToKeep.c.id])
+        unique_system_messages = session.query(distinct(Message.content)).filter_by(
+            role="system", chatId=chatId).all()
 
-        # Delete all other messages that are not in the list of messages to keep
-        messages_to_delete = session.query(Message).filter(
-            Message.chatId == chatId,
-            Message.id.notin_(messages_to_keep_select)
-        ).delete(synchronize_session=False)
+        for message_content, in unique_system_messages:
+            messages_to_delete = session.query(Message).filter_by(role="system", chatId=chatId,
+                                                                  content=message_content).all()
+            for i, message in enumerate(messages_to_delete):
+                if i == 0:
+                    continue
+
+                session.delete(message)
+
+        messages = session.query(Message).filter(and_(Message.chatId == chatId,
+                                                      Message.id != max_id_subquery),
+                                                 Message.role != "system").order_by(Message.id).limit(1).all()
+
+        for message in messages:
+            session.delete(message)
 
         session.commit()
 
