@@ -21,10 +21,11 @@ class ConfirmSubscriptionCallback(CallbackData, prefix="subscription"):
 def getConfirmSubscriptionMarkup(receiverId: int):
     confirmSubscriptionBuilder = InlineKeyboardBuilder()
 
-    confirmSubscriptionBuilder.button(text="Xa", callback_data=ConfirmSubscriptionCallback(
+    confirmSubscriptionBuilder.button(text="Taqdim etish", callback_data=ConfirmSubscriptionCallback(
         receiverId=receiverId, name="subscribe_yes"))
 
-    confirmSubscriptionBuilder.button(text="Yo'q", callback_data="cancel")
+    confirmSubscriptionBuilder.button(text="Bekor qilish", callback_data="cancel")
+    confirmSubscriptionBuilder.adjust(1, 1)
 
     return InlineKeyboardMarkup(inline_keyboard=confirmSubscriptionBuilder.export())
 
@@ -36,15 +37,15 @@ cancelKeyboardsMarkup = ReplyKeyboardMarkup(keyboard=cancelKeyboardsBuilder.expo
                                             resize_keyboard=True, one_time_keyboard=True)
 
 
-sendMessageBuilder = InlineKeyboardBuilder()
-sendMessageBuilder.button(text="Inline bilan", callback_data="with_inline")
-sendMessageBuilder.button(text="Oddiy post", callback_data="without_inline")
+sendMessageBuilder = ReplyKeyboardBuilder()
+sendMessageBuilder.button(text="Inline bilan")
+sendMessageBuilder.button(text="Oddiy post")
 
-sendMessageMarkup = InlineKeyboardMarkup(inline_keyboard=sendMessageBuilder.export(),
-                                         resize_keyboard=True)
+sendMessageMarkup = ReplyKeyboardMarkup(keyboard=sendMessageBuilder.export(), resize_keyboard=True,
+                                        one_time_keyboard=True)
 
 
-def getInlineMenu(inline_keyboards):
+def getInlineMarkup(inline_keyboards):
     inlineBuilder = InlineKeyboardBuilder()
 
     for kb in inline_keyboards:

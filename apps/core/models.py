@@ -50,18 +50,18 @@ class Chat(Base):
         chat = session.query(Chat).filter_by(chatId=chatId).first()
         session.delete(chat)
 
+    def to_dict(self):
+        """Converts SQL Alchemy model instance to dictionary."""
+        return {c.key: getattr(self, c.key) for c in class_mapper(self.__class__).mapped_table.c}
+
 
 class ChatActivity(Base):
     __tablename__ = 'chat_activity'
 
     id = Column(Integer, primary_key=True)
     chatId = Column(BigInteger, ForeignKey('chat.chatId'))
-    outputTokens = Column(BigInteger, default=0)
-    inputTokens = Column(BigInteger, default=0)
     allMessages = Column(BigInteger, default=0)
-    todaysImages = Column(BigInteger, default=0)
-    todaysMessages = Column(BigInteger, default=0)
-    translatedMessagesCount = Column(BigInteger, default=0)
+    translatedMessagesCount = Column(Integer, default=0)
 
     def __init__(self, chatId):
         self.chatId = chatId
@@ -88,11 +88,9 @@ class ChatActivity(Base):
     @classmethod
     def getOrCreate(cls, chatId):
         chatActivity = ChatActivity.get(chatId)
-
         if chatActivity is None:
             ChatActivity(chatId=chatId).save()
             chatActivity = ChatActivity.get(chatId)
-
         return chatActivity
 
     def save(self):
@@ -106,16 +104,20 @@ class Message(Base):
     id = Column(Integer, primary_key=True)
     content = Column(Text)
     role = Column(Enum('user', 'system', 'assistant', name="role_enum", create_type=False))
+    messageType = Column(Enum('message', 'image', name="message_type_enum", create_type=False), default='message')
     uzMessage = Column(Text, nullable=True)
+    tokensCount = Column(BigInteger, nullable=True, default=0)
     chatId = Column(BigInteger)
     createdAt = Column(DateTime, nullable=True)
 
-    def __init__(self, chat: dict, role: str, content: str,
-                 uzMessage: str, createdAt: datetime):
+    def __init__(self, chat: dict, role: str, content: str, messageType: str,
+                 uzMessage: str, tokensCount: int, createdAt: datetime):
         self.chatId = chat.get("chatId")
         self.role = role
         self.content = content
         self.uzMessage = uzMessage
+        self.messageType = messageType
+        self.tokensCount = tokensCount
         self.createdAt = createdAt
 
     def save(self):
@@ -123,12 +125,7 @@ class Message(Base):
         session.commit()
     
     @classmethod
-    def count(cls):
-        last_message = session.query(Message).order_by(desc(Message.createdAt)).first()
+    def count(cls) -> int:
+        return session.query(Message).order_by(desc(Message.createdAt)).count()
 
-        return int(last_message.id)
-    
-    @classmethod
-    def delete(cls, chatId):
-        session.query(Message).filter_by(chatId=chatId).delete()
 

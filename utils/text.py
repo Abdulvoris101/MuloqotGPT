@@ -2,10 +2,10 @@
 from aiogram import types
 
 from apps.admin.schemes import StatisticsReadScheme
-from apps.core.schemes import ChatScheme, ChatActivityGetScheme
+from apps.core.schemes import ChatScheme, ChatActivityViewScheme
 from apps.subscription.schemes import ChatQuotaGetScheme
 
-"""Basic command texts and greetings"""
+# CORE TEXTS
 
 START_BOT_TEXT = """Botni boshlash uchun /start kommandasini yuboring!"""
 
@@ -24,7 +24,6 @@ Men sizga eng yangi va eng chuqur ma'lumotlarni taqdim etish bilan shug'ullanama
 
 Menga o'zingiz qiziqayotgan savol yoki so'rovingizni yuboring!
 """
-
 
 HELP_COMMAND = """<b>Botni qanday ishlataman?</b>
 Botda  chatgptni  ishlatish uchun botga shunchaki so'rov yuborish kifoya. 
@@ -46,8 +45,17 @@ Botning rasmiy guruhi - @muloqotaigr
 Botning rasmiy kanali - @muloqotai
 """
 
-USER_REGISTER_EVENT_TEXT = """#new\nid: {chat_id}\ntelegramId: {telegram_id}
-\nusername: @{username}\nname: {full_name}"""
+PROFILE_TEXT = """⚡️ Obuna turi: {planTitle}
+🤖 GPT modeli: gpt-3.5-turbo
+
+Limitlar:
+• GPT-3.5 bu oygi so’rovlar:  {currentMonthMessages}/{availableGptRequests}
+• Rasm generatsiya: {currentMonthImages}/{availableImageRequests}
+• Qo'shimcha GPT-3.5 so'rovlar: {additionalGptRequests}
+• Qo'shimcha rasm so'rovlari: {additionalImageRequests}
+
+{PREMIUM_TEXT}
+"""
 
 PREMIUM_TEXT = """Ko'proq kerakmi? 25.000 so'm evaziga bir oylik premium tarifga obuna bo'ling.
 Premium obuna bilan siz:
@@ -61,48 +69,19 @@ Premium obuna bilan siz:
 
 Premium obunani ulash uchun /premium bo’limiga o’ting."""
 
-PROFILE_TEXT = """⚡️ Obuna turi: {planType}
-🤖 GPT modeli: gpt-3.5-turbo
 
-Limitlar:
-• GPT-3.5 bugungi so’rovlar: {todaysMessages}/{availableGptRequests}
-• Rasm generatsiya: {todaysImages}/{availableImageAiRequests}
-• Qo'shimcha GPT-3.5 so'rovlar: {additionalGptRequests}
-• Qo'shimcha rasm so'rovlari: {additionalImageRequests}
-
-{PREMIUM_TEXT}
-"""
-
-
-def getUserRegisterEventText(chat: ChatScheme):
-    return USER_REGISTER_EVENT_TEXT.format(
-        chat_id=chat.id,
-        telegram_id=chat.chatId,
-        username=chat.username,
-        full_name=chat.chatName
-    )
-
-
-def getProfileText(planType: str, chatActivityScheme: ChatActivityGetScheme,
+def getProfileText(plantTitle: str, chatActivityScheme: ChatActivityViewScheme,
                    chatQuotaScheme: ChatQuotaGetScheme):
-    requestLimits = {
-        "Premium plan": {"gpt": "75", "imageAi": "30"},
-        "Free plan": {"gpt": "16", "imageAi": "5"}
-    }
-
     data = {
         **chatActivityScheme.model_dump(),
         **chatQuotaScheme.model_dump(),
-        "planType": planType,
-        "availableGptRequests": requestLimits[planType]['gpt'],
-        "availableImageAiRequests": requestLimits[planType]['imageAi'],
-        "PREMIUM_TEXT": PREMIUM_TEXT if planType == "Free plan" else ""
+        "planTitle": plantTitle,
+        "PREMIUM_TEXT": PREMIUM_TEXT if plantTitle == "Free plan" else ""
     }
-
     return PROFILE_TEXT.format_map(data)
 
 
-""" Premium and plan texts """
+# Premium plan texts
 
 INVOICE_TEXT = """1/2
 To'lov tafsilotlari:
@@ -123,9 +102,7 @@ Toʻlov jarayonida biror muammoga duch kelsangiz yoki savollaringiz boʻlsa, biz
 """
 
 
-
-
-SEND_PAYMENT_PHOTO = """2/2
+WAITING_PAYMENT_PHOTO_TEXT = """2/2
 To'lovni tasdiqlash uchun bizga to'lov skrinshotini yuboring 👇
 """
 
@@ -138,9 +115,7 @@ Bizni tanlaganiz uchun rahmat 🫡
 Agarda biror savolingiz bo'lsa, bizga murojat qiling - @texnosupportuzbot | @abdulvoris_101
 """
 
-# Plans text
-
-PLAN_DESCRIPTION_TEXT = f"""
+CURRENT_PLAN_TEXT = f"""
 Xozirgi obuna quyidagilarni o'z ichiga oladi:
 ✅ Chatgptga har kuni 16 ta so'rov;
 ⭐️ AI bilan 5 ta rasm generatsiya qilish;
@@ -150,9 +125,19 @@ Xozirgi obuna quyidagilarni o'z ichiga oladi:
 {PREMIUM_TEXT}
 """
 
-""" Limits """
+PREMIUM_GRANTED_TEXT = """Tabriklaymiz sizga premium obuna taqdim etildi. Bizni tanlaganiz uchun rahmat 😊🎉"""
+SUBSCRIPTION_END = """🚀 Obunani yangilash vaqti keldi!
 
+Salom Qadrli Foydalanuvchi 👋,
 
+Obunangiz muddati tugadi! Premium imtiyozlardan foydalanishda davom etish uchun “/premium” kommandasini kiriting.
+
+Bizni tanlaganiz uchun tashakkur 🌟
+"""
+
+PAYMENT_ON_REVIEW_TEXT = "Sizning premium obunaga so'rovingiz ko'rib chiqilmoqda"
+
+# Limits
 def getLimitReached(isPremium):
     usedRequests = 75 if isPremium else 16
     freeText = """ruxsat etilgan maksimal bepul foydalanishga erishdingiz. ChatGPT-ni abadiy bepul taqdim etish biz uchun qimmat.
@@ -182,18 +167,7 @@ Donat uchun karta informatsiyasi:
 Savol va takliflar uchun - @texnosupportuzbot
 """
 
-PREMIUM_GRANTED_TEXT = """Tabriklaymiz sizga premium obuna taqdim etildi. Bizni tanlaganiz uchun rahmat 😊🎉"""
-SUBSCRIPTION_END = """🚀 Obunani yangilash vaqti keldi!
-
-Salom Qadrli Foydalanuvchi 👋,
-
-Obunangiz muddati tugadi! Premium imtiyozlardan foydalanishda davom etish uchun “/premium” kommandasini kiriting.
-
-Bizni tanlaganiz uchun tashakkur 🌟
-"""
-
-SUBSCRIPTION_SEND_EVENT_TEXT = """#payment check-in\nchatId: {userId},\nsubscription_id: {subscriptionId}, 
-\nprice: {price}"""
+# Admin
 
 STATISTICS_TEXT = """Foydalanuvchilar - {usersCount}
 Aktiv Foydalanuvchilar - {activeUsers}
@@ -202,7 +176,6 @@ Bugungi Aktiv Foydalanuvchilar - {activeUsersOfDay}
 1 hafta ishlatgan Foydalanuvchilar - {usersUsedOneWeek}
 1 oy ishlatgan Foydalanuvchilar - {usersUsedOneMonth}
 Premium Foydalanuvchilar - {premiumUsers}
-Bugungi limiti tugagan Foydalanuvchilar - {limitReachedUsers}
 Xabarlar - {allMessages}
 User uchun o'rtacha xabar - {avgUsersMessagesCount}
 Bugungi xabarlar - {todayMessages}
@@ -210,20 +183,22 @@ Bugungi xabarlar - {todayMessages}
 Eng oxirgi aktivlik - {lastUpdate}
 Eng oxirgi aktivlik ko'rstgan user - {latestUserId}"""
 
-
-def getRejectReason(reason):
-    return f"""Afsuski sizning premium obunaga bo'lgan so'rovingiz bekor qilindi.
+REJECTED_TEXT = """Afsuski sizning premium obunaga bo'lgan so'rovingiz bekor qilindi.
 Sababi: {reason}
 Biror xatolik ketgan bo'lsa bizga murojat qiling: @texnosupportuzbot
 """
 
-
-INLINE_BUTTONS_GUIDE = """Inline buttonlarni kiriting. 
+INLINE_BUTTONS_GUIDE = """Inline knopkalarni kiriting. 
 Misol uchun\n`./Test-t.me//texnomasters\n./Test2-t.me//texnomasters`"""
 
-# Ai chat handler
+SURE_TO_SUBSCRIBE = "Siz rostan ushbu foydalanuvchiga premium obuna taqdim etmoqchimisiz?"
+SUCCESSFULLY_SUBSCRIBED = "Ushbu foydalanuvchi premium obunaga ega bo'ldi 🎉"
 
-FEEDBACK_MESSAGE = """Bot bilan bo'lgan tajribangizni yozib qoldiring, bu bilan siz botni rivoji uchun xissa qo'shgan bo'lasiz! 
+SELECT_MESSAGE_TYPE = "Xabar/Rasm/Video kiriting"
+
+# FEEDBACK
+
+REQUEST_FEEDBACK_MESSAGE = """Bot bilan bo'lgan tajribangizni yozib qoldiring, bu bilan siz botni rivoji uchun xissa qo'shgan bo'lasiz! 
 Sizning fikr-mulohazalaringiz xizmatimizni yaxshilashga yordam beradi. Biz sizning har bir fikringizni qadrlaymiz! ✨"""
 
 FEEDBACK_GUIDE_MESSAGE = """Ushbu savollarga javob berib bizga yordam bering
@@ -235,34 +210,48 @@ FEEDBACK_GUIDE_MESSAGE = """Ushbu savollarga javob berib bizga yordam bering
 Ushbu savollarga qisqagina javob yo'llab bizga yordam bering 😊
 """
 
-PROCESSING_MESSAGE = "⏳"
-ENTER_AGAIN = "Iltimos boshqatan so'rov yuboring"
-TOKEN_REACHED = "Savolni qisqartiribroq yozing"
 
+# Event template texts
 
-def getNewChatMember(firstName):
-    return f"""👋 Assalomu alaykum! {firstName}, 
+NEW_CHAT_MEMBER_TEMPLATE = """👋 Assalomu alaykum! {firstName}, 
 Sizni yana bir bor ko'rib turganimdan xursandman. Bugun sizga qanday yordam bera olaman? 
 Men bilan qiziqarli suxbat qurishga tayyormisiz?"
 """
 
+USER_REGISTERED_EVENT_TEMPLATE = """#new\nid: {id}\ntelegramId: {chatId}
+\nusername: @{username}\nname: {chatName}"""
 
-SEND_FEEDBACK_MESSAGE = """#chat-id: {user.id}
+SUBSCRIPTION_SEND_EVENT_TEXT = """#payment check-in\nchatId: {userId},\nsubscription_id: {subscriptionId}, 
+\nprice: {price}"""
+
+FEEDBACK_MESSAGE_EVENT_TEMPLATE = """#chat-id: {user.id}
 #username: @{user.username}
 #xabar: \n\n{text}
 """
 
+IMAGE_RESPONSE_TEMPLATE = "\n🌄 {caption}\n\n@muloqataibot"
 
-def getSendFeedbackMessage(user: types.User, text):
-    data = {**user.model_dump(), "text": text}
-    return SEND_FEEDBACK_MESSAGE.format_map(data)
+# COMMON
+CANCELED_TEXT = "Bekor qilindi!"
+THANK_YOU_TEXT = "Rahmat!"
 
+# FORBIDDEN
 
 NOT_SUBSCRIBED = "Bu xizmatdan foydalanish uchun premiumga obuna bo'lishingiz kerak. /premium buyrug'i yordamida obuna bo'ling"
 LIMIT_TRANSLATION_REACHED = "Afsuski sizning tarjima uchun limitingiz tugadi. Cheksiz tarjima uchun premiumga obuna bo'lishingiz kerak /premium "
+NOT_PERMITTED_IMAGE_GENERATION = """Bu guruhda rasm generatsiya qilib bo'lmaydi!"""
+
 # ERRORS
 
 NOT_AVAILABLE_GROUP = """Bu guruhda rasm generatsiya qilib bo'lmaydi!"""
-IMAGE_GEN_NOT_AVAILABLE = """Bu guruhda rasm generatsiya qilib bo'lmaydi!"""
-IMAGE_GEN_ERROR = """Rasm generatsiyasi jarayonida xatolik yuz berdi. Iltimos, keyinroq urinib ko'ring."""
-
+IMAGE_GEN_NOT_AVAILABLE = """Rasm generatsiyasi jarayonida xatolik yuz berdi. Iltimos, keyinroq urinib ko'ring."""
+CHATGPT_SERVER_ERROR = "Chatgptda uzilish, Iltimos birozdan so'ng yana qayta urinib ko'ring"
+SERVER_ERROR_TRY_AGAIN = "Serverda xatolik. Iltimoz birozdan so'ng qayta urinib ko'ring"
+GPT_ERROR_TEMPLATE = "#error\nChat-id: {chatId}\nMessage: {message}\nApi-token: {apiToken}"
+TRY_AGAIN = "Iltimos qayta urinib ko'ring"
+SENT_USER_REPORT_TEXT = """Message sent to {receivedUsersCount} users
+Bot was blocked by {blockedUsersCount} users"""
+ENTER_AGAIN = "Iltimos boshqatan so'rov yuboring"
+TOKEN_REACHED = "Savolni qisqartiribroq yozing"
+ALREADY_SUBSCRIBED = "Siz allaqachon premium obunaga egasiz!"
+NOT_FOUND_USER = "Foydalanuvchi topilmadi"

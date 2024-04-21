@@ -26,8 +26,8 @@ async def admin(request: Request, page: int = Query(1, gt=0)):
         "groups": ChatManager.groupsCount(),
         "messages": Message.count(),
         "activeUsers": ChatActivityManager.getCurrentMonthUsers(),
-        "countOfAllInputTokens": ChatActivityManager.countTokens(columnName='inputTokens', today=False),
-        "countOfAllOutputTokens": ChatActivityManager.countTokens(columnName='outputTokens', today=False),
+        "countOfAllInputTokens": MessageManager.countTokens(role='user'),
+        "countOfAllOutputTokens": MessageManager.countTokens(role='assistant'),
         "request": request,
         "users": ChatManager.usersCount(),
         "all_chats": ChatManager.all(),
@@ -44,7 +44,6 @@ async def admin(request: Request, page: int = Query(1, gt=0)):
     totalPages = (totalItems // rowsPerPage) + (1 if totalItems % rowsPerPage > 0 else 0)
     query = session.query(Chat).\
         join(Chat.chatActivity).\
-        filter(ChatActivity.todaysMessages >= 1).\
         order_by(desc(Chat.id)).\
         limit(rowsPerPage).\
         offset(offset)
@@ -52,28 +51,14 @@ async def admin(request: Request, page: int = Query(1, gt=0)):
     return templates.TemplateResponse("active.html", {
         "chats": query.all(),
         "groups": ChatManager.groupsCount(),
-        "messages": MessageManager.getTodayMessagesCount(),
+        "messages": MessageManager.getMessagesActivityTimeFrame(days=1, messageType='message'),
         "activeUsers": ChatActivityManager.getCurrentMonthUsers(),
-        "countOfAllInputTokens": ChatActivityManager.countTokens(columnName='inputTokens', today=True),
-        "countOfAllOutputTokens": ChatActivityManager.countTokens(columnName='outputTokens', today=True),
+        "countOfAllInputTokens": MessageManager.countTokens(role='user'),
+        "countOfAllOutputTokens": MessageManager.countTokens(role='assistant'),
         "request": request,
         "users": query.count(),
         "all_chats": ChatManager.all(),
         "total_pages": totalPages,
         "current_page": page
-    })
-
-
-@router.get("/systemMessages", response_class=HTMLResponse)
-async def systemMessages(request: Request):
-    return templates.TemplateResponse("system_messages.html", {
-        "groups": ChatManager.groupsCount(),
-        "messages": Message.count(),
-        "countOfAllInputTokens": ChatActivityManager.countOfAllInputTokens(),
-        "countOfAllOutputTokens": ChatActivityManager.countOfAllOutputTokens(),
-        "activeUsers": ChatActivityManager.getCurrentMonthUsers(),
-        "request": request,
-        "users": ChatManager.usersCount(),
-        "all_systemMessages": MessageManager.getSystemMessages()
     })
 

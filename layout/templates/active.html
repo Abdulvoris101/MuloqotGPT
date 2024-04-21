@@ -173,7 +173,6 @@
                   <th class="border-top-0">Username</th>
                   <th class="border-top-0">Input Tokens</th>
                   <th class="border-top-0">Output Tokens</th>
-                  <th class="border-top-0">Todays Messages</th>
                   <th class="border-top-0">All Messages</th>
                   <th class="border-top-0">Last Updated</th>
 
@@ -197,7 +196,6 @@
                             <td>{{ chat.username }}</td>
                             <td>{{ chat.chatActivity.first().inputTokens }}</td>
                             <td>{{ chat.chatActivity.first().outputTokens }}</td>
-                            <td>{{ chat.chatActivity.first().todaysMessages }}</td>
                             <td>{{ chat.chatActivity.first().allMessages }}</td>
 
                             <td>{{ chat.lastUpdated }}</td>
@@ -217,7 +215,6 @@
                             <td>{{ chat.username }}</td>
                             <td>{{ chat.chatActivity.first().inputTokens }}</td>
                             <td>{{ chat.chatActivity.first().outputTokens }}</td>
-                            <td>{{ chat.chatActivity.first().todaysMessages }}</td>
                             <td>{{ chat.chatActivity.first().allMessages }}</td>
 
                             <td>{{ chat.lastUpdated }}</td>

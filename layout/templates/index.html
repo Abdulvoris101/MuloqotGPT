@@ -73,7 +73,7 @@
           <h3 class="box-title">Messages</h3>
           <ul class="list-inline two-part d-flex align-items-center mb-0">
             <li>
-              <div id="sparklinedash3">
+              <div>
                 <canvas
                   width="67"
                   height="30"
@@ -97,7 +97,7 @@
           <h3 class="box-title">Active Users</h3>
           <ul class="list-inline two-part d-flex align-items-center mb-0">
             <li>
-              <div id="sparklinedash3">
+              <div>
                 <canvas
                   width="67"
                   height="30"
@@ -122,7 +122,7 @@
           <h3 class="box-title">All Input Tokens</h3>
           <ul class="list-inline two-part d-flex align-items-center mb-0">
             <li>
-              <div id="sparklinedash3">
+              <div>
                 <canvas
                   width="67"
                   height="30"
@@ -195,9 +195,6 @@
                   <th class="border-top-0">Chat Id</th>
                   <th class="border-top-0">Chat Name</th>
                   <th class="border-top-0">Username</th>
-                  <th class="border-top-0">Input Tokens</th>
-                  <th class="border-top-0">Output Tokens</th>
-                  <th class="border-top-0">Todays Messages</th>
                   <th class="border-top-0">All Messages</th>
                   <th class="border-top-0">Last Updated</th>
 
@@ -219,9 +216,6 @@
                             <td>{{ chat.chatId }}</td>
                             <td class="txt-oflo">{{ chat.chatName }}</td>
                             <td>{{ chat.username }}</td>
-                            <td>{{ chat.chatActivity.first().inputTokens }}</td>
-                            <td>{{ chat.chatActivity.first().outputTokens }}</td>
-                            <td>{{ chat.chatActivity.first().todaysMessages }}</td>
                             <td>{{ chat.chatActivity.first().allMessages }}</td>
 
                             <td>{{ chat.lastUpdated }}</td>
@@ -239,11 +233,7 @@
                             <td>{{ chat.chatId }}</td>
                             <td class="txt-oflo">{{ chat.chatName }}</td>
                             <td>{{ chat.username }}</td>
-                            <td>{{ chat.chatActivity.first().inputTokens }}</td>
-                            <td>{{ chat.chatActivity.first().outputTokens }}</td>
-                            <td>{{ chat.chatActivity.first().todaysMessages }}</td>
                             <td>{{ chat.chatActivity.first().allMessages }}</td>
-
                             <td>{{ chat.lastUpdated }}</td>
                             <td>{{ chat.createdAt }}</td>
                         </tr>

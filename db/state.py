@@ -5,12 +5,9 @@ class AdminLoginState(StatesGroup):
     password = State()
 
 
-class AdminSendMessage(StatesGroup):
+class SendMessageToUsers(StatesGroup):
+    messageType = State()
     userType = State()
-    message = State()
-
-
-class SendMessageWithInlineState(StatesGroup):
     buttons = State()
     message = State()
 

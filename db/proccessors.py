@@ -34,10 +34,12 @@ class MessageProcessor:
         if chat.type != "private":
             for message in grSystemMessages:
                 Message(chat=chatObj, role=message["role"], content=message["content"], uzMessage="",
+                        messageType="message",
                         createdAt=datetime.datetime.now()).save()
         elif chat.type == "private":
             for message in systemMessages:
                 Message(chat=chatObj, role=message["role"], content=message["content"], uzMessage="",
+                        messageType="message",
                         createdAt=datetime.datetime.now()).save()
 
 

@@ -1,5 +1,5 @@
 import tiktoken
-from utils import constants
+from apps.common.settings import settings
 import re
 
 
@@ -14,12 +14,11 @@ def countTokens(messages):
 def countTokenOfMessage(message):
     enc = tiktoken.get_encoding("cl100k_base")
     total_tokens = len(enc.encode(message))
-
     return total_tokens
 
 
 # Extract inline buttons
-def extractInlineButtons(text):
+def extractInlineButtonsFromText(text):
     text_parts = re.split(r'\./', text)
     text_parts = text_parts[1:]
     text_parts = list(map(lambda part: re.sub(r'\n', '', part), text_parts))
@@ -43,7 +42,8 @@ def containsAnyWord(text, word_list):
 
 
 def checkTokens(messages):
-    if countTokens(messages) >= 500:
+    tokens = countTokens(messages)
+    if countTokens(messages) >= 400:
         return True
     return False
 

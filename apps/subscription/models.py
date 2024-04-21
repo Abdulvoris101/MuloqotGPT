@@ -1,8 +1,31 @@
-from sqlalchemy.orm import class_mapper
+from sqlalchemy.orm import class_mapper, relationship
 
 from db.setup import Base, session
 from sqlalchemy import Column, Integer, String, UUID, BigInteger, Boolean, DateTime, ForeignKey
 import uuid
+
+
+class Limit(Base):
+    __tablename__ = 'limit'
+
+    id = Column(UUID(as_uuid=True), primary_key=True)
+    monthlyLimitedImageRequests = Column(Integer)
+    monthlyLimitedGptRequests = Column(Integer)
+    plans = relationship('Plan', backref='Plan.limitId', lazy='dynamic')
+
+    @classmethod
+    def update(cls, instance, column, value):
+        setattr(instance, column, value)
+        session.commit()
+
+    @classmethod
+    def delete(cls, chatId):
+        limit = cls.get(chatId)
+        session.delete(limit)
+
+    @classmethod
+    def get(cls, id):
+        return session.query(Limit).filter_by(id=id).first()
 
 
 class Plan(Base):
@@ -12,26 +35,21 @@ class Plan(Base):
     title = Column(String)
     amountForMonth = Column(BigInteger)
     isFree = Column(Boolean)
-    monthlyLimitedImageRequests = Column(Integer)
-    monthlyLimitedGptRequests = Column(Integer)
     isGroup = Column(Boolean)
-    isHostGroup = Column(Boolean)
+    limitId = Column(UUID, ForeignKey(Limit.id), nullable=True)
 
     def __init__(
             self, title,
             amountForMonth, isFree, 
-            monthlyLimitedImageRequests, 
-            monthlyLimitedGptRequests, isGroup, isHostGroup):
+            limitId, isGroup):
         
         self.id = uuid.uuid4()
         self.title = title
         self.amountForMonth = amountForMonth
         self.isFree = isFree
-        self.monthlyLimitedImageRequests = monthlyLimitedImageRequests
-        self.monthlyLimitedGptRequests = monthlyLimitedGptRequests
+        self.limitId = limitId
         self.isGroup = isGroup
-        self.isHostGroup = isHostGroup
-        
+
         super().__init__()
 
     def save(self):
