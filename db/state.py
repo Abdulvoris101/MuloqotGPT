@@ -5,34 +5,26 @@ class AdminLoginState(StatesGroup):
     password = State()
 
 
-class AdminSystemMessageState(StatesGroup):
-    message = State()
-
-
-class AdminSendMessage(StatesGroup):
+class SendMessageToUsers(StatesGroup):
+    messageType = State()
     userType = State()
-    message = State()
-
-
-class SendMessageWithInlineState(StatesGroup):
     buttons = State()
     message = State()
 
 
 class PaymentState(StatesGroup):
-    first_step = State()
-    second_step = State()
+    awaitingPaymentConfirmation = State()
+    awaitingPhotoProof = State()
 
 
-class TopupState(StatesGroup):
-    chatId = State()
-    sure = State()
+class ConfirmSubscriptionState(StatesGroup):
+    receiverId = State()
 
 
 class RejectState(StatesGroup):
-    chatId = State()
+    receiverId = State()
     reason = State()
 
 
-class Comment(StatesGroup):
-    message = State()
+class FeedbackMessageState(StatesGroup):
+    text = State()

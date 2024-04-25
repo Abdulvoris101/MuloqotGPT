@@ -23,9 +23,8 @@ class Admin(Base):
 
         return admin is not None
 
-    def register(self, userId):
-        if not self.__class__.isAdmin(userId):
-            self.userId = userId
+    def register(self):
+        if not self.__class__.isAdmin(self.userId):
             self.save()
 
     def save(self):

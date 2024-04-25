@@ -12,12 +12,7 @@ async def cancelExpiredSubscriptions():
 
 
 def unsetExpiredKeys():
-    FreeApiKeyManager.unExpireKeys()
+    FreeApiKeyManager.reactivateAllKeys()
 
     print("unsetExpiredKeys")
 
-
-def clearAllTodaysMessages():
-    ChatActivityManager.clearAllUsersTodayMessagesAndImages()
-
-    print("clearedAllTodaysMessages")

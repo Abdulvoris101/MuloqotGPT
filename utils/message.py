@@ -1,6 +1,10 @@
 import asyncio
+from typing import List
+
+from aiogram import types
 from aiogram.exceptions import TelegramForbiddenError, TelegramUnauthorizedError, TelegramBadRequest
 from apps.core.managers import ChatManager
+from apps.core.models import Chat
 from apps.subscription.managers import PlanManager
 from bot import bot
 import re
@@ -89,8 +93,8 @@ class SendAny:
         except:
             pass
 
-    async def process_user(self, user, inlineKeyboards=None):
-
+    async def process_user(self, chat: Chat, inlineKeyboards=None):
+        await asyncio.sleep(1)
         contentTypeHandlers = {
             "text": self.sendMessage,
             "photo": self.sendPhoto,
@@ -102,24 +106,27 @@ class SendAny:
         handler = contentTypeHandlers.get(content_type)
 
         if handler:
-            await handler(chatId=user.chatId, kb=inlineKeyboards)
+            await handler(chatId=chat.chatId, kb=inlineKeyboards)
 
-    async def sendAnyMessages(self, users, inlineKeyboards=None):
-        tasks = [self.process_user(user, inlineKeyboards) for user in users]
+    async def sendAnyMessages(self, chats: List[Chat], reply_markup=None):
+        tasks = [self.process_user(chat, reply_markup) for chat in chats]
         await asyncio.gather(*tasks)
+        data = {
+            "receivedUsersCount": self.receivedUsersCount,
+            "blockedUsersCount": self.blockedUsersCount
+        }
 
-        return self.receivedUsersCount, self.blockedUsersCount
+        return data
 
 
-def fetchUsersByType(contentType):
-    if contentType == "FREE":
-        users = PlanManager.getFreePlanUsers()
-    elif contentType == "ALL":
-        users = ChatManager.all()
+def fetchUsersByUserType(userType) -> List[Chat]:
+    if userType == "FREE":
+        chats = PlanManager.getFreePlanUsers()
+    elif userType == "ALL":
+        chats = ChatManager.all()
     else:
-        return False
-
-    return users
+        return ChatManager.all()
+    return chats
 
 
 # todo: fix

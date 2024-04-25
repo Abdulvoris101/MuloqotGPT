@@ -1,232 +1,129 @@
-import time
 from aiogram import Router, F, types
-from aiogram.exceptions import TelegramBadRequest, TelegramNotFound
-from aiogram.filters import Command, CommandObject, or_f, and_f, CommandStart
+from aiogram.exceptions import TelegramBadRequest, TelegramNotFound, DetailedAiogramError
+from aiogram.filters import Command, ChatMemberUpdatedFilter, IS_NOT_MEMBER, IS_MEMBER
 from aiogram.fsm.context import FSMContext
-from bot import bot
-from apps.gpt import GptRequest
-from db.state import Comment
-from filters.bound_filters import isBotMentioned
-from filters.permission import isGroupAllowed
-from utils.events import sendError, sendCommentEvent
-from utils.exception import AiogramException
-from utils.message import fixMessageMarkdown
-from .keyboards import feedbackMarkup, cancelMarkup, messageMarkup
-from .managers import ChatManager, MessageManager, ChatActivityManager
-from utils.translate import translateMessage, detect
-from utils import checkTokens, countTokenOfMessage, constants, containsAnyWord
-from apps.subscription.managers import SubscriptionManager, PlanManager, LimitManager, ConfigurationManager
-from apps.imageai.handlers import handleArt
+from aiogram.types import ChatMemberUpdated
+
+from bot import bot, logger
+from db.state import FeedbackMessageState
+from apps.common.filters.bound_filters import isBotMentioned
+from apps.admin.events import sendError
+from apps.common.exception import AiogramException, InvalidRequestException, ForbiddenException
+from .keyboards import feedbackMarkup, cancelMarkup
+from .managers import ChatActivityManager, MessageManager
+from utils.translate import translateMessage
+from utils import settings, containsAnyWord
+from apps.subscription.managers import SubscriptionManager, PlanManager
 import utils.text as text
 import asyncio
+
 from .models import ChatActivity
-from ..subscription.models import ChatQuota
+from .schemes import ChatActivityViewScheme
+from .utility_handlers import TextMessageHandler, ImageMessageHandler
+from ..subscription.models import ChatQuota, Limit
+from ..subscription.schemes import ChatQuotaGetScheme
 
 coreRouter = Router(name="coreRouter")
 
 
-class AIChatHandler:
-    def __init__(self, message):
-        self.message = message
-        self.chatId = int(message.chat.id)
-        self.full_name = message.chat.full_name
-        self.text = str(message.text)
+@coreRouter.callback_query(F.data == "feedback_callback")
+async def feedbackCallback(callback: types.CallbackQuery, user: types.User, state: FSMContext):
+    """ Feedback callback"""
+    await callback.answer("")
+    await bot.delete_message(user.id, callback.message.message_id)
+    await bot.send_message(chat_id=user.id, text=text.FEEDBACK_GUIDE_MESSAGE,
+                           reply_markup=cancelMarkup)
 
-    async def sendMessage(self, text: str, *args, **kwargs) -> str:
-        """Sends a message to the user, handling private and group chats differently."""
-
-        try:
-            if self.message.chat.type == "private":
-                sentMessage = await bot.send_message(self.chatId, text, **kwargs)
-            else:
-                sentMessage = await self.message.reply(text, **kwargs)
-        except TelegramBadRequest:
-            # Fallback to sending a direct message if reply fails
-            sentMessage = await bot.send_message(self.chatId, text, **kwargs)
-
-        return sentMessage.message_id
-
-    async def isPermitted(self) -> bool:
-        if not LimitManager.checkRequestsDailyLimit(self.chatId, messageType="GPT"):
-            if self.message.chat.type in constants.AVAILABLE_GROUP_TYPES:
-                await self.sendMessage(text.LIMIT_GROUP_REACHED)
-                return False
-
-            await self.sendMessage(text.getLimitReached(
-                    SubscriptionManager.isPremiumToken(self.chatId)
-                ))
-
-            return False
-
-        if countTokenOfMessage(self.text) >= 300:
-            await self.sendMessage(text.TOKEN_REACHED)
-            return False
-
-        return True
-
-    async def trimMessageTokens(self):
-        messages = MessageManager.all(self.chatId)
-
-        if checkTokens(messages):
-            MessageManager.deleteByLimit(self.chatId)
-            return await self.trimMessageTokens()
-
-        return messages
-
-    async def getTranslatedMessage(self):
-        """Detects the language of the message and translates it if necessary."""
-        try:
-            lang_code = detect(self.text)
-        except Exception:
-            lang_code = "en"
-
-        should_translate = (lang_code == "uz")
-        if should_translate:
-            translated_message = translateMessage(self.text, to='en')
-            return translated_message if translated_message is not None else self.text
-
-        return self.text
-
-    async def handle(self):
-        if not await self.isPermitted():
-            return
-
-        MessageManager.userRole(await self.getTranslatedMessage(), self.message)
-
-        messages = await self.trimMessageTokens()
-
-        await bot.send_chat_action(chat_id=self.chatId, action="typing")
-
-        await asyncio.create_task(
-            self.sendToGpt(messages=messages,
-                           chatId=self.chatId,
-                           progressMessageId=await self.sendMessage(text.PROCESSING_MESSAGE)))
-
-    async def getFeedback(self):
-        chatActivity = ChatActivity.get(self.chatId)
-        configuration = ConfigurationManager.getFirst()
-
-        if configuration.isBeta:
-            if chatActivity.allMessages == 10 and self.message.chat.type == "private":
-                await bot.send_message(self.chatId, text.FEEDBACK_MESSAGE, reply_markup=feedbackMarkup)
-
-    async def sendToGpt(self, messages, chatId, progressMessageId):
-        try:
-            gptRequest = GptRequest(chatId,
-                                    SubscriptionManager.isPremiumToken(chatId=chatId))
-
-            try:
-                response = await gptRequest.requestGpt(messages)
-            except AiogramException as e:
-                await bot.delete_message(chatId, progressMessageId)
-                await self.sendMessage(e.message_text, disable_web_page_preview=True,
-                                       parse_mode="MARKDOWN")
-                return
-
-            translatedResponse = MessageManager.assistantRole(message=response, instance=self.message,
-                                                              is_translate=self.isTranslate)
-            await bot.delete_message(chatId, progressMessageId)
-            validatedText = fixMessageMarkdown(translatedResponse)
-
-            markup = messageMarkup if self.message.chat.type == "private" and not self.isTranslate else None
-
-            await self.sendMessage(str(validatedText), disable_web_page_preview=True,
-                                   parse_mode="MARKDOWN", reply_markup=markup)
-
-            time.sleep(2)
-            await self.getFeedback()
-
-        except Exception as e:
-            await sendError(str(e))
-            await self.sendMessage(text.ENTER_AGAIN)
+    await state.set_state(FeedbackMessageState.text)
 
 
-@coreRouter.message((~F.text.startswith(('/', '✅', "Bekor qilish")) &
-                    ~F.text.endswith('.!') & F.chat.type == "private"))
-async def handlePrivateMessages(message: types.Message):
-    chat = message.chat
-    await ChatManager.register(message)
-
-    if not isGroupAllowed(chatType=chat.type, chatId=chat.id, requestType='GPT'):
-        return await bot.send_message(chat.id, text.NOT_AVAILABLE_GROUP)
-
-    if containsAnyWord(message.text, constants.IMAGE_GENERATION_WORDS):
-        return await handleArt(message)
-
-    await AIChatHandler(message=message).handle()
+@coreRouter.message(FeedbackMessageState.text)
+async def setFeedbackMessage(message: types.Message, user: types.User, state: FSMContext):
+    data = {**user.model_dump(), "text": message.text}
+    await bot.send_message(settings.COMMENTS_GROUP_ID,
+                           text.FEEDBACK_MESSAGE_EVENT_TEMPLATE.format_map(data))
+    await state.clear()
+    return await message.answer(text.THANK_YOU_TEXT)
 
 
+@coreRouter.message((~F.text.startswith(('/', "Bekor qilish")) & F.chat.type == "private"))
 @coreRouter.message(isBotMentioned())
-async def handleGroupReply(message: types.Message):
-    chat = message.chat
-    requestType = "IMAGE" if containsAnyWord(message.text, constants.IMAGE_GENERATION_WORDS) else "GPT"
-    await ChatManager.register(message)
+async def handleMessages(message: types.Message, chat: types.Chat):
+    progressMessage = await bot.send_message(chat_id=chat.id,
+                                             text="⏳")
 
-    if not isGroupAllowed(chatType=chat.type, chatId=chat.id, requestType=requestType):
-        return await bot.send_message(chat.id, text.NOT_AVAILABLE_GROUP)
+    try:
+        if containsAnyWord(message.text, settings.IMAGE_GENERATION_WORDS):
+            return await ImageMessageHandler(message=message).handle()
+        return await TextMessageHandler(message=message).handle()
 
-    if containsAnyWord(message.text, constants.IMAGE_GENERATION_WORDS):
-        return await handleArt(message)
+    except ForbiddenException as e:
+        logger.warn(e.message_text)
+        return await message.reply(e.message_text)
 
-    await AIChatHandler(message=message).handle()
+    except AiogramException as e:
+        logger.error(e.message_text)
+        return await message.reply(e.message_text)
+
+    except InvalidRequestException as e:
+        logger.error(e.messageText)
+        await sendError(text.GPT_ERROR_TEMPLATE.format(message=e.messageText,chatId=chat.id,
+                                                       apiToken=e.apiKey))
+        return await message.reply(text.CHATGPT_SERVER_ERROR)
+    except TelegramBadRequest as e:
+        logger.error(e.message)
+        return await message.reply(text.SERVER_ERROR_TRY_AGAIN)
+    finally:
+        await bot.delete_message(chat_id=chat.id, message_id=progressMessage.message_id)
 
 
 @coreRouter.message(Command("start"))
-async def sendWelcome(message: types.Message):
-    chat = message.chat
-    await ChatManager.register(chat)
+async def sendWelcome(message: types.Message, chat: types.Chat):
+    streamingText = text.GREETINGS_TEXT
+    messageChunkSize = 20
+    updateInterval = 0.1
 
-    if not isGroupAllowed(chatType=chat.type, chatId=chat.id, requestType='GPT'):
-        return await bot.send_message(chat.id, text.NOT_AVAILABLE_GROUP)
-
-    streaming_text = text.getGreetingsText(message.from_user.first_name)
-
-    msg = await bot.send_message(chat.id, streaming_text[:20])
-
-    # Stream the remaining text
-    for i in range(20, len(streaming_text), 20):
-        await asyncio.sleep(0.1)  # Adjust the delay between messages as needed
-        try:
-            await bot.edit_message_text(chat_id=chat.id, message_id=msg.message_id, text=streaming_text[:i + 10])
-        except Exception as e:
-            pass
-
-    planId = PlanManager.getFreePlanId() if chat.type == "private" \
-        else PlanManager.getHostPlanId()
-    isFree = True if chat.type == "private" else False
-
-    SubscriptionManager.getSubscriptionOrCreate(
-        planId=planId,
-        chatId=chat.id,
-        is_paid=True,
-        isFree=isFree
-    )
+    try:
+        msg = await bot.send_message(chat.id, streamingText[:messageChunkSize])
+        for i in range(20, len(streamingText), 20):
+            await asyncio.sleep(updateInterval)
+            await bot.edit_message_text(chat_id=chat.id, message_id=msg.message_id,
+                                        text=streamingText[:i + 10])
+    except DetailedAiogramError as e:
+        logger.exception("An error occured", exc_info=e.message)
+        return message.reply(text.SERVER_ERROR_TRY_AGAIN)
 
 
 @coreRouter.message(Command("profile"))
-async def profile(message: types.Message):
-    userChat = message.from_user
+async def profile(message: types.Message, chat: types.Chat):
+    subscription = SubscriptionManager.getChatCurrentSubscription(chatId=chat.id)
+    userPlan = PlanManager.get(subscription.planId)
+    userLimits = Limit.get(userPlan.limitId)
 
-    premium = SubscriptionManager.getPremiumSubscription(
-        chatId=userChat.id,
-        planId=PlanManager.getPremiumPlanId())
     try:
+        activity = ChatActivity.getOrCreate(chat.id).to_dict()
+        activity["currentMonthMessages"] = MessageManager.getUserMessagesTimeFrame(chatId=chat.id, days=31,
+                                                                                   messageType='message')
+        activity["currentMonthImages"] = MessageManager.getUserMessagesTimeFrame(chatId=chat.id, days=31,
+                                                                                 messageType='image')
+        activity["availableGptRequests"] = userLimits.monthlyLimitedGptRequests
+        activity["availableImageRequests"] = userLimits.monthlyLimitedImageRequests
+        chatActivityScheme = ChatActivityViewScheme(**activity)
+        chatQuotaScheme = ChatQuotaGetScheme(**ChatQuota.getOrCreate(chat.id).to_dict())
 
-        return await message.answer(text.getProfileText(
-            "Premium" if premium is not None else "Free",
-            ChatActivityManager.getTodayMessagesCount(userChat.id),
-            ChatActivityManager.getTodayImages(userChat.id),
-            ChatQuota.getOrCreate(userChat.id).additionalGptRequests,
-            ChatQuota.getOrCreate(userChat.id).additionalImageRequests,
-        ))
-    except TelegramBadRequest:
-        print("Bot blocked")
+        profileText = text.getProfileText(plantTitle=userPlan.title, chatActivityScheme=chatActivityScheme,
+                                          chatQuotaScheme=chatQuotaScheme)
+
+        return await message.answer(profileText)
+
+    except TelegramBadRequest as e:
+        logger.exception("An error occured", exc_info=e.message)
+        return message.reply(text.SERVER_ERROR_TRY_AGAIN)
 
 
 @coreRouter.message(Command("feedback"))
-async def feedback(message: types.Message):
-    userChat = message.from_user
-    await bot.send_message(userChat.id, text.FEEDBACK_MESSAGE, reply_markup=feedbackMarkup)
+async def feedback(message: types.Message, chat: types.Chat):
+    await bot.send_message(chat.id, text.REQUEST_FEEDBACK_MESSAGE, reply_markup=feedbackMarkup)
 
 
 @coreRouter.message(Command("help"))
@@ -234,82 +131,46 @@ async def helpCommand(message: types.Message):
     await message.answer(text.HELP_COMMAND)
 
 
-# Callbacks for feeedback
-@coreRouter.callback_query(F.data == "feedback_callback")
-async def feedbackCallback(callback: types.CallbackQuery, state: FSMContext):
-    user = callback.from_user
-
-    await callback.answer("Izoh qoldirish")
-    await bot.delete_message(user.id, callback.message.message_id)
-
-    await bot.send_message(
-        chat_id=user.id,
-        text=text.FEEDBACK_GUIDE_MESSAGE,
-        reply_markup=cancelMarkup)
-
-    await state.set_state(Comment.message)
-
-
 @coreRouter.callback_query(F.data == "translate_callback")
-async def translateCallback(callback: types.CallbackQuery):
-    user = callback.from_user
+async def translateCallback(callback: types.CallbackQuery, user: types.User):
+    await callback.answer("")
 
-    payedSubscription = SubscriptionManager.getPremiumSubscription(
-        user.id, PlanManager.getPremiumPlanId())
+    payedSubscription = SubscriptionManager.getActiveSubscription(user.id,
+                                                                  PlanManager.getPremiumPlanId())
+    chatActivity = ChatActivity.getOrCreate(chatId=user.id)
 
-    if ChatActivityManager.getTranslatedMessageCounts(user.id) >= 5 and payedSubscription is None:
-        return await bot.send_message(
-            chat_id=user.id,
-            text=text.LIMIT_TRANSLATION_REACHED)
+    if chatActivity.translatedMessagesCount >= 5 and payedSubscription is None:
+        return await bot.send_message(chat_id=user.id, text=text.LIMIT_TRANSLATION_REACHED)
 
-    ChatActivityManager.increaseActivityField(user.id, "translatedMessagesCount")
+    ChatActivityManager.incrementActivityCount(user.id, "translatedMessagesCount")
     translatedMessage = translateMessage(callback.message.text, "auto",
                                          "uz", isTranslate=True)
 
-    await bot.edit_message_text(
-        chat_id=user.id,
-        message_id=callback.message.message_id,
-        text=translatedMessage)
-
-
-@coreRouter.message(Comment.message)
-async def setFeedbackMessage(message: types.Message, state: FSMContext):
-    feedbackMessage = f"""#chat-id: {message.from_user.id}
-#username: @{message.from_user.username}
-#xabar: \n\n{message.text}
-    """
-
-    await sendCommentEvent(feedbackMessage)
-    await state.clear()
-    return await message.answer("Izoh uchun rahmat!")
+    await bot.edit_message_text(chat_id=user.id, message_id=callback.message.message_id,
+                                text=translatedMessage)
 
 
 # Callbacks for feeedback cancelation
 @coreRouter.callback_query(F.data == "cancel")
-async def cancelInlineFeedback(callback: types.CallbackQuery, state: FSMContext):
-    user = callback.from_user
-
+async def cancel(callback: types.CallbackQuery, user: types.User, state: FSMContext):
     try:
         await bot.delete_message(user.id, callback.message.message_id)
-    except TelegramNotFound:
-        pass
+    except TelegramNotFound as e:
+        logger.exception("An error occured", exc_info=e.message)
 
-    await callback.answer("Bekor qilindi!")
+    await callback.answer(text.CANCELED_TEXT)
     await state.clear()
 
 
 @coreRouter.message(F.text == "Bekor qilish")
 async def cancelButton(message: types.Message, state: FSMContext):
     await state.clear()
-    return await bot.send_message(message.chat.id, "Bekor qilindi!", reply_markup=types.ReplyKeyboardRemove())
+    return await bot.send_message(message.chat.id, text.CANCELED_TEXT, reply_markup=types.ReplyKeyboardRemove())
 
 
 # events
 
 
-@coreRouter.message(F.NEW_CHAT_MEMBERS)
-async def newChatMember(message: types.Message):
-    new_chat_members = message.new_chat_members
-
-    for member in new_chat_members:
-        await bot.send_message(message.chat.id, text.getNewChatMember(member.first_name))
+@coreRouter.chat_member(ChatMemberUpdatedFilter(IS_NOT_MEMBER >> IS_MEMBER))
+async def newChatMember(event: ChatMemberUpdated):
+    await event.answer(text.NEW_CHAT_MEMBER_TEMPLATE.format(firstName=event.from_user.first_name))
