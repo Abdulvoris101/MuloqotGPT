@@ -32,13 +32,17 @@ class ChatManager:
 
     @classmethod
     async def register(cls, chat: types.Chat) -> None:
-        scheme = ChatCreateScheme(**chat.model_dump(by_alias=True))
+        chatData = chat.model_dump()
+        chatData["full_name"] = chat.full_name
+        scheme = ChatCreateScheme(**chatData)
         scheme.chatType = scheme.chatType.value
         chatObj = Chat(**scheme.model_dump())
         chatObj.save()
-        MessageProcessor.createSystemMessages(chat)
 
-        await sendEvent(text=text.USER_REGISTERED_EVENT_TEMPLATE.format(**chatObj.model_dump()))
+        if not MessageManager.isSystemMessagesExist(chatId=chat.id):
+            MessageProcessor.createSystemMessages(chat)
+
+        await sendEvent(text=text.USER_REGISTERED_EVENT_TEMPLATE.format_map(chatObj.to_dict()))
 
     @classmethod
     def updateChatLastVisit(cls, chatId: int):
@@ -95,6 +99,10 @@ class MessageManager:
         messages = session.query(Message).filter_by(chatId=chatId, messageType="message").order_by(
             Message.id.desc()).limit(100).all()
 
+        systemMessages = session.query(Message).filter_by(chatId=chatId, messageType="message",
+                                                          role='system').all()
+        messages = systemMessages + messages
+
         includedMessages = []
         currentTokens = 0
 
@@ -120,17 +128,23 @@ class MessageManager:
     def addMessage(cls, content: str, uzMessage: str, chat: types.Chat,
                    role: str) -> None:
         tokensCount = countTokenOfMessage(content)
+        chatData = chat.model_dump(by_alias=True)
+        chatData["full_name"] = chat.full_name
+
         messageScheme = MessageCreateScheme(content=content, role=role, messageType='message',
                                             uzMessage=uzMessage, tokensCount=tokensCount,
-                                            chat=ChatBase(**chat.model_dump()))
+                                            chat=ChatBase(**chatData))
         messageScheme.role = messageScheme.role.value
         messageScheme.messageType = messageScheme.messageType.value
         cls.saveMessage(messageScheme)
 
     @classmethod
     def addImage(cls, query: str, chat: types.Chat) -> None:
+        chatData = chat.model_dump(by_alias=True)
+        chatData["full_name"] = chat.full_name
+
         messageScheme = MessageCreateScheme(content=query, role='user', messageType='image',
-                                            uzMessage="", tokensCount=0, chat=ChatBase(**chat.model_dump()))
+                                            uzMessage="", tokensCount=0, chat=ChatBase(**chatData))
         messageScheme.role = messageScheme.role.value
         messageScheme.messageType = messageScheme.messageType.value
         cls.saveMessage(messageScheme)
@@ -166,3 +180,6 @@ class MessageManager:
 
         return totalTokens
 
+    @classmethod
+    def isSystemMessagesExist(cls, chatId: int):
+        return session.query(Message).filter_by(chatId=chatId, role='system').count() >= 1

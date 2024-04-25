@@ -1,7 +1,9 @@
 from aiogram import Router, F, types
 from aiogram.exceptions import TelegramBadRequest, TelegramNotFound, DetailedAiogramError
-from aiogram.filters import Command
+from aiogram.filters import Command, ChatMemberUpdatedFilter, IS_NOT_MEMBER, IS_MEMBER
 from aiogram.fsm.context import FSMContext
+from aiogram.types import ChatMemberUpdated
+
 from bot import bot, logger
 from db.state import FeedbackMessageState
 from apps.common.filters.bound_filters import isBotMentioned
@@ -22,6 +24,26 @@ from ..subscription.models import ChatQuota, Limit
 from ..subscription.schemes import ChatQuotaGetScheme
 
 coreRouter = Router(name="coreRouter")
+
+
+@coreRouter.callback_query(F.data == "feedback_callback")
+async def feedbackCallback(callback: types.CallbackQuery, user: types.User, state: FSMContext):
+    """ Feedback callback"""
+    await callback.answer("")
+    await bot.delete_message(user.id, callback.message.message_id)
+    await bot.send_message(chat_id=user.id, text=text.FEEDBACK_GUIDE_MESSAGE,
+                           reply_markup=cancelMarkup)
+
+    await state.set_state(FeedbackMessageState.text)
+
+
+@coreRouter.message(FeedbackMessageState.text)
+async def setFeedbackMessage(message: types.Message, user: types.User, state: FSMContext):
+    data = {**user.model_dump(), "text": message.text}
+    await bot.send_message(settings.COMMENTS_GROUP_ID,
+                           text.FEEDBACK_MESSAGE_EVENT_TEMPLATE.format_map(data))
+    await state.clear()
+    return await message.answer(text.THANK_YOU_TEXT)
 
 
 @coreRouter.message((~F.text.startswith(('/', "Bekor qilish")) & F.chat.type == "private"))
@@ -109,24 +131,12 @@ async def helpCommand(message: types.Message):
     await message.answer(text.HELP_COMMAND)
 
 
-@coreRouter.callback_query(F.data == "feedback_callback")
-async def feedbackCallback(callback: types.CallbackQuery, user: types.User, state: FSMContext):
-    """ Feedback callback"""
-    await callback.answer("")
-    await bot.delete_message(user.id, callback.message.message_id)
-    await bot.send_message(chat_id=user.id, text=text.FEEDBACK_GUIDE_MESSAGE,
-                           reply_markup=cancelMarkup)
-
-    await state.set_state(FeedbackMessageState.text)
-
-
 @coreRouter.callback_query(F.data == "translate_callback")
 async def translateCallback(callback: types.CallbackQuery, user: types.User):
     await callback.answer("")
 
     payedSubscription = SubscriptionManager.getActiveSubscription(user.id,
                                                                   PlanManager.getPremiumPlanId())
-
     chatActivity = ChatActivity.getOrCreate(chatId=user.id)
 
     if chatActivity.translatedMessagesCount >= 5 and payedSubscription is None:
@@ -136,19 +146,8 @@ async def translateCallback(callback: types.CallbackQuery, user: types.User):
     translatedMessage = translateMessage(callback.message.text, "auto",
                                          "uz", isTranslate=True)
 
-    await bot.edit_message_text(
-        chat_id=user.id,
-        message_id=callback.message.message_id,
-        text=translatedMessage)
-
-
-@coreRouter.message(FeedbackMessageState.text)
-async def setFeedbackMessage(message: types.Message, user: types.User, state: FSMContext):
-    data = {**user.model_dump(), "text": text}
-    await bot.send_message(settings.COMMENTS_GROUP_ID,
-                           text.FEEDBACK_MESSAGE_EVENT_TEMPLATE.format_map(data))
-    await state.clear()
-    return await message.answer(text.THANK_YOU_TEXT)
+    await bot.edit_message_text(chat_id=user.id, message_id=callback.message.message_id,
+                                text=translatedMessage)
 
 
 # Callbacks for feeedback cancelation
@@ -172,9 +171,6 @@ async def cancelButton(message: types.Message, state: FSMContext):
 # events
 
 
-@coreRouter.chat_member(F.NEW_CHAT_MEMBERS)
-async def newChatMember(message: types.Message):
-    new_chat_members = message.new_chat_members
-
-    for member in new_chat_members:
-        await bot.send_message(message.chat.id, text.NEW_CHAT_MEMBER_TEMPLATE.format(firstName=member.first_name))
+@coreRouter.chat_member(ChatMemberUpdatedFilter(IS_NOT_MEMBER >> IS_MEMBER))
+async def newChatMember(event: ChatMemberUpdated):
+    await event.answer(text.NEW_CHAT_MEMBER_TEMPLATE.format(firstName=event.from_user.first_name))

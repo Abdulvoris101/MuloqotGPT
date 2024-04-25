@@ -43,6 +43,7 @@ Qachonki o'zbek tilida so'rov kiritsangiz avtotarjima o'zi avtomatik tarzda yona
 
 Botning rasmiy guruhi - @muloqotaigr
 Botning rasmiy kanali - @muloqotai
+Biz bilan aloqa - @texnosupportuzbot
 """
 
 PROFILE_TEXT = """⚡️ Obuna turi: {planTitle}
@@ -59,10 +60,11 @@ Limitlar:
 
 PREMIUM_TEXT = """Ko'proq kerakmi? 25.000 so'm evaziga bir oylik premium tarifga obuna bo'ling.
 Premium obuna bilan siz:
-✅ Chatgpt turboga har kuni 75 ta so'rov;
-⭐️ AI bilan har kuni 20 ta rasm generatsiya qilish;
+✅ Chatgpt turboga oyiga 2250 ta so'rov;
+⭐️ AI bilan oyiga 900 ta rasm generatsiya qilish;
 ✅ Avtotarjimon funksiyasi;
 ✅ Xechqanday reklama yo'q;
+✅ Uzunroq javoblar;
 ✅ So’rovlar orasida pauza yo’q;
 ✅ Xabarlarni cheksiz tarjima qilish.
 ✅ Javoblar kreativroq.
@@ -117,8 +119,8 @@ Agarda biror savolingiz bo'lsa, bizga murojat qiling - @texnosupportuzbot | @abd
 
 CURRENT_PLAN_TEXT = f"""
 Xozirgi obuna quyidagilarni o'z ichiga oladi:
-✅ Chatgptga har kuni 16 ta so'rov;
-⭐️ AI bilan 5 ta rasm generatsiya qilish;
+✅ Chatgptga oyiga 300 ta so'rov;
+⭐️ AI bilan 50 ta rasm generatsiya qilish;
 ✅ Avtotarjimon funksiyasi;
 ✅ 5ta xabarni tarjima qilish.
 
@@ -138,12 +140,13 @@ Bizni tanlaganiz uchun tashakkur 🌟
 PAYMENT_ON_REVIEW_TEXT = "Sizning premium obunaga so'rovingiz ko'rib chiqilmoqda"
 
 # Limits
-def getLimitReached(isPremium):
-    usedRequests = 75 if isPremium else 16
+
+
+def getLimitReached(userUsedRequests, isPremium):
     freeText = """ruxsat etilgan maksimal bepul foydalanishga erishdingiz. ChatGPT-ni abadiy bepul taqdim etish biz uchun qimmat.
 Yanada ko'proq so'rov uchun premium tarifga obuna bo'ling. /premium""" if not isPremium else ""
     return f"""Afsuski sizning kunlik limitingiz tugadi, {freeText}
-{usedRequests}/{usedRequests}
+{userUsedRequests}/{userUsedRequests}
 """
 
 
@@ -152,7 +155,6 @@ So'rovlarni ko'paytirish uchun bizga donat qilib yordam berishingiz mumkin
 
 Har qanday to'lov o'tgandan so'ng biz zudlik bilan guruh uchun qo'shimcha chatgpt va rasm generatsiya so'rovlarini sotib olib sizlarga taqdim etamiz
 
-150/150
 /donate"""
 
 DONATE = f"""
@@ -224,8 +226,8 @@ USER_REGISTERED_EVENT_TEMPLATE = """#new\nid: {id}\ntelegramId: {chatId}
 SUBSCRIPTION_SEND_EVENT_TEXT = """#payment check-in\nchatId: {userId},\nsubscription_id: {subscriptionId}, 
 \nprice: {price}"""
 
-FEEDBACK_MESSAGE_EVENT_TEMPLATE = """#chat-id: {user.id}
-#username: @{user.username}
+FEEDBACK_MESSAGE_EVENT_TEMPLATE = """#chat-id: {id}
+#username: @{username}
 #xabar: \n\n{text}
 """
 
@@ -233,7 +235,7 @@ IMAGE_RESPONSE_TEMPLATE = "\n🌄 {caption}\n\n@muloqataibot"
 
 # COMMON
 CANCELED_TEXT = "Bekor qilindi!"
-THANK_YOU_TEXT = "Rahmat!"
+THANK_YOU_TEXT = "Izoh uchun rahmat!"
 
 # FORBIDDEN
 
