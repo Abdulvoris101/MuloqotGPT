@@ -15,6 +15,7 @@ class Chat(Base):
     chatName = Column(String)
     chatType = Column(Enum('private', 'group', 'supergroup', name="chat_type_enum"), server_default='private')
     username = Column(String, nullable=True)
+    referredBy = Column(String, nullable=True)
     createdAt = Column(DateTime, nullable=True)
     lastUpdated = Column(DateTime, nullable=True)
     chatActivity = relationship('ChatActivity', backref='chat', lazy='dynamic')
