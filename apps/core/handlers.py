@@ -1,6 +1,6 @@
 from aiogram import Router, F, types
 from aiogram.exceptions import TelegramBadRequest, TelegramNotFound, DetailedAiogramError
-from aiogram.filters import Command, ChatMemberUpdatedFilter, IS_NOT_MEMBER, IS_MEMBER
+from aiogram.filters import Command, ChatMemberUpdatedFilter, IS_NOT_MEMBER, IS_MEMBER, CommandStart, CommandObject
 from aiogram.fsm.context import FSMContext
 from aiogram.types import ChatMemberUpdated
 
@@ -10,14 +10,14 @@ from apps.common.filters.bound_filters import isBotMentioned
 from apps.admin.events import sendError
 from apps.common.exception import AiogramException, InvalidRequestException, ForbiddenException
 from .keyboards import feedbackMarkup, cancelMarkup
-from .managers import ChatActivityManager, MessageManager
+from .managers import ChatActivityManager, MessageManager, ChatManager
 from utils.translate import translateMessage
 from utils import settings, containsAnyWord
 from apps.subscription.managers import SubscriptionManager, PlanManager
 import utils.text as text
 import asyncio
 
-from .models import ChatActivity
+from .models import ChatActivity, Chat
 from .schemes import ChatActivityViewScheme
 from .utility_handlers import TextMessageHandler, ImageMessageHandler
 from ..subscription.models import ChatQuota, Limit
@@ -77,11 +77,12 @@ async def handleMessages(message: types.Message, chat: types.Chat):
         await bot.delete_message(chat_id=chat.id, message_id=progressMessage.message_id)
 
 
-@coreRouter.message(Command("start"))
-async def sendWelcome(message: types.Message, chat: types.Chat):
+@coreRouter.message(CommandStart())
+async def sendWelcome(message: types.Message, chat: types.Chat, command: CommandObject):
     streamingText = text.GREETINGS_TEXT
     messageChunkSize = 20
     updateInterval = 0.1
+    ChatManager.assignReferredBy(chat.id, command.args)
 
     try:
         msg = await bot.send_message(chat.id, streamingText[:messageChunkSize])

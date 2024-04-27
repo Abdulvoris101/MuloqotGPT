@@ -49,6 +49,13 @@ class ChatManager:
         chat = Chat.get(chatId=chatId)
         chat.lastUpdated = datetime.now()
 
+    @classmethod
+    def assignReferredBy(cls, chatId: int, referredBy: str):
+        if referredBy is not None:
+            chat = Chat.get(chatId)
+            chat.referredBy = referredBy
+            chat.save()
+
 # Analytics
 
 
