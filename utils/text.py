@@ -41,6 +41,8 @@ Muloqotai  salom, menga ....
 
 Qachonki o'zbek tilida so'rov kiritsangiz avtotarjima o'zi avtomatik tarzda yonadi.
 
+Bot bilan bo'lgan suxbatni tozalash uchun /clear ushbu buyruqni yuboring!
+
 Botning rasmiy guruhi - @muloqotaigr
 Botning rasmiy kanali - @muloqotai
 Biz bilan aloqa - @texnosupportuzbot
@@ -236,6 +238,9 @@ IMAGE_RESPONSE_TEMPLATE = "\n🌄 {caption}\n\n@muloqataibot"
 # COMMON
 CANCELED_TEXT = "Bekor qilindi!"
 THANK_YOU_TEXT = "Izoh uchun rahmat!"
+
+CONTEXT_CHAT_CLEARED_TEXT = """Sizning suxbat tarixingiz tozalandi!"""
+
 
 # FORBIDDEN
 

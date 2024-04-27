@@ -108,16 +108,18 @@ class Message(Base):
     uzMessage = Column(Text, nullable=True)
     tokensCount = Column(BigInteger, nullable=True, default=0)
     chatId = Column(BigInteger)
+    isCleaned = Column(Boolean, default=False)
     createdAt = Column(DateTime, nullable=True)
 
     def __init__(self, chat: dict, role: str, content: str, messageType: str,
-                 uzMessage: str, tokensCount: int, createdAt: datetime):
+                 uzMessage: str, tokensCount: int, isCleaned: bool, createdAt: datetime):
         self.chatId = chat.get("chatId")
         self.role = role
         self.content = content
         self.uzMessage = uzMessage
         self.messageType = messageType
         self.tokensCount = tokensCount
+        self.isCleaned = isCleaned
         self.createdAt = createdAt
 
     def save(self):

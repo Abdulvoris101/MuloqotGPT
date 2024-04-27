@@ -96,7 +96,7 @@ class MessageManager:
     def getLimitedMessages(cls, chatId: int, maxTokens: int) -> List[dict]:
         """Retrieve all messages for a given chat ID up to a maximum number of tokens,
         return them as a list of dictionaries."""
-        messages = session.query(Message).filter_by(chatId=chatId, messageType="message").order_by(
+        messages = session.query(Message).filter_by(chatId=chatId, messageType="message", isCleaned=False).order_by(
             Message.id.desc()).limit(100).all()
 
         systemMessages = session.query(Message).filter_by(chatId=chatId, messageType="message",
@@ -183,3 +183,13 @@ class MessageManager:
     @classmethod
     def isSystemMessagesExist(cls, chatId: int):
         return session.query(Message).filter_by(chatId=chatId, role='system').count() >= 1
+
+    @classmethod
+    def clearUserChat(cls, chatId: int):
+        messages = session.query(Message).filter_by(chatId=chatId, isCleaned=False).all()
+
+        for message in messages:
+            message.isCleaned = True
+            session.add(message)
+
+        session.commit()
