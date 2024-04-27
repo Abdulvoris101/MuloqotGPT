@@ -13,7 +13,7 @@ from .keyboards import feedbackMarkup, cancelMarkup
 from .managers import ChatActivityManager, MessageManager, ChatManager
 from utils.translate import translateMessage
 from utils import settings, containsAnyWord
-from apps.subscription.managers import SubscriptionManager, PlanManager
+from apps.subscription.managers import SubscriptionManager, PlanManager, LimitManager
 import utils.text as text
 import asyncio
 
@@ -136,11 +136,12 @@ async def helpCommand(message: types.Message):
 async def translateCallback(callback: types.CallbackQuery, user: types.User):
     await callback.answer("")
 
-    payedSubscription = SubscriptionManager.getActiveSubscription(user.id,
-                                                                  PlanManager.getPremiumPlanId())
     chatActivity = ChatActivity.getOrCreate(chatId=user.id)
+    userSubscription = SubscriptionManager.getChatCurrentSubscription(chatId=user.id)
+    plan = PlanManager.get(userSubscription.planId)
+    limit = Limit.get(plan.limitId)
 
-    if chatActivity.translatedMessagesCount >= 5 and payedSubscription is None:
+    if chatActivity.translatedMessagesCount >= limit.monthlyLimitedTranslateRequests:
         return await bot.send_message(chat_id=user.id, text=text.LIMIT_TRANSLATION_REACHED)
 
     ChatActivityManager.incrementActivityCount(user.id, "translatedMessagesCount")

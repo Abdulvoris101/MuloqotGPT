@@ -13,12 +13,14 @@ class SendMessageToUsers(StatesGroup):
 
 
 class PaymentState(StatesGroup):
+    planId = State()
     awaitingPaymentConfirmation = State()
     awaitingPhotoProof = State()
 
 
 class ConfirmSubscriptionState(StatesGroup):
     receiverId = State()
+    planId = State()
 
 
 class RejectState(StatesGroup):

@@ -11,6 +11,7 @@ class Limit(Base):
     id = Column(UUID(as_uuid=True), primary_key=True)
     monthlyLimitedImageRequests = Column(Integer)
     monthlyLimitedGptRequests = Column(Integer)
+    monthlyLimitedTranslateRequests = Column(Integer)
     plans = relationship('Plan', backref='Plan.limitId', lazy='dynamic')
 
     @classmethod
@@ -33,6 +34,7 @@ class Plan(Base):
 
     id = Column(UUID(as_uuid=True), primary_key=True)
     title = Column(String)
+    description = Column(String, nullable=True)
     amountForMonth = Column(BigInteger)
     isFree = Column(Boolean)
     isGroup = Column(Boolean)
@@ -78,17 +80,14 @@ class Subscription(Base):
     currentPeriodEnd = Column(DateTime, nullable=True)
     is_paid = Column(Boolean, default=False)
     chatId = Column(BigInteger)
-    cardholder = Column(String, nullable=True)
     isCanceled = Column(Boolean, default=False)
     canceledAt = Column(DateTime, nullable=True)
 
-    def __init__(self, planId,
-                 cardholder, currentPeriodStart,
+    def __init__(self, planId, currentPeriodStart,
                  currentPeriodEnd, is_paid, chatId):
 
         self.id = uuid.uuid4()
         self.planId = planId
-        self.cardholder = cardholder
         self.currentPeriodStart = currentPeriodStart
         self.currentPeriodEnd = currentPeriodEnd
         self.is_paid = is_paid

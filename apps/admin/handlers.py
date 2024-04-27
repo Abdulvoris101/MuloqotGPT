@@ -1,7 +1,9 @@
+import uuid
+
 from aiogram import Router, F, types
 from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
-from bot import bot
+from bot import bot, logger
 from db.state import AdminLoginState, SendMessageToUsers, ConfirmSubscriptionState, RejectState
 from apps.common.exception import AiogramException
 from utils.message import fetchUsersByUserType, SendAny
@@ -9,8 +11,7 @@ from .models import Admin
 from apps.core.managers import ChatManager, MessageManager, ChatActivityManager
 from apps.core.models import Message
 from .keyboards import (adminKeyboardsMarkup, cancelKeyboardsMarkup,
-                        sendMessageMarkup, getInlineMarkup, getConfirmSubscriptionMarkup,
-                        ConfirmSubscriptionCallback)
+                        sendMessageMarkup, getInlineMarkup, confirmSubscriptionMarkup)
 from utils import extractInlineButtonsFromText, text
 from apps.admin.events import sendError
 from apps.common.filters.bound_filters import IsAdmin
@@ -85,13 +86,17 @@ async def statisticsHandler(callback: types.CallbackQuery, chat: types.Chat):
 # Subscription grant handlers
 @adminRouter.callback_query(IsAdmin(), F.data == "give_premium")
 async def premiumGrant(callback: types.CallbackQuery, chat: types.Chat, state: FSMContext):
-    await callback.answer("")
+    try:
+        await callback.answer("")
+    except TelegramBadRequest as e:
+        logger.error("An error occured", str(e.message))
+
     await state.set_state(ConfirmSubscriptionState.receiverId)
     return await bot.send_message(chat.id, "Chat id kiriting", reply_markup=cancelKeyboardsMarkup)
 
 
 @adminRouter.message(ConfirmSubscriptionState.receiverId)
-async def processPremiumRequest(message: types.Message, state: FSMContext):
+async def enterReceiverId(message: types.Message, state: FSMContext):
     try:
         receiverId = int(message.text)
     except ValueError:
@@ -99,26 +104,50 @@ async def processPremiumRequest(message: types.Message, state: FSMContext):
         return await bot.send_message(message.chat.id, text.CANCELED_TEXT, reply_markup=cancelKeyboardsMarkup)
 
     await state.update_data(receiverId=receiverId)
+    await state.set_state(ConfirmSubscriptionState.planId)
+    return await message.answer("Plan id kiriting")
+
+
+@adminRouter.message(ConfirmSubscriptionState.planId)
+async def processPremiumRequest(message: types.Message, state: FSMContext):
+    try:
+        planId = uuid.UUID(message.text)
+    except ValueError:
+        await state.clear()
+        return await bot.send_message(message.chat.id, text.CANCELED_TEXT,
+                                      reply_markup=cancelKeyboardsMarkup)
+
+    data = await state.get_data()
+    receiverId = data.get("receiverId")
+
+    if not PlanManager.isExistsById(planId=planId):
+        return message.answer("Plan mavjud emas!")
 
     unPaidPremiumSubscription = SubscriptionManager.getInActiveSubscription(
-        chatId=receiverId, planId=PlanManager.getPremiumPlanId())
-    
+        chatId=int(receiverId), planId=planId)
+
     if not unPaidPremiumSubscription:
         return await message.answer("Foydalanuvchiga premium obuna taqdim etib bo'lmaydi!")
 
-    await state.clear()
-    return await message.answer(text.SURE_TO_SUBSCRIBE, reply_markup=getConfirmSubscriptionMarkup(
-        receiverId=receiverId))
+    await state.update_data(planId=str(planId))
+
+    return await message.answer(text.SURE_TO_SUBSCRIBE, reply_markup=confirmSubscriptionMarkup)
 
 
-@adminRouter.callback_query(IsAdmin(), ConfirmSubscriptionCallback.filter(F.name == "subscribe_yes"))
-async def finalizeSubscription(query: types.CallbackQuery, callback_data: ConfirmSubscriptionCallback):
+@adminRouter.callback_query(IsAdmin(), F.data == "subscribe_yes")
+async def finalizeSubscription(query: types.CallbackQuery, state: FSMContext):
     await query.answer("")
-    receiverId = callback_data.receiverId
-    SubscriptionManager.unsubscribe(PlanManager.getFreePlan().id, chatId=receiverId)
-    SubscriptionManager.subscribe(chatId=receiverId, planId=PlanManager.getPremiumPlan().id)
-    
+
+    data = await state.get_data()
+    receiverId = data.get("receiverId")
+    planId = data.get("planId")
+
+    SubscriptionManager.bulkUnsubscribe(plans=PlanManager.excludePlan(planId=planId),
+                                        chatId=receiverId)
+    SubscriptionManager.subscribe(chatId=receiverId, planId=planId)
+
     await bot.send_message(receiverId, text.PREMIUM_GRANTED_TEXT)
+    await state.clear()
     return await bot.send_message(query.from_user.id, text.SUCCESSFULLY_SUBSCRIBED,
                                   reply_markup=adminKeyboardsMarkup)
 

@@ -1,3 +1,5 @@
+from uuid import UUID
+
 from aiogram.filters.callback_data import CallbackData
 from aiogram.types import ReplyKeyboardMarkup, InlineKeyboardMarkup
 from aiogram.utils.keyboard import ReplyKeyboardBuilder, InlineKeyboardBuilder
@@ -12,22 +14,13 @@ adminKeyboardsBuilder.adjust(2, 2)
 
 adminKeyboardsMarkup = InlineKeyboardMarkup(inline_keyboard=adminKeyboardsBuilder.export())
 
+confirmSubscriptionBuilder = InlineKeyboardBuilder()
 
-class ConfirmSubscriptionCallback(CallbackData, prefix="subscription"):
-    receiverId: int
-    name: str
+confirmSubscriptionBuilder.button(text="Taqdim etish", callback_data="subscribe_yes")
+confirmSubscriptionBuilder.button(text="Bekor qilish", callback_data="cancel")
+confirmSubscriptionBuilder.adjust(1, 1)
 
-
-def getConfirmSubscriptionMarkup(receiverId: int):
-    confirmSubscriptionBuilder = InlineKeyboardBuilder()
-
-    confirmSubscriptionBuilder.button(text="Taqdim etish", callback_data=ConfirmSubscriptionCallback(
-        receiverId=receiverId, name="subscribe_yes"))
-
-    confirmSubscriptionBuilder.button(text="Bekor qilish", callback_data="cancel")
-    confirmSubscriptionBuilder.adjust(1, 1)
-
-    return InlineKeyboardMarkup(inline_keyboard=confirmSubscriptionBuilder.export())
+confirmSubscriptionMarkup = InlineKeyboardMarkup(inline_keyboard=confirmSubscriptionBuilder.export())
 
 
 cancelKeyboardsBuilder = ReplyKeyboardBuilder()

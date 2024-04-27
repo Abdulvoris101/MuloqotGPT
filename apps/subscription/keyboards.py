@@ -1,4 +1,12 @@
+from typing import List
+from uuid import UUID
+
+from aiogram.filters.callback_data import CallbackData
+from aiogram.types import InlineKeyboardMarkup
 from aiogram.utils import keyboard
+from aiogram.utils.keyboard import InlineKeyboardBuilder
+
+from apps.subscription.models import Plan
 
 cancelBuilder = keyboard.ReplyKeyboardBuilder()
 cancelBuilder.button(text="Bekor qilish")
@@ -12,8 +20,25 @@ checkPaymentMenu = keyboard.ReplyKeyboardMarkup(keyboard=checkPaymentBuilder.exp
                                                 resize_keyboard=True, one_time_keyboard=True)
 
 
+class PlanCallback(CallbackData, prefix="plans"):
+    planId: UUID
+    name: str
+
+
+def getSubscriptionPlansMarkup(plans: List[Plan]):
+    planBuilder = InlineKeyboardBuilder()
+
+    for plan in plans:
+        planBuilder.button(text=f"{plan.title}ga o'tish", callback_data=PlanCallback(
+            planId=plan.id, name="subscribe_premium"))
+
+    planBuilder.adjust(1, 1)
+
+    return InlineKeyboardMarkup(inline_keyboard=planBuilder.export())
+
+
 buySubscriptionBuilder = keyboard.InlineKeyboardBuilder()
-buySubscriptionBuilder.button(text="💎 Sotib olish", callback_data="subscribe_premium")
+buySubscriptionBuilder.button(text="Standard obunaga o'tish", callback_data="subscribe_premium")
 
 buySubscriptionMenu = keyboard.InlineKeyboardMarkup(inline_keyboard=buySubscriptionBuilder.export())
 

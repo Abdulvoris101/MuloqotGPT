@@ -96,6 +96,11 @@ class ChatActivityManager:
             filter(Chat.lastUpdated.isnot(None)).\
             order_by(desc(Chat.lastUpdated)).first()
 
+    @classmethod
+    def cleanActivityCounts(cls, chatId: int):
+        chatActivity = ChatActivity.get(chatId=chatId)
+        chatActivity.translatedMessagesCount = 0
+
 
 class MessageManager:
 

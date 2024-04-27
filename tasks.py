@@ -1,18 +1,17 @@
 # tasks.py
 import asyncio
 
-from apps.core.managers import ChatActivityManager
 from apps.subscription.managers import SubscriptionManager, FreeApiKeyManager
+from bot import logger
 
 
 async def cancelExpiredSubscriptions():
     await SubscriptionManager.cancelExpiredSubscriptions()
 
-    print("Canceled Expired Subscriptions!")
+    logger.info("Canceled Expired Subscriptions!")
 
 
 def unsetExpiredKeys():
     FreeApiKeyManager.reactivateAllKeys()
 
-    print("unsetExpiredKeys")
-
+    logger.info("Reactivate all keys!")
