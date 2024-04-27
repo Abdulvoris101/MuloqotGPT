@@ -162,6 +162,12 @@ async def cancel(callback: types.CallbackQuery, user: types.User, state: FSMCont
     await state.clear()
 
 
+@coreRouter.message(Command("clear"))
+async def clearChat(message: types.Message, chat: types.Chat):
+    MessageManager.clearUserChat(chat.id)
+    await bot.send_message(chat.id, text.CONTEXT_CHAT_CLEARED_TEXT)
+
+
 @coreRouter.message(F.text == "Bekor qilish")
 async def cancelButton(message: types.Message, state: FSMContext):
     await state.clear()
