@@ -12,6 +12,8 @@ from apps.subscription.schemes import ChatQuotaGetScheme
 
 START_BOT_TEXT = """Botni boshlash uchun /start kommandasini yuboring!"""
 
+WAIT_MESSAGE_TEXT = "⏳ Javob kelguncha botning rasmiy kanaliga obuna bo'lib qo'ying: @muloqotai"
+
 GREETINGS_TEXT = """Salom!
 Men dunyodagi eng ilg'or Sun'iy intellektman
 
@@ -52,12 +54,14 @@ Biz bilan aloqa - @texnosupportuzbot
 """
 
 PROFILE_TEXT = """⚡️ Obuna turi: {planTitle}
-🤖 GPT modeli: gpt-3.5-turbo
+🤖 GPT modeli: {currentGptModel}
 
 Limitlar:
-• GPT-3.5 bu oygi so’rovlar:  {currentMonthMessages}/{availableGptRequests}
-• Rasm generatsiya: {currentMonthImages}/{availableImageRequests}
-• Qo'shimcha GPT-3.5 so'rovlar: {additionalGptRequests}
+• GPT-3.5 bu oygi so’rovlar:  {currentMonthGpt3Requests}/{availableGpt3Requests}
+• GPT-4 bu oygi so’rovlar:  {currentMonthGpt4Requests}/{availableGpt4Requests}
+• Rasm generatsiya: {currentMonthImageRequests}/{availableImageRequests}
+• Qo'shimcha GPT-3.5 so'rovlar: {additionalGpt3Requests}
+• Qo'shimcha GPT-4 so'rovlar: {additionalGpt4Requests}
 • Qo'shimcha rasm so'rovlari: {additionalImageRequests}
 
 {PREMIUM_TEXT}
@@ -76,12 +80,18 @@ Premium obuna bilan siz:
 
 Premium obunani ulash uchun /premium bo’limiga o’ting."""
 
+SELECT_GPT_MODEL = "Ishlatmoqchi bo'lgan gpt modelni tanlang: "
+UPDATED_MODEL = "Sizning gpt modelingiz o'zgartirildi!"
+UNAVAILABLE_GPT_MODEL = "Siz gpt-4 dan foydalana olmaysiz, uning uchun premiumga obuna bo'lishingiz kerak /premium"
+
 
 def getProfileText(plantTitle: str, chatActivityScheme: ChatActivityViewScheme,
-                   chatQuotaScheme: ChatQuotaGetScheme):
+                   chatQuotaScheme: ChatQuotaGetScheme, currentGptModel: str):
     data = {
         **chatActivityScheme.model_dump(),
+        **chatActivityScheme.stats.model_dump(),
         **chatQuotaScheme.model_dump(),
+        "currentGptModel": currentGptModel,
         "planTitle": plantTitle,
         "PREMIUM_TEXT": PREMIUM_TEXT if plantTitle == "Free plan" else ""
     }

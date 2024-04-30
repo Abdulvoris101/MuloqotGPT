@@ -9,7 +9,8 @@ from sqlalchemy import cast, func, desc, and_, distinct, Date, exists
 from datetime import datetime, timedelta, date
 from aiogram import types
 from utils import text
-from .schemes import ChatCreateScheme, MessageCreateScheme, ChatBase
+from .schemes import ChatCreateScheme, MessageCreateScheme, ChatBase, ChatActivityStats, ModelEnum, ChatCurrentGptModel
+from ..subscription.models import Limit, Subscription
 
 
 class ChatManager:
@@ -34,8 +35,10 @@ class ChatManager:
     async def register(cls, chat: types.Chat) -> None:
         chatData = chat.model_dump()
         chatData["full_name"] = chat.full_name
-        scheme = ChatCreateScheme(**chatData)
+        scheme = ChatCreateScheme(**chatData, currentGptModel=ChatCurrentGptModel.GPT3)
         scheme.chatType = scheme.chatType.value
+        scheme.currentGptModel = scheme.currentGptModel.value
+
         chatObj = Chat(**scheme.model_dump())
         chatObj.save()
 
@@ -85,10 +88,9 @@ class ChatActivityManager:
 
     @classmethod
     def getActiveUsersTimeFrame(cls, days=1) -> int:
-        activeChatsCount = session.query(Chat.chatId).filter(
-            func.coalesce(Chat.lastUpdated, Chat.createdAt) - Chat.createdAt >= timedelta(days=days)
+        return session.query(Chat.chatId).filter(
+            func.date_part('day', Chat.lastUpdated - Chat.createdAt) >= days
         ).distinct().count()
-        return activeChatsCount
 
     @classmethod
     def getLatestChat(cls) -> Chat:
@@ -100,6 +102,30 @@ class ChatActivityManager:
     def cleanActivityCounts(cls, chatId: int):
         chatActivity = ChatActivity.get(chatId=chatId)
         chatActivity.translatedMessagesCount = 0
+
+    @classmethod
+    def getChatActivityStats(cls, chatId: int, limit: Limit, subscription: Subscription) -> ChatActivityStats:
+        currentMonthGpt3Requests = MessageManager.getUserMessagesTimeFrame(chatId=chatId, days=31,
+                                                                           messageType='message',
+                                                                           model='gpt-3.5-turbo-0125',
+                                                                           subscription=subscription)
+        currentMonthGpt4Requests = MessageManager.getUserMessagesTimeFrame(chatId=chatId, days=31,
+                                                                           messageType='message',
+                                                                           model='gpt-4',
+                                                                           subscription=subscription)
+        currentMonthImageRequests = MessageManager.getUserMessagesTimeFrame(chatId=chatId, days=31,
+                                                                            messageType='image',
+                                                                            model='lexica',
+                                                                            subscription=subscription)
+
+        data = {"currentMonthGpt3Requests": currentMonthGpt3Requests,
+                "currentMonthGpt4Requests": currentMonthGpt4Requests,
+                "currentMonthImageRequests": currentMonthImageRequests,
+                "availableGpt3Requests": limit.monthlyLimitGpt3,
+                "availableGpt4Requests": limit.monthlyLimitGpt4,
+                "availableImageRequests": limit.monthlyLimitImage}
+
+        return ChatActivityStats(**data)
 
 
 class MessageManager:
@@ -138,26 +164,29 @@ class MessageManager:
 
     @classmethod
     def addMessage(cls, content: str, uzMessage: str, chat: types.Chat,
-                   role: str) -> None:
+                   role: str, model: str) -> None:
         tokensCount = countTokenOfMessage(content)
         chatData = chat.model_dump(by_alias=True)
         chatData["full_name"] = chat.full_name
 
         messageScheme = MessageCreateScheme(content=content, role=role, messageType='message',
                                             uzMessage=uzMessage, tokensCount=tokensCount,
-                                            chat=ChatBase(**chatData))
+                                            chat=ChatBase(**chatData), model=model)
         messageScheme.role = messageScheme.role.value
+        messageScheme.model = messageScheme.model.value
         messageScheme.messageType = messageScheme.messageType.value
         cls.saveMessage(messageScheme)
 
     @classmethod
-    def addImage(cls, query: str, chat: types.Chat) -> None:
+    def addImage(cls, query: str, chat: types.Chat, model: str) -> None:
         chatData = chat.model_dump(by_alias=True)
         chatData["full_name"] = chat.full_name
 
         messageScheme = MessageCreateScheme(content=query, role='user', messageType='image',
-                                            uzMessage="", tokensCount=0, chat=ChatBase(**chatData))
+                                            uzMessage="", tokensCount=0, chat=ChatBase(**chatData),
+                                            model=model)
         messageScheme.role = messageScheme.role.value
+        messageScheme.model = messageScheme.model.value
         messageScheme.messageType = messageScheme.messageType.value
         cls.saveMessage(messageScheme)
 
@@ -172,13 +201,17 @@ class MessageManager:
         ).count()
 
     @classmethod
-    def getUserMessagesTimeFrame(cls, chatId: int, days: int = 1, messageType: str = "message") -> int:
-        timeThreshold = datetime.now() - timedelta(days=days)
+    def getUserMessagesTimeFrame(cls, chatId: int, model: str, subscription: Subscription,
+                                 days: int = 1, messageType: str = "message") -> int:
+
+        currentPeriodEnd = subscription.currentPeriodStart + timedelta(days=days)
 
         return session.query(Message).filter(
-            and_(Message.createdAt >= timeThreshold,
+            and_(Message.createdAt >= subscription.currentPeriodStart,
+                 Message.createdAt <= currentPeriodEnd,
                  Message.messageType == messageType,
                  Message.chatId == chatId,
+                 Message.model == model,
                  Message.role == 'user')
         ).count()
 

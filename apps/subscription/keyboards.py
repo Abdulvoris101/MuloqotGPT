@@ -36,9 +36,3 @@ def getSubscriptionPlansMarkup(plans: List[Plan]):
 
     return InlineKeyboardMarkup(inline_keyboard=planBuilder.export())
 
-
-buySubscriptionBuilder = keyboard.InlineKeyboardBuilder()
-buySubscriptionBuilder.button(text="Standard obunaga o'tish", callback_data="subscribe_premium")
-
-buySubscriptionMenu = keyboard.InlineKeyboardMarkup(inline_keyboard=buySubscriptionBuilder.export())
-

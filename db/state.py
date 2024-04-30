@@ -28,5 +28,10 @@ class RejectState(StatesGroup):
     reason = State()
 
 
+class ChooseGptModelState(StatesGroup):
+    model = State()
+
+
 class FeedbackMessageState(StatesGroup):
     text = State()
+

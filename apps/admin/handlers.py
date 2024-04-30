@@ -58,8 +58,6 @@ async def adminLogin(message: types.Message, user: types.User, state: FSMContext
 
 @adminRouter.callback_query(IsAdmin(), F.data == "statistics")
 async def statisticsHandler(callback: types.CallbackQuery, chat: types.Chat):
-    await callback.answer("")
-
     usersCount = ChatManager.usersCount()
     allMessages = Message.count()
     avgUsersMessagesCount = allMessages / usersCount

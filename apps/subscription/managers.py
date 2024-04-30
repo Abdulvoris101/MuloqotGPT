@@ -2,7 +2,7 @@ from typing import List, Optional
 from uuid import UUID
 
 from aiogram.exceptions import TelegramNotFound
-from sqlalchemy import or_, exists
+from sqlalchemy import or_, exists, desc
 from apps.common.exception import AiogramException
 from .models import Subscription, Plan, FreeApiKey, Configuration, ChatQuota, Limit
 import datetime
@@ -25,7 +25,8 @@ class PlanManager:
 
     @classmethod
     def filterPlan(cls, isFree: bool, isGroup: bool):
-        return session.query(Plan).filter_by(isFree=isFree, isGroup=isGroup).first()
+        return session.query(Plan).filter_by(isFree=isFree, isGroup=isGroup).order_by(
+            desc(Plan.amountForMonth)).first()
 
     @classmethod
     def filterPlans(cls, isFree: bool, isGroup: bool):
@@ -209,41 +210,45 @@ class SubscriptionManager:
 
 class LimitManager:
     @classmethod
-    def getUsedRequests(cls, chatId: int, messageType: str):
-        if messageType == "GPT":
-            return MessageManager.getUserMessagesTimeFrame(chatId=chatId, days=31,
-                                                           messageType="message")
-        elif messageType == "IMAGE":
-            return MessageManager.getUserMessagesTimeFrame(chatId=chatId, days=31,
-                                                           messageType="image")
+    def getUsedRequests(cls, chatId: int, messageType: str, model: str, subscription: Subscription):
+        return MessageManager.getUserMessagesTimeFrame(chatId=chatId, days=31,
+                                                       messageType=messageType, model=model,
+                                                       subscription=subscription)
 
     @classmethod
-    def getUserRequestLImit(cls, chatId: int, messageType: str) -> int:
-        userSubscription = SubscriptionManager.getChatCurrentSubscription(chatId=chatId)
-        keys = {"GPT": "monthlyLimitedGptRequests", "IMAGE": "monthlyLimitedImageRequests"}
-        userPlan = PlanManager.get(userSubscription.planId)
-        planLimit = Limit.get(userPlan.limitId)
-        limitKey = keys.get(messageType)
-        return getattr(planLimit, limitKey, 0)
+    def getPlanLimits(cls, model: str, subscription: Subscription) -> int:
+        keys = {"gpt-3.5-turbo-0125": "monthlyLimitGpt3",
+                "gpt-4": "monthlyLimitGpt4",
+                "lexica": "monthlyLimitImage"}
+
+        plan = PlanManager.get(subscription.planId)
+        limit = Limit.get(plan.limitId)
+        limitKey = keys.get(model)
+
+        return getattr(limit, limitKey, 0)
 
     @classmethod
-    def checkRequestsDailyLimit(cls, chatId: int, messageType: str) -> bool:
-        planLimit = cls.getUserRequestLImit(chatId, messageType)
-        chatUsedRequests = cls.getUsedRequests(chatId, messageType)
+    def hasQuotaExceeded(cls, chatId: int, messageType: str, model: str) -> bool:
+        subscription = SubscriptionManager.getChatCurrentSubscription(chatId=chatId)
+        limitedRequests = cls.getPlanLimits(model=model, subscription=subscription)
+        usedRequests = cls.getUsedRequests(chatId=chatId, messageType=messageType, model=model,
+                                           subscription=subscription)
         chatQuota = ChatQuota.getOrCreate(chatId)
 
-        additionalKeys = {"GPT": "additionalGptRequests", "IMAGE": "additionalImageRequests"}
+        additionalKeys = {"gpt-3.5-turbo-0125": "additionalGpt3Requests",
+                          "gpt-4": "additionalGpt4Requests",
+                          "lexica": "additionalImageRequests"}
 
-        if planLimit > chatUsedRequests:
-            return True
+        if limitedRequests > usedRequests:
+            return False
 
-        key = additionalKeys.get(messageType)
+        key = additionalKeys.get(model)
 
         if getattr(chatQuota, key, 0) > 0:
             cls.decrementQuota(chatQuota, key)
-            return True
+            return False
 
-        return False
+        return True
 
     @classmethod
     def decrementQuota(cls, chatQuota: ChatQuota, key: str):

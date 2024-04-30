@@ -52,6 +52,7 @@ app.mount("/static", StaticFiles(directory="layout/static"), name="static")
 
 app.include_router(router, prefix="/moderator")
 
+
 @app.post(WEBHOOK_PATH)
 async def bot_webhook(request: Request):
     tgUpdate = types.Update.model_validate(await request.json(), context={"bot": bot})

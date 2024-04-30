@@ -5,20 +5,18 @@ from bot import bot
 from utils import text
 from apps.common.settings import settings
 from db.state import PaymentState
-from .keyboards import checkPaymentMenu, cancelMenu, buySubscriptionMenu, getSubscriptionPlansMarkup, PlanCallback
+from .keyboards import checkPaymentMenu, cancelMenu, getSubscriptionPlansMarkup, PlanCallback
 from apps.subscription.managers import SubscriptionManager, PlanManager
 
 subscriptionRouter = Router(name="subscriptionRouter")
 
 
-@subscriptionRouter.message(Command("premium"))
+@subscriptionRouter.message(Command("premium"), F.chat.type == "private")
 async def premium(message: types.Message):
-    if message.chat.type == "private":
-        premiumPlans = PlanManager.filterPlans(isGroup=False, isFree=False)
-        allPlans = PlanManager.getSubscriptionPlans()
+    premiumPlans = PlanManager.filterPlans(isGroup=False, isFree=False)
 
-        await bot.send_message(message.chat.id, text.getSubscriptionPlansText(allPlans),
-                               reply_markup=getSubscriptionPlansMarkup(premiumPlans))
+    await bot.send_message(message.chat.id, text.getSubscriptionPlansText(premiumPlans),
+                           reply_markup=getSubscriptionPlansMarkup(premiumPlans))
 
 
 @subscriptionRouter.callback_query(PlanCallback.filter(F.name == "subscribe_premium"))

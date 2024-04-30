@@ -16,16 +16,18 @@ class Chat(Base):
     chatType = Column(Enum('private', 'group', 'supergroup', name="chat_type_enum"), server_default='private')
     username = Column(String, nullable=True)
     referredBy = Column(String, nullable=True)
+    currentGptModel = Column(Enum('gpt-3.5-turbo-0125', 'gpt-4', name="chat_gptmodel_enum", create_type=False))
     createdAt = Column(DateTime, nullable=True)
     lastUpdated = Column(DateTime, nullable=True)
     chatActivity = relationship('ChatActivity', backref='chat', lazy='dynamic')
 
-    def __init__(self, chatId, chatName, chatType, username, createdAt, lastUpdated):
+    def __init__(self, chatId, chatName, chatType, username, currentGptModel, createdAt, lastUpdated):
         self.chatName = chatName
         self.chatId = chatId
         self.chatType = chatType
         self.username = username
         self.createdAt = createdAt
+        self.currentGptModel = currentGptModel
         self.lastUpdated = lastUpdated
         super().__init__()
 
@@ -110,10 +112,12 @@ class Message(Base):
     tokensCount = Column(BigInteger, nullable=True, default=0)
     chatId = Column(BigInteger)
     isCleaned = Column(Boolean, default=False)
+    model = Column(Enum('gpt-3.5-turbo-0125', 'gpt-4', 'lexica', name="model_enum", create_type=False), default='gpt-3.5')
     createdAt = Column(DateTime, nullable=True)
 
     def __init__(self, chat: dict, role: str, content: str, messageType: str,
-                 uzMessage: str, tokensCount: int, isCleaned: bool, createdAt: datetime):
+                 uzMessage: str, tokensCount: int, isCleaned: bool, createdAt: datetime,
+                 model: str):
         self.chatId = chat.get("chatId")
         self.role = role
         self.content = content
@@ -121,6 +125,7 @@ class Message(Base):
         self.messageType = messageType
         self.tokensCount = tokensCount
         self.isCleaned = isCleaned
+        self.model = model
         self.createdAt = createdAt
 
     def save(self):

@@ -15,3 +15,16 @@ messageBuilder.button(text="✨ Tarjima qilish", callback_data="translate_callba
 messageMarkup = keyboard.InlineKeyboardMarkup(inline_keyboard=messageBuilder.export())
 
 
+profileBuilder = keyboard.InlineKeyboardBuilder()
+profileBuilder.button(text="🤖 Gpt modelni o'zgartirish", callback_data="change_chat_gpt_model")
+profileMarkup = keyboard.InlineKeyboardMarkup(inline_keyboard=profileBuilder.export())
+
+
+gptModelsBuilder = keyboard.ReplyKeyboardBuilder()
+gptModelsBuilder.button(text="gpt-3.5-turbo-0125")
+gptModelsBuilder.button(text="gpt-4")
+gptModelsBuilder.adjust(1, 1)
+gptModelsMarkup = keyboard.ReplyKeyboardMarkup(keyboard=gptModelsBuilder.export(), resize_keyboard=True,
+                                               one_time_keyboard=True)
+
+
