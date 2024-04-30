@@ -9,8 +9,12 @@ class Limit(Base):
     __tablename__ = 'limit'
 
     id = Column(UUID(as_uuid=True), primary_key=True)
-    monthlyLimitedImageRequests = Column(Integer)
-    monthlyLimitedGptRequests = Column(Integer)
+    monthlyLimitImage = Column(Integer)
+    monthlyLimitGpt3 = Column(Integer)
+    monthlyLimitGpt4 = Column(Integer)
+    monthlyLimitTranslation = Column(Integer)
+    limitOutputTokens = Column(Integer)
+    limitInputTokens = Column(Integer)
     plans = relationship('Plan', backref='Plan.limitId', lazy='dynamic')
 
     @classmethod
@@ -33,6 +37,7 @@ class Plan(Base):
 
     id = Column(UUID(as_uuid=True), primary_key=True)
     title = Column(String)
+    description = Column(String, nullable=True)
     amountForMonth = Column(BigInteger)
     isFree = Column(Boolean)
     isGroup = Column(Boolean)
@@ -78,17 +83,14 @@ class Subscription(Base):
     currentPeriodEnd = Column(DateTime, nullable=True)
     is_paid = Column(Boolean, default=False)
     chatId = Column(BigInteger)
-    cardholder = Column(String, nullable=True)
     isCanceled = Column(Boolean, default=False)
     canceledAt = Column(DateTime, nullable=True)
 
-    def __init__(self, planId,
-                 cardholder, currentPeriodStart,
+    def __init__(self, planId, currentPeriodStart,
                  currentPeriodEnd, is_paid, chatId):
 
         self.id = uuid.uuid4()
         self.planId = planId
-        self.cardholder = cardholder
         self.currentPeriodStart = currentPeriodStart
         self.currentPeriodEnd = currentPeriodEnd
         self.is_paid = is_paid
@@ -136,12 +138,15 @@ class ChatQuota(Base):
 
     id = Column(Integer, primary_key=True)
     chatId = Column(BigInteger, ForeignKey('chat.chatId'))
-    additionalGptRequests = Column(BigInteger, default=0)
+    additionalGpt3Requests = Column(BigInteger, default=0)
+    additionalGpt4Requests = Column(BigInteger, default=0)
     additionalImageRequests = Column(BigInteger, default=0)
 
-    def __init__(self, chatId, additionalGptRequests=0, additionalImageRequests=0):
+    def __init__(self, chatId, additionalGpt3Requests=0, additionalImageRequests=0,
+                 additionalGpt4Requests: int = 0):
         self.chatId = chatId
-        self.additionalGptRequests = additionalGptRequests
+        self.additionalGpt4Requests = additionalGpt4Requests
+        self.additionalGpt3Requests = additionalGpt3Requests
         self.additionalImageRequests = additionalImageRequests
 
     def save(self):
@@ -173,7 +178,8 @@ class ChatQuota(Base):
 
         if chatQuota is None:
             ChatQuota(
-                chatId=chatId, additionalGptRequests=0,
+                chatId=chatId, additionalGpt3Requests=0,
+                additionalGpt4Requests=0,
                 additionalImageRequests=0).save()
 
         return cls.get(chatId)

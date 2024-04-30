@@ -1,13 +1,18 @@
 # All texts
+from typing import List
+
 from aiogram import types
 
 from apps.admin.schemes import StatisticsReadScheme
 from apps.core.schemes import ChatScheme, ChatActivityViewScheme
+from apps.subscription.models import Plan
 from apps.subscription.schemes import ChatQuotaGetScheme
 
 # CORE TEXTS
 
 START_BOT_TEXT = """Botni boshlash uchun /start kommandasini yuboring!"""
+
+WAIT_MESSAGE_TEXT = "⏳ Javob kelguncha botning rasmiy kanaliga obuna bo'lib qo'ying: @muloqotai"
 
 GREETINGS_TEXT = """Salom!
 Men dunyodagi eng ilg'or Sun'iy intellektman
@@ -49,12 +54,14 @@ Biz bilan aloqa - @texnosupportuzbot
 """
 
 PROFILE_TEXT = """⚡️ Obuna turi: {planTitle}
-🤖 GPT modeli: gpt-3.5-turbo
+🤖 GPT modeli: {currentGptModel}
 
 Limitlar:
-• GPT-3.5 bu oygi so’rovlar:  {currentMonthMessages}/{availableGptRequests}
-• Rasm generatsiya: {currentMonthImages}/{availableImageRequests}
-• Qo'shimcha GPT-3.5 so'rovlar: {additionalGptRequests}
+• GPT-3.5 bu oygi so’rovlar:  {currentMonthGpt3Requests}/{availableGpt3Requests}
+• GPT-4 bu oygi so’rovlar:  {currentMonthGpt4Requests}/{availableGpt4Requests}
+• Rasm generatsiya: {currentMonthImageRequests}/{availableImageRequests}
+• Qo'shimcha GPT-3.5 so'rovlar: {additionalGpt3Requests}
+• Qo'shimcha GPT-4 so'rovlar: {additionalGpt4Requests}
 • Qo'shimcha rasm so'rovlari: {additionalImageRequests}
 
 {PREMIUM_TEXT}
@@ -73,12 +80,18 @@ Premium obuna bilan siz:
 
 Premium obunani ulash uchun /premium bo’limiga o’ting."""
 
+SELECT_GPT_MODEL = "Ishlatmoqchi bo'lgan gpt modelni tanlang: "
+UPDATED_MODEL = "Sizning gpt modelingiz o'zgartirildi!"
+UNAVAILABLE_GPT_MODEL = "Siz gpt-4 dan foydalana olmaysiz, uning uchun premiumga obuna bo'lishingiz kerak /premium"
+
 
 def getProfileText(plantTitle: str, chatActivityScheme: ChatActivityViewScheme,
-                   chatQuotaScheme: ChatQuotaGetScheme):
+                   chatQuotaScheme: ChatQuotaGetScheme, currentGptModel: str):
     data = {
         **chatActivityScheme.model_dump(),
+        **chatActivityScheme.stats.model_dump(),
         **chatQuotaScheme.model_dump(),
+        "currentGptModel": currentGptModel,
         "planTitle": plantTitle,
         "PREMIUM_TEXT": PREMIUM_TEXT if plantTitle == "Free plan" else ""
     }
@@ -119,15 +132,23 @@ Bizni tanlaganiz uchun rahmat 🫡
 Agarda biror savolingiz bo'lsa, bizga murojat qiling - @texnosupportuzbot | @abdulvoris_101
 """
 
-CURRENT_PLAN_TEXT = f"""
-Xozirgi obuna quyidagilarni o'z ichiga oladi:
-✅ Chatgptga oyiga 300 ta so'rov;
-⭐️ AI bilan 50 ta rasm generatsiya qilish;
-✅ Avtotarjimon funksiyasi;
-✅ 5ta xabarni tarjima qilish.
+PLANS_TEMPLATE = """{title}
+----------------------------
+{description}\n
+- Obuna narxi: <b>{amountForMonth}</b> so'm """
 
-{PREMIUM_TEXT}
-"""
+
+def getSubscriptionPlansText(plans: List[Plan]):
+    plansText = ""
+
+    for plan in plans:
+        plansText += PLANS_TEMPLATE.format(
+            title=plan.title,
+            description=plan.description,
+            amountForMonth="{:,.0f}".format(plan.amountForMonth).replace(",", ".")
+        ) + "\n\n"
+    return plansText
+
 
 PREMIUM_GRANTED_TEXT = """Tabriklaymiz sizga premium obuna taqdim etildi. Bizni tanlaganiz uchun rahmat 😊🎉"""
 SUBSCRIPTION_END = """🚀 Obunani yangilash vaqti keldi!
@@ -225,8 +246,7 @@ Men bilan qiziqarli suxbat qurishga tayyormisiz?"
 USER_REGISTERED_EVENT_TEMPLATE = """#new\nid: {id}\ntelegramId: {chatId}
 \nusername: @{username}\nname: {chatName}"""
 
-SUBSCRIPTION_SEND_EVENT_TEXT = """#payment check-in\nchatId: {userId},\nsubscription_id: {subscriptionId}, 
-\nprice: {price}"""
+SUBSCRIPTION_SEND_EVENT_TEXT = """#payment check-in\nchatId: {userId},\nplan title: {planTitle}\nplan id: <code>{planId}</code>\nprice: {price}"""
 
 FEEDBACK_MESSAGE_EVENT_TEMPLATE = """#chat-id: {id}
 #username: @{username}
@@ -245,7 +265,8 @@ CONTEXT_CHAT_CLEARED_TEXT = """Sizning suxbat tarixingiz tozalandi!"""
 # FORBIDDEN
 
 NOT_SUBSCRIBED = "Bu xizmatdan foydalanish uchun premiumga obuna bo'lishingiz kerak. /premium buyrug'i yordamida obuna bo'ling"
-LIMIT_TRANSLATION_REACHED = "Afsuski sizning tarjima uchun limitingiz tugadi. Cheksiz tarjima uchun premiumga obuna bo'lishingiz kerak /premium "
+LIMIT_TRANSLATION_REACHED = """Afsuski sizning tarjima uchun limitingiz tugadi. Yanada ko'proq tarjima uchun 
+premiumga obuna bo'ling - /premium """
 NOT_PERMITTED_IMAGE_GENERATION = """Bu guruhda rasm generatsiya qilib bo'lmaydi!"""
 
 # ERRORS
@@ -260,5 +281,5 @@ SENT_USER_REPORT_TEXT = """Message sent to {receivedUsersCount} users
 Bot was blocked by {blockedUsersCount} users"""
 ENTER_AGAIN = "Iltimos boshqatan so'rov yuboring"
 TOKEN_REACHED = "Savolni qisqartiribroq yozing"
-ALREADY_SUBSCRIBED = "Siz allaqachon premium obunaga egasiz!"
+ALREADY_SUBSCRIBED = "Siz allaqachon ushbu obunaga egasiz!"
 NOT_FOUND_USER = "Foydalanuvchi topilmadi"

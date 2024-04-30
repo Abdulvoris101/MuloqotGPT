@@ -25,9 +25,9 @@ class MessageProcessor:
         if chat.type != "private":
             for message in grSystemMessages:
                 MessageManager.addMessage(content=message["content"], uzMessage="",
-                                          chat=chat, role='system')
+                                          chat=chat, role='system', model="gpt-3.5-turbo-0125")
         elif chat.type == "private":
             for message in systemMessages:
                 MessageManager.addMessage(content=message["content"], uzMessage="",
-                                          chat=chat, role='system')
+                                          chat=chat, role='system', model="gpt-3.5-turbo-0125")
 

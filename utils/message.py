@@ -129,7 +129,6 @@ def fetchUsersByUserType(userType) -> List[Chat]:
     return chats
 
 
-# todo: fix
 def fixMessageMarkdown(text):
     code_blocks = re.findall(r"(```)", text)
 

@@ -33,10 +33,11 @@ def extractInlineButtonsFromText(text):
 
 
 def containsAnyWord(text, word_list):
-    lowercase_text = text.lower()
-    for word in word_list:
-        if word.lower() in lowercase_text:
-            return True
+    if text is not None:
+        lowercase_text = text.lower()
+        for word in word_list:
+            if word.lower() in lowercase_text:
+                return True
 
     return False
 
