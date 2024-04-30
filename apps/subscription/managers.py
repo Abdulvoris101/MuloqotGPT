@@ -120,12 +120,12 @@ class SubscriptionManager:
 
     @classmethod
     async def cancelExpiredSubscriptions(cls):
-        notIncludePlanIds = [plan.id for plan in PlanManager.filterPlan(isGroup=True, isFree=False)] # group ids
+        notIncludePlanId = PlanManager.filterPlan(isGroup=True, isFree=False).id # group ids
 
         subscriptions = session.query(Subscription).filter(
             Subscription.is_paid == True,
             Subscription.isCanceled == False,
-            ~Subscription.planId.notin_(notIncludePlanIds),
+            Subscription.planId != notIncludePlanId,
             Subscription.currentPeriodEnd < datetime.datetime.now()
         ).all()
 
