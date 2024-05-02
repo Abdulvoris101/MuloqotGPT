@@ -17,6 +17,8 @@ messageMarkup = keyboard.InlineKeyboardMarkup(inline_keyboard=messageBuilder.exp
 
 profileBuilder = keyboard.InlineKeyboardBuilder()
 profileBuilder.button(text="🤖 Gpt modelni o'zgartirish", callback_data="change_chat_gpt_model")
+profileBuilder.button(text="➕ Do'stni chaqirish (referral)", callback_data="referral_link")
+profileBuilder.adjust(1, 1)
 profileMarkup = keyboard.InlineKeyboardMarkup(inline_keyboard=profileBuilder.export())
 
 

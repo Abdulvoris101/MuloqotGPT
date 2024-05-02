@@ -1,3 +1,4 @@
+import json
 from typing import List
 
 from .models import Chat, Message, ChatActivity
@@ -9,7 +10,8 @@ from sqlalchemy import cast, func, desc, and_, distinct, Date, exists
 from datetime import datetime, timedelta, date
 from aiogram import types
 from utils import text
-from .schemes import ChatCreateScheme, MessageCreateScheme, ChatBase, ChatActivityStats, ModelEnum, ChatCurrentGptModel
+from .schemes import ChatCreateScheme, MessageCreateScheme, ChatBase, ChatActivityStats, ModelEnum, ChatCurrentGptModel, \
+    ChatScheme
 from ..subscription.models import Limit, Subscription
 
 
@@ -53,11 +55,41 @@ class ChatManager:
         chat.lastUpdated = datetime.now()
 
     @classmethod
+    def isValidReferral(cls, chatId: int, referredBy: str) -> bool:
+        try:
+            referredUserId = int(referredBy)
+        except Exception:
+            return False
+
+        if chatId == referredUserId:
+            return False
+        if not ChatManager.isExistsByUserId(chatId=referredUserId):
+            return False
+
+        referredUser = Chat.get(referredUserId)
+        chatScheme = ChatScheme(**referredUser.to_dict())
+
+        if chatId in chatScheme.referralUsers:
+            return False
+
+        return True
+
+    @classmethod
     def assignReferredBy(cls, chatId: int, referredBy: str):
-        if referredBy is not None:
-            chat = Chat.get(chatId)
-            chat.referredBy = referredBy
-            chat.save()
+        chat = Chat.get(chatId)
+
+        if referredBy is None:
+            if chat.referredBy is None:
+                chat.referredBy = 'direct'
+                chat.save()
+            return
+
+        if referredBy == str(chatId):
+            return
+
+        chat.referredBy = referredBy
+        chat.save()
+
 
 # Analytics
 

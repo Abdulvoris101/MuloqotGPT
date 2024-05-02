@@ -14,18 +14,16 @@ START_BOT_TEXT = """Botni boshlash uchun /start kommandasini yuboring!"""
 
 WAIT_MESSAGE_TEXT = "⏳ Javob kelguncha botning rasmiy kanaliga obuna bo'lib qo'ying: @muloqotai"
 
-GREETINGS_TEXT = """Salom!
-Men dunyodagi eng ilg'or Sun'iy intellektman
+GREETINGS_TEXT = """Salom! Men dunyodagi eng ilg'or Sun'iy intellektman
 
 Men sizga ko'p vazifalarni hal qilishda yordam bera olaman. Masalan:
 - ijtimoiy tarmoqlar uchun post, insho xabarini yozish
-- kodni yozish/to'g'rilash
 - rasm chizish
 - uy vazifasini bajarish
 
-Men sizga eng yangi va eng chuqur ma'lumotlarni taqdim etish bilan shug'ullanaman. Ishonch bilan xizmat qilaman 💪
-
 🖼 Rasm chizish uchun so'rov boshiga ushbu so'zlarni qo'shishingiz kerak - generate yokida imagine
+
+Men suhbat tarixni saqlab qolishim mumkin va suxbatni yangilash uchun /new kiriting
 
 Menga o'zingiz qiziqayotgan savol yoki so'rovingizni yuboring!
 """
@@ -97,6 +95,17 @@ def getProfileText(plantTitle: str, chatActivityScheme: ChatActivityViewScheme,
     }
     return PROFILE_TEXT.format_map(data)
 
+
+# Referrals
+
+CONGRATS_GAVE_REQUESTS = """Do'stingizni taklif etganingiz uchun sizga 10ta gpt so'rovlar taqdim etildi 🎉. 
+Shaxsiy kabinet - /profile"""
+
+REFERRAL_GUIDE = """Do'stingizni botga taklif qilib 10 dona gpt-3.5 turbo so'rovlarini qo'lga kiriting.
+
+Sizning shaxsiy referral linkingiz - <code>https://t.me/{botUsername}?start={userId}</code>
+
+* Ushbu linkni do'stingizga yuboring"""
 
 # Premium plan texts
 
@@ -259,7 +268,7 @@ IMAGE_RESPONSE_TEMPLATE = "\n🌄 {caption}\n\n@muloqataibot"
 CANCELED_TEXT = "Bekor qilindi!"
 THANK_YOU_TEXT = "Izoh uchun rahmat!"
 
-CONTEXT_CHAT_CLEARED_TEXT = """Sizning suxbat tarixingiz tozalandi!"""
+CONTEXT_CHAT_CLEARED_TEXT = """Sizning suxbat tarixingiz yangilandi!"""
 
 
 # FORBIDDEN
