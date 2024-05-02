@@ -82,7 +82,7 @@ Premium obunani ulash uchun /premium bo’limiga o’ting."""
 SELECT_GPT_MODEL = "Ishlatmoqchi bo'lgan gpt modelni tanlang: "
 UPDATED_MODEL = "Sizning gpt modelingiz o'zgartirildi!"
 UNAVAILABLE_GPT_MODEL = "Siz gpt-4 dan foydalana olmaysiz, uning uchun premiumga obuna bo'lishingiz kerak /premium"
-
+UNAVAILABLE_GROUP_TEXT = "Bu guruhda rasm generatsiya qilib bo'lmaydi, generatsiya uchun guruh - @muloqotaigen"
 
 def getProfileText(plantTitle: str, chatActivityScheme: ChatActivityViewScheme,
                    chatQuotaScheme: ChatQuotaGetScheme, currentGptModel: str):
