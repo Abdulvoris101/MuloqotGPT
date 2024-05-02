@@ -23,7 +23,7 @@ services:
     container_name: db
     image: postgres
     environment:
-      - POSTGRES_DB=muloqotai
+      - POSTGRES_DB=muloqotgpt
       - POSTGRES_USER=${POSTGRES_DB_USER}
       - POSTGRES_PASSWORD=${POSTGRES_DB_PASSWORD}
       - TZ=Asia/Tashkent

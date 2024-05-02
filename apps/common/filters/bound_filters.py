@@ -21,7 +21,7 @@ class isBotMentioned(Filter):
             return True
 
         message = str(message.text).lower()
-        allowedTexts = ["muloqotai", "@muloqataibot", "generate", "imagine", "bot"]
+        allowedTexts = ["muloqotgpt", "muloqot", "@muloqotgpt_bot", "@muloqotgpt", "generate", "imagine", "bot"]
         return containsAnyWord(message, allowedTexts)
 
 
