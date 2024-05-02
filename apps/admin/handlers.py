@@ -164,17 +164,36 @@ async def setRejectionReceiverId(message: types.Message, state: FSMContext):
         return await message.answer(text.NOT_FOUND_USER)
 
     await state.update_data(receiverId=message.text)
+    await state.set_state(RejectState.planId)
+    return await message.answer("Plan Id kiriting", reply_markup=cancelKeyboardsMarkup)
+
+
+@adminRouter.message(IsAdmin(), RejectState.planId)
+async def processRejectionReason(message: types.Message, state: FSMContext):
+    await state.update_data(planId=message.text)
+
+    try:
+        planId = uuid.UUID(message.text)
+    except ValueError:
+        await state.clear()
+        return await bot.send_message(message.chat.id, text.CANCELED_TEXT,
+                                      reply_markup=cancelKeyboardsMarkup)
+
+    if not PlanManager.isExistsById(planId=planId):
+        return message.answer("Plan mavjud emas!")
+
     await state.set_state(RejectState.reason)
-    return await message.answer("Sababni kiriting", reply_markup=cancelKeyboardsMarkup)
+    return await message.answer("Sababni kiriting")
 
 
 @adminRouter.message(IsAdmin(), RejectState.reason)
 async def processRejectionReason(message: types.Message, state: FSMContext):
     data = await state.get_data()
     receiverId = data.get("receiverId")
+    planId = data.get("planId")
 
     try:
-        SubscriptionManager.rejectPremiumRequest(receiverId)
+        SubscriptionManager.rejectPremiumRequest(chatId=receiverId, planId=planId)
         await bot.send_message(receiverId, text.REJECTED_TEXT.format(reason=message.text))
     except TelegramBadRequest:
         await bot.send_message(message.chat.id, "Bot foydalanuvchi tomonidan bloklangan")

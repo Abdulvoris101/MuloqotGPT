@@ -25,6 +25,7 @@ class ConfirmSubscriptionState(StatesGroup):
 
 class RejectState(StatesGroup):
     receiverId = State()
+    planId = State()
     reason = State()
 
 

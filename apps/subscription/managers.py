@@ -152,12 +152,12 @@ class SubscriptionManager:
         ])
 
     @classmethod
-    def rejectPremiumRequest(cls, chatId: int):
-        premiumSubscription = cls.getActiveSubscription(chatId=chatId,
-                                                        planId=PlanManager.getPremiumPlanId())
+    def rejectPremiumRequest(cls, chatId: int, planId: str):
+        planId = UUID(planId)
+        premiumSubscription = cls.getActiveSubscription(chatId=chatId, planId=planId)
 
         inactivePremiumSubscription = cls.filterSubscription(chatId=chatId, isPaid=False, isCanceled=False,
-                                                             planId=PlanManager.getPremiumPlanId())
+                                                             planId=planId)
 
         if premiumSubscription is not None:
             raise AiogramException(userId=chatId, message_text="Foydalanuvchi allaqachon premium egasi")
