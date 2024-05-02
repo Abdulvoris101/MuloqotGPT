@@ -33,11 +33,12 @@ Botda  chatgptni  ishlatish uchun botga shunchaki so'rov yuborish kifoya.
 🖼 Rasm chizish uchun so'rov boshiga ushbu so'zlarni qo'shishingiz kerak - generate yokida imagine. 
 
 <b>Bot bilan guruhda qanday yozishaman?</b>
-Chatbot guruhga xabar yuborganda, bot xabari ostidagi “reply" tugmasini bosing va javobingizni kiriting yokida Xabaringizni boshida muloqotai ni nomi bilan boshlang
+Chatbot guruhga xabar yuborganda, bot xabari ostidagi “reply" tugmasini bosing va javobingizni kiriting yokida 
+Xabaringizni boshida muloqotgpt ni nomi bilan boshlang
 
 Misol uchun:
 Muloqot  salom, menga ....
-@muloqatgpt_bot salom, menga ....
+@muloqotgpt_bot salom, menga ....
 
 <b>Botning qo'shimcha xususiyatlari</b>:
 🔹<b>Avtotarjima:</b> - bilasiz chatgpt o'zbek tilini  unchalik yahshi tushunmaydi shuning uchun botda avtotarjima xususiyati mavjud, agarda avtotarjimani yoqib qo'ysangiz sizning xar bir so'rovingiz  ingliz tilga  o'tqizilib chatgptga yuboriladi va  kelgan javob esa o'zbekchaga tarjima qilinadi
@@ -262,7 +263,7 @@ FEEDBACK_MESSAGE_EVENT_TEMPLATE = """#chat-id: {id}
 #xabar: \n\n{text}
 """
 
-IMAGE_RESPONSE_TEMPLATE = "\n🌄 {caption}\n\n@muloqataibot"
+IMAGE_RESPONSE_TEMPLATE = "\n🌄 {caption}\n\n@muloqotgpt_bot"
 
 # COMMON
 CANCELED_TEXT = "Bekor qilindi!"
