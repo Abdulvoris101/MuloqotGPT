@@ -2,7 +2,7 @@ import schedule
 import time
 from rq import Queue
 from redis import Redis
-from utils.scheduler.tasks import cancelExpiredSubscriptions, unsetExpiredKeys
+from tasks import cancelExpiredSubscriptions, unsetExpiredKeys
 from apps.common.settings import settings
 
 # Connect to Redis and create an RQ queue
