@@ -313,3 +313,10 @@ class ConfigurationManager:
         return configuration
 
 
+class ChatQuotaManager:
+    @staticmethod
+    def incrementCount(chatId: int, column: str, value: int) -> None:
+        instance = ChatQuota.get(chatId=chatId)
+        currentValue = getattr(instance, column)
+
+        ChatQuota.update(instance, column, int(currentValue) + value)
