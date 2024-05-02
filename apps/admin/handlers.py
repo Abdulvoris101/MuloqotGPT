@@ -1,263 +1,250 @@
-from aiogram.dispatcher import FSMContext
-from bot import dp, types, bot
-from db.state import AdminLoginState, AdminSystemMessageState, SendMessageWithInlineState,  AdminSendMessage, TopupState, RejectState
-from utils.message import fetchUsersByType, SendAny
+import uuid
+
+from aiogram import Router, F, types
+from aiogram.filters import Command
+from aiogram.fsm.context import FSMContext
+from bot import bot, logger
+from db.state import AdminLoginState, SendMessageToUsers, ConfirmSubscriptionState, RejectState
+from apps.common.exception import AiogramException
+from utils.message import fetchUsersByUserType, SendAny
 from .models import Admin
 from apps.core.managers import ChatManager, MessageManager, ChatActivityManager
-from apps.core.models import ChatActivity, Message
-from .keyboards import adminKeyboards, cancelKeyboards, sendMessageMenu, getInlineMenu
-from aiogram.dispatcher.filters import Text
-from utils import extractInlineButtons, text
-from utils.events import sendError
-from filters.bound_filters import IsAdmin
-from filters.permission import checkPassword
+from apps.core.models import Message
+from .keyboards import (adminKeyboardsMarkup, cancelKeyboardsMarkup,
+                        sendMessageMarkup, getInlineMarkup, confirmSubscriptionMarkup)
+from utils import extractInlineButtonsFromText, text
+from apps.admin.events import sendError
+from apps.common.filters.bound_filters import IsAdmin
+from apps.common.filters.permission import checkPassword
 from apps.subscription.managers import SubscriptionManager, PlanManager
-from aiogram.utils.exceptions import BotBlocked
+from aiogram.exceptions import TelegramBadRequest
+
+from .schemes import StatisticsReadScheme
+
+adminRouter = Router(name="adminRouter")
 
 
-@dp.message_handler(commands=["cancel"], state='*')
-async def cancel(message: types.Message, state: FSMContext):   
-    await state.finish()
-    if Admin.isAdmin(message.from_user.id):
-        return await bot.send_message(message.chat.id, "State bekor qilindi!", reply_markup=adminKeyboards)
-    
-    return await bot.send_message(message.chat.id, "Bekor qilindi!", reply_markup=types.ReplyKeyboardRemove())
+@adminRouter.message(Command("cancel"))
+async def cancel(message: types.Message, user: types.User, state: FSMContext):
+    await state.clear()
+    if Admin.isAdmin(user.id):
+        return await bot.send_message(user.id, text.CANCELED_TEXT, reply_markup=adminKeyboardsMarkup)
+    return await bot.send_message(user.id, text.CANCELED_TEXT, reply_markup=types.ReplyKeyboardRemove())
 
 
-@dp.message_handler(commands=['admin'])
-async def admin(message: types.Message):
-    if Admin.isAdmin(message.from_user.id):
-        return await bot.send_message(message.from_user.id, "Xush kelibsiz admin!",
-                                      reply_markup=adminKeyboards)
+@adminRouter.message(Command('admin'))
+async def adminHandler(message: types.Message, user: types.User, state: FSMContext):
+    if Admin.isAdmin(user.id):
+        return await bot.send_message(user.id, "Xush kelibsiz admin!",
+                                      reply_markup=adminKeyboardsMarkup)
 
-    await AdminLoginState.password.set()
+    await state.set_state(AdminLoginState.password)
     return await message.answer("Parolni kiriting!")
 
 
-@dp.message_handler(state=AdminLoginState.password)
-async def passwordHandler(message: types.Message, state=FSMContext):
-    user = message.from_user
+@adminRouter.message(AdminLoginState.password)
+async def adminLogin(message: types.Message, user: types.User, state: FSMContext):
+    await state.update_data(password=message.text)
+    if checkPassword(password=message.text):
+        await state.clear()
 
-    async with state.proxy() as data:
-        data['password'] = message.text
-
-    if checkPassword(message.text):
-        await state.finish()
-        Admin(user.id).register(user.id)
-        return await bot.send_message(user.id, "Xush kelibsiz admin!", reply_markup=adminKeyboards)
+        Admin(user.id).register()
+        return await bot.send_message(user.id, "Xush kelibsiz admin!", reply_markup=adminKeyboardsMarkup)
     
     return await message.answer("Noto'g'ri parol!")
 
 
-@dp.message_handler(IsAdmin(), Text(equals="🤖 System xabar yuborish.!"))
-async def sendRuleMessage(message: types.Message):
-    await AdminSystemMessageState.message.set()
-    return await message.answer(
-        "Qoidani faqat ingliz yoki rus tilida kiriting!", reply_markup=cancelKeyboards)
+#  Statistics
 
-
-@dp.message_handler(IsAdmin(), state=AdminSystemMessageState.message)
-async def addRule(message: types.Message, state=FSMContext):
-    async with state.proxy() as data:
-        data['message'] = message.text
-
-    await state.finish()
-    MessageManager.systemToAllChat(text=message.text)
-    return await message.answer("System xabar kiritildi!")
-
-
-@dp.message_handler(IsAdmin(), Text(equals="📊 Statistika.!"))
-async def getStatistics(message: types.Message):
+@adminRouter.callback_query(IsAdmin(), F.data == "statistics")
+async def statisticsHandler(callback: types.CallbackQuery, chat: types.Chat):
     usersCount = ChatManager.usersCount()
     allMessages = Message.count()
     avgUsersMessagesCount = allMessages / usersCount
+    lastChat = ChatActivityManager.getLatestChat()
 
-    return await message.answer(text.getStatisticsText(
+    scheme = StatisticsReadScheme(
         usersCount=usersCount,
         activeUsers=ChatActivityManager.getCurrentMonthUsers(),
-        activeUsersOfDay=ChatActivityManager.getTodayActiveUsers(),
-        usersUsedOneDay=ChatActivityManager.getUsersUsedOneDay(),
-        usersUsedOneWeek=ChatActivityManager.getUsersUsedOneWeek(),
-        usersUsedOneMonth=ChatActivityManager.getUsersUsedOneMonth(),
+        activeUsersOfDay=ChatActivityManager.getUserActivityTimeFrame(days=1),
+        usersUsedOneDay=ChatActivityManager.getActiveUsersTimeFrame(days=1),
+        usersUsedOneWeek=ChatActivityManager.getActiveUsersTimeFrame(days=7),
+        usersUsedOneMonth=ChatActivityManager.getActiveUsersTimeFrame(days=30),
         premiumUsers=SubscriptionManager.getPremiumUsersCount(),
-        limitReachedUsers=ChatActivityManager.getLimitReachedUsers(),
         allMessages=allMessages,
         avgUsersMessagesCount=avgUsersMessagesCount,
-        todayMessages=MessageManager.getTodayMessagesCount(),
-        lastUpdate=ChatActivityManager.getLatestChat().lastUpdated,
-        latestUser=ChatActivityManager.getLatestChat().chatId
-    ))
-
-
-# Subscription handlers
-@dp.message_handler(IsAdmin(), Text(equals="🎁 Premium obuna.!"))
-async def giveSubscription(message: types.Message):
-    await TopupState.chatId.set()
-    return await message.answer("Chat id kiriting", reply_markup=cancelKeyboards)
-
-
-@dp.message_handler(IsAdmin(), state=TopupState.chatId)
-async def topUpSetChatId(message: types.Message, state=FSMContext):
-    async with state.proxy() as data:
-        data['chatId'] = message.text
-
-    unPaidPremiumSubscription = SubscriptionManager.getUnpaidPremiumSubscription(
-        chatId=message.text, planId=PlanManager.getPremiumPlanOrCreate().id)
-    
-    if not unPaidPremiumSubscription:
-        await state.finish()
-        return await message.answer("Foydalanuvchiga premium obuna taqdim etib bo'lmaydi!")
-    
-    await TopupState.next()
-    return await message.answer(
-        "Siz rostan ushbu userga premium obuna taqdim etmoqchimisiz? Xa/Yo'q",
-        reply_markup=cancelKeyboards)
-
-
-@dp.message_handler(IsAdmin(), state=TopupState.sure)
-async def subscribeUser(message: types.Message, state=FSMContext):
-    async with state.proxy() as data:
-        chatId = data['chatId']
-
-    if message.text != "Xa":
-        await state.finish()
-        return await message.answer("Bekor qilindi!", reply_markup=adminKeyboards)
-    
-    SubscriptionManager.unsubscribe(
-        PlanManager.getFreePlanOrCreate().id,
-        chatId=chatId
+        todayMessages=MessageManager.getMessagesActivityTimeFrame(days=1, messageType='message'),
+        lastUpdate=lastChat.lastUpdated,
+        latestUserId=lastChat.chatId
     )
-    
-    chatActivity = ChatActivity.getOrCreate(chatId=chatId)
-    ChatActivity.update(chatActivity, "todaysMessages", 1)
-
-    SubscriptionManager.subscribe(
-        chatId=chatId, planId=PlanManager.getPremiumPlanOrCreate().id)
-    
-    await bot.send_message(chatId, text.PREMIUM_GRANTED_TEXT)
-    
-    await state.finish()
-    return await message.answer("Ushbu foydalanuvchi premium obunaga ega bo'ldi 🎉", reply_markup=adminKeyboards)
+    data = scheme.model_dump()
+    return await bot.send_message(chat.id, text.STATISTICS_TEXT.format_map(data))
 
 
-@dp.message_handler(IsAdmin(), Text(equals="✖️ Premiumni rad etish.!"))
-async def cancelSubscription(message: types.Message):
-    await RejectState.chatId.set()
-    return await message.answer("Chat id kiriting", reply_markup=cancelKeyboards)
+# Subscription grant handlers
+@adminRouter.callback_query(IsAdmin(), F.data == "give_premium")
+async def premiumGrant(callback: types.CallbackQuery, chat: types.Chat, state: FSMContext):
+    try:
+        await callback.answer("")
+    except TelegramBadRequest as e:
+        logger.error("An error occured", str(e.message))
+
+    await state.set_state(ConfirmSubscriptionState.receiverId)
+    return await bot.send_message(chat.id, "Chat id kiriting", reply_markup=cancelKeyboardsMarkup)
 
 
-@dp.message_handler(IsAdmin(), state=RejectState.chatId)
-async def setChatIdReject(message: types.Message, state=FSMContext):
-    async with state.proxy() as data:
-        data['chatId'] = message.text
+@adminRouter.message(ConfirmSubscriptionState.receiverId)
+async def enterReceiverId(message: types.Message, state: FSMContext):
+    try:
+        receiverId = int(message.text)
+    except ValueError:
+        await state.clear()
+        return await bot.send_message(message.chat.id, text.CANCELED_TEXT, reply_markup=cancelKeyboardsMarkup)
 
-    await RejectState.next()
-    return await message.answer("Sababni kiriting", reply_markup=cancelKeyboards)
+    await state.update_data(receiverId=receiverId)
+    await state.set_state(ConfirmSubscriptionState.planId)
+    return await message.answer("Plan id kiriting")
 
 
-@dp.message_handler(IsAdmin(), state=RejectState.reason)
-async def rejectReason(message: types.Message, state=FSMContext):  
+@adminRouter.message(ConfirmSubscriptionState.planId)
+async def processPremiumRequest(message: types.Message, state: FSMContext):
+    try:
+        planId = uuid.UUID(message.text)
+    except ValueError:
+        await state.clear()
+        return await bot.send_message(message.chat.id, text.CANCELED_TEXT,
+                                      reply_markup=cancelKeyboardsMarkup)
 
-    async with state.proxy() as data:
-        chatId = data['chatId']
+    data = await state.get_data()
+    receiverId = data.get("receiverId")
+
+    if not PlanManager.isExistsById(planId=planId):
+        return message.answer("Plan mavjud emas!")
+
+    unPaidPremiumSubscription = SubscriptionManager.getInActiveSubscription(
+        chatId=int(receiverId), planId=planId)
+
+    if not unPaidPremiumSubscription:
+        return await message.answer("Foydalanuvchiga premium obuna taqdim etib bo'lmaydi!")
+
+    await state.update_data(planId=str(planId))
+
+    return await message.answer(text.SURE_TO_SUBSCRIBE, reply_markup=confirmSubscriptionMarkup)
+
+
+@adminRouter.callback_query(IsAdmin(), F.data == "subscribe_yes")
+async def finalizeSubscription(query: types.CallbackQuery, state: FSMContext):
+    await query.answer("")
+
+    data = await state.get_data()
+    receiverId = data.get("receiverId")
+    planId = data.get("planId")
+
+    SubscriptionManager.bulkUnsubscribe(plans=PlanManager.excludePlan(planId=planId),
+                                        chatId=receiverId)
+    SubscriptionManager.subscribe(chatId=receiverId, planId=planId)
+
+    await bot.send_message(receiverId, text.PREMIUM_GRANTED_TEXT)
+    await state.clear()
+    return await bot.send_message(query.from_user.id, text.SUCCESSFULLY_SUBSCRIBED,
+                                  reply_markup=adminKeyboardsMarkup)
+
+
+# Reject subscription handler
+@adminRouter.callback_query(IsAdmin(), F.data == "reject_subscription_request")
+async def rejectSubscriptionRequest(callback: types.Message, chat: types.Chat, state: FSMContext):
+    await callback.answer("")
+    await state.set_state(RejectState.receiverId)
+    return await bot.send_message(chat.id, "Chat id kiriting", reply_markup=cancelKeyboardsMarkup)
+
+
+@adminRouter.message(IsAdmin(), RejectState.receiverId)
+async def setRejectionReceiverId(message: types.Message, state: FSMContext):
+    if not ChatManager.isExistsByUserId(chatId=int(message.text)):
+        return await message.answer(text.NOT_FOUND_USER)
+
+    await state.update_data(receiverId=message.text)
+    await state.set_state(RejectState.reason)
+    return await message.answer("Sababni kiriting", reply_markup=cancelKeyboardsMarkup)
+
+
+@adminRouter.message(IsAdmin(), RejectState.reason)
+async def processRejectionReason(message: types.Message, state: FSMContext):
+    data = await state.get_data()
+    receiverId = data.get("receiverId")
 
     try:
-        await bot.send_message(chatId, text.getRejectReason(message.text))
-    except BotBlocked:
-        print("Bot blocked!")
+        SubscriptionManager.rejectPremiumRequest(receiverId)
+        await bot.send_message(receiverId, text.REJECTED_TEXT.format(reason=message.text))
+    except TelegramBadRequest:
+        await bot.send_message(message.chat.id, "Bot foydalanuvchi tomonidan bloklangan")
+    except AiogramException as e:
+        return await bot.send_message(message.chat.id, e.message_text)
 
-    SubscriptionManager.rejectPremiumRequest(chatId)
-    
-    await state.finish()
-    return await message.answer("Premium obuna rad etildi", reply_markup=adminKeyboards)
+    await state.clear()
+    return await message.answer("Premium obuna rad etildi", reply_markup=adminKeyboardsMarkup)
 
 
 # Send Message command
 
-@dp.message_handler(IsAdmin(), Text(equals="📤 Xabar yuborish.!"))
-async def sendMessageToUsers(message: types.Message):
-    return await message.answer(
-        "Xabar turini kiriting", reply_markup=sendMessageMenu)
+
+@adminRouter.callback_query(IsAdmin(), F.data == "send_message_to_users")
+async def initiateMessageSending(callback: types.CallbackQuery, chat: types.Chat, state: FSMContext):
+    await callback.answer("")
+    await state.set_state(SendMessageToUsers.messageType)
+    return await bot.send_message(chat.id, "Xabar turini kiriting",
+                                  reply_markup=sendMessageMarkup)
 
 
-""" Handling the send message command"""
+@adminRouter.message(SendMessageToUsers.messageType)
+async def selectMessageType(message: types.Message, user: types.User, state: FSMContext):
+    await state.update_data(messageType=message.text)
+    await state.set_state(SendMessageToUsers.userType)
+    await bot.send_message(user.id, "Kimlarga yuborishni tanlang, FREE/ALL")
 
 
-# Handlers of send message with inline buttons
-@dp.callback_query_handler(text="without_inline")
-async def setUserTypeToSend(message: types.Message):
-    await AdminSendMessage.userType.set()
-    await bot.send_message(message.from_user.id, "Kimlarga yuborishni tanlang, FREE/ALL")
-    return await message.answer("Kimlarga yuborishni tanlang, FREE/ALL")
+@adminRouter.message(SendMessageToUsers.userType)
+async def selectUserSegment(message: types.Message, user: types.User, state: FSMContext):
+    await state.update_data(userType=message.text)
+    data = await state.get_data()
+
+    if data.get("messageType") == "Inline bilan":
+        await state.set_state(SendMessageToUsers.buttons)
+        await bot.send_message(user.id, text.INLINE_BUTTONS_GUIDE)
+        return
+
+    await state.set_state(SendMessageToUsers.message)
+    await bot.send_message(user.id, text.SELECT_MESSAGE_TYPE)
 
 
-@dp.message_handler(state=AdminSendMessage.userType)
-async def setMessage(message: types.Message, state=FSMContext):
-    async with state.proxy() as data:
-        data["contentType"] = message.text
-
-    await bot.send_message(message.from_user.id, "Xabar/Rasm/Video kiriting")
-    await AdminSendMessage.next()
+@adminRouter.message(SendMessageToUsers.buttons)
+async def setInlineButtons(message: types.Message, state: FSMContext):
+    await state.update_data(buttons=message.text)
+    await state.set_state(SendMessageToUsers.message)
+    return await message.answer(text.SELECT_MESSAGE_TYPE)
 
 
-@dp.message_handler(state=AdminSendMessage.message, content_types=types.ContentType.ANY)
-async def sendToUsersMessage(message: types.Message, state=FSMContext):
-    async with state.proxy() as data:
-        contentType = data["contentType"]
+@adminRouter.message(SendMessageToUsers.message)
+async def sendMessageToUsers(message: types.Message, state: FSMContext):
+    data = await state.get_data()
 
-    users = fetchUsersByType(contentType)
+    chats = fetchUsersByUserType(userType=data.get("userType"))
+    sendAny = SendAny(message=message)
 
-    if not users:
-        await state.finish()
-        return await message.answer("Foydalanuvchilar yo'q!", reply_markup=adminKeyboards)
+    if data.get("messageType") == "Inline bilan":
+        inlineButtons = extractInlineButtonsFromText(data.get("buttons"))
+        reportData = await sendAny.sendAnyMessages(
+            chats=chats, reply_markup=getInlineMarkup(inlineButtons))
+    else:
+        reportData = await sendAny.sendAnyMessages(chats)
 
-    receivedUsersCount, blockedUsersCount = await SendAny(message=message).sendAnyMessages(users)
+    await sendError(text.SENT_USER_REPORT_TEXT.format(
+        receivedUsersCount=reportData.get("receivedUsersCount"),
+        blockedUsersCount=reportData.get("blockedUsersCount"))
+    )
 
-    await sendError(f"Message sent to {receivedUsersCount} users")
-    await sendError(f"Bot was blocked by {blockedUsersCount} users")
-
-    await state.finish()
-
-    return await message.answer("Xabar yuborildi!")
-
-
-""" Send message with inline buttons handlers """
-
-
-@dp.callback_query_handler(text="with_inline")
-async def checkIsSubscribed_Inline(message: types.Message):
-    await SendMessageWithInlineState.buttons.set()
-
-    await bot.send_message(message.from_user.id,
-                           text.INLINE_BUTTONS_GUIDE, parse_mode='MARKDOWN')
-    return await message.answer("Inline")
-
-
-# Set inline buttons
-@dp.message_handler(state=SendMessageWithInlineState.buttons)
-async def setButtons(message: types.Message, state=FSMContext):
-    async with state.proxy() as data:
-        data["buttons"] = message.text
-
-    await SendMessageWithInlineState.next()
-    return await message.answer("Xabar/Rasm/Video kiriting")
-
-
-@dp.message_handler(state=SendMessageWithInlineState.message, content_types=types.ContentType.ANY)
-async def sendMessageWithInline(message: types.Message, state=FSMContext):
-    async with state.proxy() as data:
-        inlineKeyboardsText = data["buttons"]
-
-    inlineKeyboards = extractInlineButtons(inlineKeyboardsText)
-
-    users = PlanManager.getFreePlanUsers()
-
-    receivedUsersCount, blockedUsersCount = await SendAny(message=message).sendAnyMessages(
-        users=users, inlineKeyboards=getInlineMenu(inlineKeyboards))
-
-    await sendError(f"Message sent to {receivedUsersCount} users")
-    await sendError(f"Bot was blocked by {blockedUsersCount} users")
-    await state.finish()
+    await state.clear()
 
     return await message.answer("Xabar yuborildi!")
+
 

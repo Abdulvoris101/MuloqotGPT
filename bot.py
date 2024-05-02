@@ -1,10 +1,20 @@
-from aiogram import Bot, Dispatcher, types
-from aiogram.contrib.fsm_storage.redis import RedisStorage2
-from utils import constants
+import logging
+
+from aiogram import Bot, Dispatcher
+from aiogram.fsm.storage.redis import RedisStorage
+from aioredis import Redis
+from apps.common.settings import settings
+
+redis = Redis(host=settings.REDIS_HOST, port=6379, db=1)
+
+bot = Bot(token=settings.BOT_TOKEN, parse_mode='HTML')
+storage = RedisStorage(redis=redis)
 
 
-bot = Bot(token=constants.BOT_TOKEN, parse_mode='HTML')
-storage = RedisStorage2(constants.REDIS_HOST, 6379, db=1, pool_size=10)
+logging.basicConfig(level=logging.INFO,
+                    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+                    filename='bot.log',  # Logs will be stored in 'bot.log'
+                    filemode='a')  # 'a' means append (add new log entries to the end of the file)
+logger = logging.getLogger(__name__)
 
-
-dp = Dispatcher(bot, storage=storage)
+dp = Dispatcher(storage=storage)

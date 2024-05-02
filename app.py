@@ -1,64 +1,62 @@
+from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from aiogram import types
-
-from tasks import cancelExpiredSubscriptions
-from utils import constants
-from aiogram.dispatcher.dispatcher import Dispatcher, Bot
+from apps.common.midlleware import MessageMiddleware, CallbackMiddleware
+from apps.common.settings import settings
 import uvicorn
-from apps.core.handlers import dp
-from apps.admin.handlers import dp
+from apps.core.handlers import coreRouter
+from apps.admin.handlers import adminRouter
 from bot import dp, bot
-from apps.imageai.handlers import dp
-from apps.subscription.handlers import dp
-
+from apps.subscription.handlers import subscriptionRouter
 from apps.admin.views import router
-
 from fastapi.staticfiles import StaticFiles
 from fastapi_pagination import add_pagination
 from celery import Celery
-import asyncio
+from fastapi import Request
+import logging
+
 
 celery = Celery(
     'tasks',
-    broker=constants.REDIS_URL,
-    backend=constants.REDIS_URL,
+    broker=settings.REDIS_URL,
+    backend=settings.REDIS_URL,
 )
 
-app = FastAPI()
-
-app.mount("/static", StaticFiles(directory="layout/static"), name="static")                                         
-
-app.include_router(router, prefix="/moderator")
-
-WEBHOOK_PATH = f"/bot/{constants.BOT_TOKEN}"
-WEBHOOK_URL = constants.WEB_URL + WEBHOOK_PATH
+WEBHOOK_PATH = f"/bot/{settings.BOT_TOKEN}"
+WEBHOOK_URL = settings.WEB_URL + WEBHOOK_PATH
 
 
-@app.on_event("startup")
-async def on_startup():
+@asynccontextmanager
+async def lifespan(app: FastAPI):
     webhookInfo = await bot.get_webhook_info()
+    dp.include_router(adminRouter)
+    dp.include_router(subscriptionRouter)
+    dp.include_router(coreRouter)
+    dp.message.middleware(MessageMiddleware())
+    dp.callback_query.middleware(CallbackMiddleware())
 
     if webhookInfo.url != WEBHOOK_URL:
         await bot.set_webhook(
-            url=WEBHOOK_URL
+            url=WEBHOOK_URL,
+            drop_pending_updates=True
         )
+
+    yield
+
+    await dp.storage.close()
+    await bot.delete_webhook(drop_pending_updates=True)
+
+
+app = FastAPI(lifespan=lifespan)
+app.mount("/static", StaticFiles(directory="layout/static"), name="static")
+
+app.include_router(router, prefix="/moderator")
 
 
 @app.post(WEBHOOK_PATH)
-async def bot_webhook(update: dict):
-    tgUpdate = types.Update(**update)
-    
-    Dispatcher.set_current(dp)
-    Bot.set_current(bot)
-
-    await dp.process_update(tgUpdate)
-
-
-@app.on_event("shutdown")
-async def on_shutdown():
-    await dp.storage.close()
-
-    await bot.delete_webhook()
+async def bot_webhook(request: Request):
+    tgUpdate = types.Update.model_validate(await request.json(), context={"bot": bot})
+    await dp.feed_update(bot, tgUpdate)
 
 
 add_pagination(app)

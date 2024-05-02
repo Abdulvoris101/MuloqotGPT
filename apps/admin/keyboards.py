@@ -1,41 +1,48 @@
-from aiogram import types
+from uuid import UUID
 
-adminKeyboards = types.ReplyKeyboardMarkup([
-        [
-            types.KeyboardButton("📤 Xabar yuborish.!"),
-            types.KeyboardButton("🤖 System xabar yuborish.!")
-        ],
-        [
-            types.KeyboardButton("📊 Statistika.!"),
-            types.KeyboardButton("🎁 Premium obuna.!")
-        ],
-        [
-            types.KeyboardButton("✖️ Premiumni rad etish.!")
-        ]
-    ], resize_keyboard=True, one_time_keyboard=True
-)
+from aiogram.filters.callback_data import CallbackData
+from aiogram.types import ReplyKeyboardMarkup, InlineKeyboardMarkup
+from aiogram.utils.keyboard import ReplyKeyboardBuilder, InlineKeyboardBuilder
 
 
-cancelKeyboards = types.ReplyKeyboardMarkup([
-        [
-            types.KeyboardButton("/cancel"),
-        ],
-    ], resize_keyboard=True, one_time_keyboard=True
-)
+adminKeyboardsBuilder = InlineKeyboardBuilder()
+adminKeyboardsBuilder.button(text="➡️ Xabar yuborish", callback_data="send_message_to_users")
+adminKeyboardsBuilder.button(text="📈 Statistika", callback_data="statistics")
+adminKeyboardsBuilder.button(text="🎁 Premium obuna", callback_data="give_premium")
+adminKeyboardsBuilder.button(text="✖️ Premiumni rad etish", callback_data="reject_subscription_request")
+adminKeyboardsBuilder.adjust(2, 2)
 
-sendMessageMenu = types.InlineKeyboardMarkup(row_width=1)
+adminKeyboardsMarkup = InlineKeyboardMarkup(inline_keyboard=adminKeyboardsBuilder.export())
 
-inlineMessage = types.InlineKeyboardButton(text="Inline bilan", callback_data="with_inline")
-simpleMessage = types.InlineKeyboardButton(text="Oddiy post", callback_data="without_inline")
+confirmSubscriptionBuilder = InlineKeyboardBuilder()
 
-sendMessageMenu.add(inlineMessage)
-sendMessageMenu.add(simpleMessage)
+confirmSubscriptionBuilder.button(text="Taqdim etish", callback_data="subscribe_yes")
+confirmSubscriptionBuilder.button(text="Bekor qilish", callback_data="cancel")
+confirmSubscriptionBuilder.adjust(1, 1)
+
+confirmSubscriptionMarkup = InlineKeyboardMarkup(inline_keyboard=confirmSubscriptionBuilder.export())
 
 
-def getInlineMenu(inline_keyboards):
-    inlineMenu = types.InlineKeyboardMarkup(row_width=2)
+cancelKeyboardsBuilder = ReplyKeyboardBuilder()
+cancelKeyboardsBuilder.button(text="/cancel")
+
+cancelKeyboardsMarkup = ReplyKeyboardMarkup(keyboard=cancelKeyboardsBuilder.export(),
+                                            resize_keyboard=True, one_time_keyboard=True)
+
+
+sendMessageBuilder = ReplyKeyboardBuilder()
+sendMessageBuilder.button(text="Inline bilan")
+sendMessageBuilder.button(text="Oddiy post")
+
+sendMessageMarkup = ReplyKeyboardMarkup(keyboard=sendMessageBuilder.export(), resize_keyboard=True,
+                                        one_time_keyboard=True)
+
+
+def getInlineMarkup(inline_keyboards):
+    inlineBuilder = InlineKeyboardBuilder()
 
     for kb in inline_keyboards:
-        inlineMenu.add(types.InlineKeyboardButton(text=str(kb["name"]), url=str(kb["callback_url"])))
+        inlineBuilder.button(text=str(kb["name"]),
+                             url=str(kb["callback_url"]))
     
-    return inlineMenu
+    return InlineKeyboardMarkup(inline_keyboard=inlineBuilder.export())

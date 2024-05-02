@@ -1,38 +1,37 @@
-from aiogram.dispatcher.filters.state import State, StatesGroup
+from aiogram.fsm.state import StatesGroup, State
 
 
 class AdminLoginState(StatesGroup):
     password = State()
 
 
-class AdminSystemMessageState(StatesGroup):
-    message = State()
-
-
-class AdminSendMessage(StatesGroup):
+class SendMessageToUsers(StatesGroup):
+    messageType = State()
     userType = State()
-    message = State()
-
-
-class SendMessageWithInlineState(StatesGroup):
     buttons = State()
     message = State()
 
 
 class PaymentState(StatesGroup):
-    first_step = State()
-    second_step = State()
+    planId = State()
+    awaitingPaymentConfirmation = State()
+    awaitingPhotoProof = State()
 
 
-class TopupState(StatesGroup):
-    chatId = State()
-    sure = State()
+class ConfirmSubscriptionState(StatesGroup):
+    receiverId = State()
+    planId = State()
 
 
 class RejectState(StatesGroup):
-    chatId = State()
+    receiverId = State()
     reason = State()
 
 
-class Comment(StatesGroup):
-    message = State()
+class ChooseGptModelState(StatesGroup):
+    model = State()
+
+
+class FeedbackMessageState(StatesGroup):
+    text = State()
+

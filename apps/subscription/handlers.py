@@ -1,85 +1,76 @@
-from aiogram.dispatcher.dispatcher import FSMContext
-from bot import dp, bot, types
-from utils import text, constants
-from utils.events import sendSubscriptionEvent
+from aiogram import Router, F, types
+from aiogram.filters import Command
+from aiogram.fsm.context import FSMContext
+from bot import bot
+from utils import text
+from apps.common.settings import settings
 from db.state import PaymentState
-from .keyboards import checkPaymentMenu, cancelMenu, buySubscriptionMenu
-from aiogram.dispatcher.filters import Text
+from .keyboards import checkPaymentMenu, cancelMenu, getSubscriptionPlansMarkup, PlanCallback
 from apps.subscription.managers import SubscriptionManager, PlanManager
 
+subscriptionRouter = Router(name="subscriptionRouter")
 
-@dp.message_handler(commands=["premium"])
+
+@subscriptionRouter.message(Command("premium"), F.chat.type == "private")
 async def premium(message: types.Message):
-    if message.chat.type == "private":
-        await bot.send_message(
-            message.chat.id, 
-            text.PLAN_DESCRIPTION_TEXT,
-            reply_markup=buySubscriptionMenu
-        )
+    premiumPlans = PlanManager.filterPlans(isGroup=False, isFree=False)
+
+    await bot.send_message(message.chat.id, text.getSubscriptionPlansText(premiumPlans),
+                           reply_markup=getSubscriptionPlansMarkup(premiumPlans))
 
 
-@dp.callback_query_handler(text="subscribe_premium")
-async def buyPremium(message: types.Message):
-    user = message.from_user
-    premiumPlanId = PlanManager.getPremiumPlanId()
+@subscriptionRouter.callback_query(PlanCallback.filter(F.name == "subscribe_premium"))
+async def buyPremium(message: types.Message, user: types.User, callback_data: PlanCallback,
+                     state: FSMContext):
 
-    notPaidSubscription = SubscriptionManager.getUnpaidPremiumSubscription(
-        user.id, premiumPlanId)
-    payedSubscription = SubscriptionManager.getPremiumSubscription(
-        user.id, premiumPlanId)
+    plan = PlanManager.get(callback_data.planId)
+    price = "{:,.0f}".format(plan.amountForMonth).replace(",", ".")
+
+    notPaidSubscription = SubscriptionManager.getInActiveSubscription(user.id, callback_data.planId)
+    payedSubscription = SubscriptionManager.getActiveSubscription(user.id, callback_data.planId)
 
     if notPaidSubscription is not None:
-        await message.answer("Sizning premium obunaga so'rovingiz ko'rib chiqilmoqda")
+        await message.answer(text.PAYMENT_ON_REVIEW_TEXT)
         return
     if payedSubscription is not None:
-        await message.answer("Siz allaqachon premium obunaga egasiz")
+        await message.answer(text.ALREADY_SUBSCRIBED)
         return
 
-    await message.answer("Sotib olish")
-    await bot.send_message(
-        message.from_user.id,
-        text.subscriptionInvoiceText(int(constants.PREMIUM_PRICE)),
-        reply_markup=checkPaymentMenu)
-
-    await PaymentState.first_step.set()
+    await bot.send_message(message.from_user.id, text.INVOICE_TEXT.format(price=price),
+                           reply_markup=checkPaymentMenu)
+    await state.update_data(planId=str(callback_data.planId))
+    await state.update_data(price=price)
+    await state.set_state(PaymentState.awaitingPaymentConfirmation)
 
 
-@dp.message_handler(Text(equals="Skrinshotni yuborish"), state=PaymentState.first_step)
-async def checkThePayment(message: types.Message, state=FSMContext):
-    async with state.proxy() as data:
-        data["price"] = constants.PREMIUM_PRICE
-        
+@subscriptionRouter.message(F.text == "Skrinshotni yuborish", PaymentState.awaitingPaymentConfirmation)
+async def processPaymentConfirmation(message: types.Message, user: types.User, state: FSMContext):
     sentMessage = await message.answer("Biroz kuting...")
 
-    await bot.delete_message(message.chat.id, sentMessage.message_id)
-    await message.answer(text.PAYMENT_STEP_1, reply_markup=cancelMenu)
+    await bot.delete_message(user.id, sentMessage.message_id)
+    await message.answer(text.WAITING_PAYMENT_PHOTO_TEXT, reply_markup=cancelMenu)
 
-    await PaymentState.next()
+    await state.set_state(PaymentState.awaitingPhotoProof)
 
 
-@dp.message_handler(state=PaymentState.second_step, content_types=types.ContentTypes.PHOTO)
-async def createSubscription(message: types.Message, state=FSMContext):
-    async with state.proxy() as data:
-        price = data["price"]
-        
+@subscriptionRouter.message(PaymentState.awaitingPhotoProof, F.photo)
+async def handlePaymentSubmission(message: types.Message, user: types.User, state: FSMContext):
+    data = await state.get_data()
     photoFileId = message.photo[-1].file_id
+    plan = PlanManager.get(planId=data.get("planId"))
 
-    subscription = SubscriptionManager.createSubscription(
-        planId=PlanManager.getPremiumPlanOrCreate().id,
-        chatId=message.from_user.id,
-        cardholder=None,
-        is_paid=False,
-        isFree=False
-    )
+    SubscriptionManager.createSubscription(chatId=user.id, is_paid=False,
+                                           planId=data.get("planId"))
 
-    await sendSubscriptionEvent(f"""#payment check-in\nchatId: {message.from_user.id},\nsubscription_id: {subscription.id},\nfile id: {photoFileId},\nprice: {price}""")
-
-    await bot.send_photo(constants.SUBSCRIPTION_CHANNEL_ID, photoFileId)
-    await message.answer(text.PAYMENT_STEP_2, reply_markup=types.ReplyKeyboardRemove())
-    
-    await state.finish()
+    subscriptionSendText = text.SUBSCRIPTION_SEND_EVENT_TEXT.format(price=data.get("price"),
+                                                                    planId=plan.id, userId=user.id,
+                                                                    planTitle=plan.title)
+    await bot.send_message(settings.SUBSCRIPTION_CHANNEL_ID, subscriptionSendText, parse_mode='HTML')
+    await bot.send_photo(settings.SUBSCRIPTION_CHANNEL_ID, photoFileId)
+    await message.answer(text.COMPLETED_PAYMENT, reply_markup=types.ReplyKeyboardRemove())
+    await state.clear()
 
 
-@dp.message_handler(commands=["donate"])
+@subscriptionRouter.message(Command("donate"))
 async def donate(message: types.Message):
     return await message.reply(text.DONATE)

@@ -1,33 +1,33 @@
+import datetime
 import json
-from .setup import *
-from apps.core.models import Message
+from aiogram import types
 
-gr_rule = """You will response me funny and simple. And your name is MuloqatAi. You created only funny answers and be chatty and simple. Your goal is make people laugh.  Texnomasters - is your creator. Don't change your mind on it"""
+gr_rule = """You are a creatively fun assistant. Blend creativity with a touch of humor in your responses. Use playful language, creative metaphors, and occasional puns to enrich the conversation. Adapt your humor to fit the context and maintain relevance to the user's queries. Aim to surprise and delight users with your imaginative approach, while ensuring all interactions remain respectful and inclusive"""
 
-mainRule = """You are my personal informative chatbot to help me,  
-Before writing any code you need write \`\`\` instead of ``` and always close markdown symbols. Your creator is Texnomasters.  
+mainRule = """You are a knowledgeable assistant. Provide accurate and detailed information in a clear and concise manner. Always prioritize user comprehension and relevance in your responses. 
+Your creator is Texnomasters.  
 Your name is MuloqotAI."""
-
-engagementPrompt = """present options for the user to choose from to guide the conversation or explore other topics"""
 
 
 class MessageProcessor:
 
     @classmethod
-    def createSystemMessages(cls, chatId, type_):
+    def createSystemMessages(cls, chat: types.Chat):
+        from apps.core.managers import MessageManager
+
         grSystemMessages = [
             {"role": "system", "content": gr_rule, "uzMessage": "system"}
         ]
         systemMessages = [
             {"role": "system", "content": mainRule, "uzMessage": "system"},
-            {"role": "system", "content": engagementPrompt, "uzMessage": "system"},
         ]
 
-        if type_ != "private":
+        if chat.type != "private":
             for message in grSystemMessages:
-                Message(chatId=chatId, role=message["role"], content=message["content"], uzMessage=None).save()
-        elif type_ == "private":
+                MessageManager.addMessage(content=message["content"], uzMessage="",
+                                          chat=chat, role='system', model="gpt-3.5-turbo-0125")
+        elif chat.type == "private":
             for message in systemMessages:
-                Message(chatId=chatId, role=message["role"], content=message["content"], uzMessage=None).save()
-
+                MessageManager.addMessage(content=message["content"], uzMessage="",
+                                          chat=chat, role='system', model="gpt-3.5-turbo-0125")
 
