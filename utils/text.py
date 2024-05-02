@@ -45,7 +45,7 @@ Muloqot  salom, menga ....
 
 Qachonki o'zbek tilida so'rov kiritsangiz avtotarjima o'zi avtomatik tarzda yonadi.
 
-Bot bilan bo'lgan suxbatni tozalash uchun /clear ushbu buyruqni yuboring!
+Bot bilan bo'lgan suxbatni tozalash uchun /new ushbu buyruqni yuboring!
 
 Botning rasmiy guruhi - @muloqotaigr
 Botning rasmiy kanali - @muloqotai
