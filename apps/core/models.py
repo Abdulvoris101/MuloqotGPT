@@ -1,5 +1,7 @@
+import json
+
 from aiogram import types
-from sqlalchemy import Column, Integer, desc, String, Enum, Boolean, Text, BigInteger, DateTime, ForeignKey
+from sqlalchemy import Column, JSON, Integer, desc, String, Enum, Boolean, Text, BigInteger, DateTime, ForeignKey
 
 from apps.core.schemes import ChatBase
 from db.setup import session, Base
@@ -16,12 +18,13 @@ class Chat(Base):
     chatType = Column(Enum('private', 'group', 'supergroup', name="chat_type_enum"), server_default='private')
     username = Column(String, nullable=True)
     referredBy = Column(String, nullable=True)
+    referralUsers = Column(JSON, nullable=True)
     currentGptModel = Column(Enum('gpt-3.5-turbo-0125', 'gpt-4', name="chat_gptmodel_enum", create_type=False))
     createdAt = Column(DateTime, nullable=True)
     lastUpdated = Column(DateTime, nullable=True)
     chatActivity = relationship('ChatActivity', backref='chat', lazy='dynamic')
 
-    def __init__(self, chatId, chatName, chatType, username, currentGptModel, createdAt, lastUpdated):
+    def __init__(self, chatId, chatName, chatType, username, currentGptModel, referralUsers, createdAt, lastUpdated):
         self.chatName = chatName
         self.chatId = chatId
         self.chatType = chatType
@@ -29,6 +32,7 @@ class Chat(Base):
         self.createdAt = createdAt
         self.currentGptModel = currentGptModel
         self.lastUpdated = lastUpdated
+        self.referralUsers = referralUsers
         super().__init__()
 
     def save(self):

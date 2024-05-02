@@ -1,3 +1,5 @@
+import json
+
 from aiogram import Router, F, types
 from aiogram.enums import ContentType
 from aiogram.exceptions import TelegramBadRequest, TelegramNotFound, DetailedAiogramError
@@ -16,12 +18,12 @@ from .keyboards import feedbackMarkup, cancelMarkup, profileMarkup, gptModelsMar
 from .managers import ChatActivityManager, MessageManager, ChatManager
 from utils.translate import translateMessage
 from utils import settings, containsAnyWord
-from apps.subscription.managers import SubscriptionManager, PlanManager, LimitManager
+from apps.subscription.managers import SubscriptionManager, PlanManager, LimitManager, ChatQuotaManager
 import utils.text as text
 import asyncio
 
 from .models import ChatActivity, Chat
-from .schemes import ChatActivityViewScheme
+from .schemes import ChatActivityViewScheme, ChatScheme
 from .utility_handlers import TextMessageHandler, ImageMessageHandler
 from ..subscription.models import ChatQuota, Limit
 from ..subscription.schemes import ChatQuotaGetScheme
@@ -31,20 +33,21 @@ coreRouter = Router(name="coreRouter")
 
 @coreRouter.message(CommandStart())
 async def sendWelcome(message: types.Message, chat: types.Chat, command: CommandObject):
-    streamingText = text.GREETINGS_TEXT
-    messageChunkSize = 20
-    updateInterval = 0.1
-    ChatManager.assignReferredBy(chat.id, command.args)
+    referral = command.args
+    ChatManager.assignReferredBy(chat.id, referral)
 
-    try:
-        msg = await bot.send_message(chat.id, streamingText[:messageChunkSize])
-        for i in range(20, len(streamingText), 20):
-            await asyncio.sleep(updateInterval)
-            await bot.edit_message_text(chat_id=chat.id, message_id=msg.message_id,
-                                        text=streamingText[:i + 10])
-    except DetailedAiogramError as e:
-        logger.exception("An error occured", exc_info=e.message)
-        return message.reply(text.SERVER_ERROR_TRY_AGAIN)
+    if ChatManager.isValidReferral(chat.id, referral):
+        referredUser = Chat.get(int(referral))
+        chatScheme = ChatScheme(**referredUser.to_dict())
+        chatScheme.referralUsers.append(chat.id)
+        referredUser.referralUsers = chatScheme.model_dump().get("referralUsers")
+        referredUser.save()
+
+        ChatQuotaManager.incrementCount(int(referral), "additionalGpt3Requests", 10)
+
+        await bot.send_message(referredUser.chatId, text.CONGRATS_GAVE_REQUESTS)
+
+    return await TextMessageHandler(message).sendStreamingMessage(text.GREETINGS_TEXT)
 
 
 @coreRouter.message(Command("profile"), F.chat.type == "private")
@@ -133,6 +136,13 @@ async def helpCommand(message: types.Message):
     await message.answer(text.HELP_COMMAND)
 
 
+@coreRouter.callback_query(F.data == "referral_link")
+async def getReferralInfo(callback: types.CallbackQuery, user: types.User):
+    await callback.answer("Referral!")
+    await bot.send_message(user.id, text.REFERRAL_GUIDE.format(userId=user.id,
+                                                               botUsername=settings.BOT_USERNAME))
+
+
 @coreRouter.callback_query(F.data == "translate_callback")
 async def translateCallback(callback: types.CallbackQuery, user: types.User):
     await callback.answer("")
@@ -165,8 +175,8 @@ async def cancel(callback: types.CallbackQuery, user: types.User, state: FSMCont
     await state.clear()
 
 
-@coreRouter.message(Command("clear"))
-async def clearChat(message: types.Message, chat: types.Chat):
+@coreRouter.message(Command("new"))
+async def newChat(message: types.Message, chat: types.Chat):
     MessageManager.clearUserChat(chat.id)
     await bot.send_message(chat.id, text.CONTEXT_CHAT_CLEARED_TEXT)
 
