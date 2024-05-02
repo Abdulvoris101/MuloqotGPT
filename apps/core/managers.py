@@ -235,11 +235,11 @@ class MessageManager:
     @classmethod
     def getUserMessagesTimeFrame(cls, chatId: int, model: str, subscription: Subscription,
                                  days: int = 1, messageType: str = "message") -> int:
-
+        currentPeriodStart = subscription.currentPeriodStart - timedelta(minutes=30)
         currentPeriodEnd = subscription.currentPeriodStart + timedelta(days=days)
 
         return session.query(Message).filter(
-            and_(Message.createdAt >= subscription.currentPeriodStart,
+            and_(Message.createdAt >= currentPeriodStart,
                  Message.createdAt <= currentPeriodEnd,
                  Message.messageType == messageType,
                  Message.chatId == chatId,
