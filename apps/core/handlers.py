@@ -194,11 +194,10 @@ async def onUserJoin(event: ChatMemberUpdated):
 
 
 @coreRouter.message(isBotMentioned(), TextContentFilter())
-@coreRouter.message(TextContentFilter())
+@coreRouter.message(TextContentFilter(), F.chat.type == 'private')
 async def handleMessages(message: types.Message, chat: types.Chat):
+    progressMessage = await bot.send_message(chat_id=chat.id, text=text.WAIT_MESSAGE_TEXT)
     try:
-        progressMessage = await bot.send_message(chat_id=chat.id, text=text.WAIT_MESSAGE_TEXT)
-
         async with ChatActionSender.typing(bot=bot, chat_id=chat.id):
             if containsAnyWord(message.text, settings.IMAGE_GENERATION_WORDS):
                 return await ImageMessageHandler(message=message).handle()
