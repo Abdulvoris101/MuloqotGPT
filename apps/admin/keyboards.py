@@ -10,7 +10,8 @@ adminKeyboardsBuilder.button(text="➡️ Xabar yuborish", callback_data="send_m
 adminKeyboardsBuilder.button(text="📈 Statistika", callback_data="statistics")
 adminKeyboardsBuilder.button(text="🎁 Premium obuna", callback_data="give_premium")
 adminKeyboardsBuilder.button(text="✖️ Premiumni rad etish", callback_data="reject_subscription_request")
-adminKeyboardsBuilder.adjust(2, 2)
+adminKeyboardsBuilder.button(text="➡️ Userga xabar yuborish", callback_data="send_message_to_user")
+adminKeyboardsBuilder.adjust(2, 2, 1)
 
 adminKeyboardsMarkup = InlineKeyboardMarkup(inline_keyboard=adminKeyboardsBuilder.export())
 

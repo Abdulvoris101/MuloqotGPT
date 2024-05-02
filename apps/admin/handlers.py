@@ -4,7 +4,7 @@ from aiogram import Router, F, types
 from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
 from bot import bot, logger
-from db.state import AdminLoginState, SendMessageToUsers, ConfirmSubscriptionState, RejectState
+from db.state import AdminLoginState, SendMessageToUsers, ConfirmSubscriptionState, RejectState, SendMessageToUser
 from apps.common.exception import AiogramException
 from utils.message import fetchUsersByUserType, SendAny
 from .models import Admin
@@ -184,11 +184,39 @@ async def processRejectionReason(message: types.Message, state: FSMContext):
     await state.clear()
     return await message.answer("Premium obuna rad etildi", reply_markup=adminKeyboardsMarkup)
 
+# Send Message to User directly
+
+
+@adminRouter.callback_query(IsAdmin(), F.data == "send_message_to_user")
+async def sendMessageToUser(callback: types.CallbackQuery, chat: types.Chat, state: FSMContext):
+    await callback.answer("")
+    await state.set_state(SendMessageToUser.chatId)
+    return await bot.send_message(chat.id, "Chat id kiriting")
+
+
+@adminRouter.message(SendMessageToUser.chatId)
+async def setChatId(message: types.Message, chat: types.Chat, state: FSMContext):
+    await state.update_data(chatId=message.text)
+    await state.set_state(SendMessageToUser.text)
+    return await bot.send_message(chat.id, "Xabarni kiriting")
+
+
+@adminRouter.message(SendMessageToUser.text)
+async def sendTextToChat(message: types.Message, chat: types.Chat, state: FSMContext):
+    data = await state.get_data()
+    await state.clear()
+
+    try:
+        await bot.send_message(data.get('chatId'), message.text)
+        await message.answer("Xabar yuborildi!", reply_markup=adminKeyboardsMarkup)
+    except TelegramBadRequest:
+        logger.error("An error occured!")
+        await message.answer("Foydalanuvchi bloklangan!", reply_markup=adminKeyboardsMarkup)
 
 # Send Message command
 
 
-@adminRouter.callback_query(IsAdmin(), F.data == "send_message_to_users")
+@adminRouter.callback_query(IsAdmin(), F.data == "send_message_to_user")
 async def initiateMessageSending(callback: types.CallbackQuery, chat: types.Chat, state: FSMContext):
     await callback.answer("")
     await state.set_state(SendMessageToUsers.messageType)

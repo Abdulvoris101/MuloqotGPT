@@ -5,6 +5,10 @@ class AdminLoginState(StatesGroup):
     password = State()
 
 
+class SendMessageToUser(StatesGroup):
+    text = State()
+    chatId = State()
+
 class SendMessageToUsers(StatesGroup):
     messageType = State()
     userType = State()
