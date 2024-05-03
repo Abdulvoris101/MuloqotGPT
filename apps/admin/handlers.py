@@ -58,6 +58,7 @@ async def adminLogin(message: types.Message, user: types.User, state: FSMContext
 
 @adminRouter.callback_query(IsAdmin(), F.data == "statistics")
 async def statisticsHandler(callback: types.CallbackQuery, chat: types.Chat):
+    await callback.answer("Statistika!")
     usersCount = ChatManager.usersCount()
     allMessages = Message.count()
     avgUsersMessagesCount = allMessages / usersCount
@@ -84,6 +85,8 @@ async def statisticsHandler(callback: types.CallbackQuery, chat: types.Chat):
 # Subscription grant handlers
 @adminRouter.callback_query(IsAdmin(), F.data == "give_premium")
 async def premiumGrant(callback: types.CallbackQuery, chat: types.Chat, state: FSMContext):
+    await callback.answer("Premium!")
+
     try:
         await callback.answer("")
     except TelegramBadRequest as e:
@@ -189,7 +192,7 @@ async def processRejectionReason(message: types.Message, state: FSMContext):
 
 @adminRouter.callback_query(IsAdmin(), F.data == "send_message_to_user")
 async def sendMessageToUser(callback: types.CallbackQuery, chat: types.Chat, state: FSMContext):
-    await callback.answer("")
+    await callback.answer("Yuborish!")
     await state.set_state(SendMessageToUser.chatId)
     return await bot.send_message(chat.id, "Chat id kiriting")
 
@@ -216,9 +219,9 @@ async def sendTextToChat(message: types.Message, chat: types.Chat, state: FSMCon
 # Send Message command
 
 
-@adminRouter.callback_query(IsAdmin(), F.data == "send_message_to_user")
+@adminRouter.callback_query(IsAdmin(), F.data == "send_message_to_users")
 async def initiateMessageSending(callback: types.CallbackQuery, chat: types.Chat, state: FSMContext):
-    await callback.answer("")
+    await callback.answer("Xabar yuborish!")
     await state.set_state(SendMessageToUsers.messageType)
     return await bot.send_message(chat.id, "Xabar turini kiriting",
                                   reply_markup=sendMessageMarkup)
