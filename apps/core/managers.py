@@ -69,6 +69,8 @@ class ChatManager:
         referredUser = Chat.get(referredUserId)
         chatScheme = ChatScheme(**referredUser.to_dict())
 
+        if len(chatScheme.referralUsers) >= 10:
+            return False
         if chatId in chatScheme.referralUsers:
             return False
 

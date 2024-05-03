@@ -104,6 +104,8 @@ Shaxsiy kabinet - /profile"""
 
 REFERRAL_GUIDE = """Do'stingizni botga taklif qilib 10 dona gpt-3.5 turbo so'rovlarini qo'lga kiriting.
 
+Chaqirilgan foydalanuvchilar - {referralUsersCount}/{availableReferralUsersCount}
+
 Sizning shaxsiy referral linkingiz - <code>https://t.me/{botUsername}?start={userId}</code>
 
 * Ushbu linkni do'stingizga yuboring"""
