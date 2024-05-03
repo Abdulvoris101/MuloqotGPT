@@ -139,8 +139,14 @@ async def helpCommand(message: types.Message):
 @coreRouter.callback_query(F.data == "referral_link")
 async def getReferralInfo(callback: types.CallbackQuery, user: types.User):
     await callback.answer("Referral!")
+
+    referredUser = Chat.get(user.id)
+    chatScheme = ChatScheme(**referredUser.to_dict())
+
     await bot.send_message(user.id, text.REFERRAL_GUIDE.format(userId=user.id,
-                                                               botUsername=settings.BOT_USERNAME))
+                                                               botUsername=settings.BOT_USERNAME,
+                                                               referralUsersCount=len(chatScheme.referralUsers),
+                                                               availableReferralUsersCount=10))
 
 
 @coreRouter.callback_query(F.data == "translate_callback")
