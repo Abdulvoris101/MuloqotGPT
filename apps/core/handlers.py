@@ -14,7 +14,7 @@ from db.state import FeedbackMessageState, ChooseGptModelState
 from apps.common.filters.bound_filters import isBotMentioned, TextContentFilter
 from apps.admin.events import sendError
 from apps.common.exception import AiogramException, InvalidRequestException, ForbiddenException
-from .keyboards import feedbackMarkup, cancelMarkup, profileMarkup, gptModelsMarkup
+from .keyboards import feedbackMarkup, cancelMarkup, profileMarkup, gptModelsMarkup, subscribeChannelMarkup
 from .managers import ChatActivityManager, MessageManager, ChatManager
 from utils.translate import translateMessage
 from utils import settings, containsAnyWord
@@ -25,6 +25,7 @@ import asyncio
 from .models import ChatActivity, Chat
 from .schemes import ChatActivityViewScheme, ChatScheme
 from .utility_handlers import TextMessageHandler, ImageMessageHandler
+from ..common.filters.permission import isChatMember
 from ..subscription.models import ChatQuota, Limit
 from ..subscription.schemes import ChatQuotaGetScheme
 
@@ -199,10 +200,24 @@ async def onUserJoin(event: ChatMemberUpdated):
         firstName=event.from_user.first_name))
 
 
+@coreRouter.callback_query(F.data == "check_subscription")
+async def checkSubscribedChannel(callback_data: types.CallbackQuery, user: types.User):
+
+    if not await isChatMember(userId=user.id):
+        return await bot.send_message(user.id, text.NOT_SUBSCRIBED_CHANNEL)
+
+    await bot.delete_message(chat_id=user.id, message_id=callback_data.message.message_id)
+    await bot.send_message(user.id, text.START_TALKING)
+
+
 @coreRouter.message(isBotMentioned(), TextContentFilter())
 @coreRouter.message(TextContentFilter(), F.chat.type == 'private')
 async def handleMessages(message: types.Message, chat: types.Chat):
+    if not await isChatMember(userId=chat.id) and chat.type == 'private':
+        return await bot.send_message(chat.id, text.JOIN_TO_CHANNEL, reply_markup=subscribeChannelMarkup)
+
     progressMessage = await bot.send_message(chat_id=chat.id, text=text.WAIT_MESSAGE_TEXT)
+
     try:
         async with ChatActionSender.typing(bot=bot, chat_id=chat.id):
             if containsAnyWord(message.text, settings.IMAGE_GENERATION_WORDS):
