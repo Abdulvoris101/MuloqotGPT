@@ -202,6 +202,7 @@ async def onUserJoin(event: ChatMemberUpdated):
 
 @coreRouter.callback_query(F.data == "check_subscription")
 async def checkSubscribedChannel(callback_data: types.CallbackQuery, user: types.User):
+    await callback_data.answer("")
 
     if not await isChatMember(userId=user.id):
         return await bot.send_message(user.id, text.NOT_SUBSCRIBED_CHANNEL)
