@@ -12,7 +12,7 @@ from apps.subscription.schemes import ChatQuotaGetScheme
 
 START_BOT_TEXT = """Botni boshlash uchun /start kommandasini yuboring!"""
 
-WAIT_MESSAGE_TEXT = "⏳ Javob kelguncha botning rasmiy kanaliga obuna bo'lib qo'ying: @muloqotai"
+WAIT_MESSAGE_TEXT = "⏳ Javobni tayyorlayapman"
 
 GREETINGS_TEXT = """Salom! Men dunyodagi eng ilg'or Sun'iy intellektman
 
@@ -273,6 +273,10 @@ THANK_YOU_TEXT = "Izoh uchun rahmat!"
 
 CONTEXT_CHAT_CLEARED_TEXT = """Sizning suxbat tarixingiz yangilandi!"""
 
+SUCESSFULLY_SUBSCRIBED = """Siz kanalga muvafiqiyatli obuna bo'ldingiz ✅. 
+"""
+
+START_TALKING = "Menga o'zingiz qiziqayotgan savol yoki so'rovingizni yuboring!"
 
 # FORBIDDEN
 
@@ -295,3 +299,5 @@ ENTER_AGAIN = "Iltimos boshqatan so'rov yuboring"
 TOKEN_REACHED = "Savolni qisqartiribroq yozing"
 ALREADY_SUBSCRIBED = "Siz allaqachon ushbu obunaga egasiz!"
 NOT_FOUND_USER = "Foydalanuvchi topilmadi"
+JOIN_TO_CHANNEL = "Botdan foydalanish uchun kanalimizga obuna bo'ling!"
+NOT_SUBSCRIBED_CHANNEL = "Siz kanalga obuna bo'lmagansiz!"

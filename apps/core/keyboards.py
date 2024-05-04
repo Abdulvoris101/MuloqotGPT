@@ -30,3 +30,9 @@ gptModelsMarkup = keyboard.ReplyKeyboardMarkup(keyboard=gptModelsBuilder.export(
                                                one_time_keyboard=True)
 
 
+subscribeChannelBuilder = keyboard.InlineKeyboardBuilder()
+subscribeChannelBuilder.button(text="Obuna bo'lish ↗️", url="https://t.me/texnomasters")
+subscribeChannelBuilder.button(text="Tekshirish ✅", callback_data="check_subscription")
+subscribeChannelBuilder.adjust(1, 1)
+subscribeChannelMarkup = keyboard.InlineKeyboardMarkup(inline_keyboard=subscribeChannelBuilder.export())
+
