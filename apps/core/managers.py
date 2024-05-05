@@ -121,9 +121,9 @@ class ChatActivityManager:
         ).count()
 
     @classmethod
-    def getActiveUsersTimeFrame(cls, days=1) -> int:
+    def getUsersUsedDays(cls, days=1) -> int:
         return session.query(Chat.chatId).filter(
-            func.date_part('day', Chat.lastUpdated - Chat.createdAt) >= days
+            func.coalesce(Chat.lastUpdated, Chat.createdAt) - Chat.createdAt >= timedelta(days=days)
         ).distinct().count()
 
     @classmethod
