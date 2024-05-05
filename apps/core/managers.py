@@ -109,27 +109,32 @@ class ChatActivityManager:
     def getCurrentMonthUsers(cls) -> int:
         thirtyDaysAgo = datetime.now() - timedelta(days=30)
 
-        return session.query(Chat).filter(
-            Chat.lastUpdated >= thirtyDaysAgo
+        last_30_days_records = session.query(Chat).filter(
+            Chat.lastUpdated >= thirtyDaysAgo,
+            Chat.chatType == 'private'
         ).count()
+
+        return last_30_days_records
 
     @classmethod
     def getUserActivityTimeFrame(cls, days=1) -> int:
         timeThreshold = datetime.now() - timedelta(days=days)
         return session.query(Chat).filter(
-            func.coalesce(Chat.lastUpdated, Chat.createdAt) >= timeThreshold
+            func.coalesce(Chat.lastUpdated, Chat.createdAt) >= timeThreshold,
+            Chat.chatType == 'private'
         ).count()
 
     @classmethod
     def getUsersUsedDays(cls, days=1) -> int:
         return session.query(Chat.chatId).filter(
-            func.coalesce(Chat.lastUpdated, Chat.createdAt) - Chat.createdAt >= timedelta(days=days)
+            func.coalesce(Chat.lastUpdated, Chat.createdAt) - Chat.createdAt >= timedelta(days=days),
+            Chat.chatType == 'private'
         ).distinct().count()
 
     @classmethod
     def getLatestChat(cls) -> Chat:
         return session.query(Chat).\
-            filter(Chat.lastUpdated.isnot(None)).\
+            filter(Chat.lastUpdated.isnot(None), Chat.chatType == 'private').\
             order_by(desc(Chat.lastUpdated)).first()
 
     @classmethod

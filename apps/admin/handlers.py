@@ -60,7 +60,7 @@ async def adminLogin(message: types.Message, user: types.User, state: FSMContext
 async def statisticsHandler(callback: types.CallbackQuery, chat: types.Chat):
     await callback.answer("Statistika!")
     usersCount = ChatManager.usersCount()
-    allMessages = Message.count()
+    allMessages = Message.inputMessagesCount()
     avgUsersMessagesCount = allMessages / usersCount
     lastChat = ChatActivityManager.getLatestChat()
 
