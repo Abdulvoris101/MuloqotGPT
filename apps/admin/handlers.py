@@ -60,7 +60,7 @@ async def adminLogin(message: types.Message, user: types.User, state: FSMContext
 async def statisticsHandler(callback: types.CallbackQuery, chat: types.Chat):
     await callback.answer("Statistika!")
     usersCount = ChatManager.usersCount()
-    allMessages = Message.count()
+    allMessages = Message.inputMessagesCount()
     avgUsersMessagesCount = allMessages / usersCount
     lastChat = ChatActivityManager.getLatestChat()
 
@@ -68,9 +68,9 @@ async def statisticsHandler(callback: types.CallbackQuery, chat: types.Chat):
         usersCount=usersCount,
         activeUsers=ChatActivityManager.getCurrentMonthUsers(),
         activeUsersOfDay=ChatActivityManager.getUserActivityTimeFrame(days=1),
-        usersUsedOneDay=ChatActivityManager.getActiveUsersTimeFrame(days=1),
-        usersUsedOneWeek=ChatActivityManager.getActiveUsersTimeFrame(days=7),
-        usersUsedOneMonth=ChatActivityManager.getActiveUsersTimeFrame(days=30),
+        usersUsedOneDay=ChatActivityManager.getUsersUsedDays(days=1),
+        usersUsedOneWeek=ChatActivityManager.getUsersUsedDays(days=7),
+        usersUsedOneMonth=ChatActivityManager.getUsersUsedDays(days=30),
         premiumUsers=SubscriptionManager.getPremiumUsersCount(),
         allMessages=allMessages,
         avgUsersMessagesCount=avgUsersMessagesCount,

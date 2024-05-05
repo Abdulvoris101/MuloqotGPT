@@ -140,4 +140,8 @@ class Message(Base):
     def count(cls) -> int:
         return session.query(Message).order_by(desc(Message.createdAt)).count()
 
+    @classmethod
+    def inputMessagesCount(cls) -> int:
+        return session.query(Message).filter_by(role='user').order_by(desc(Message.createdAt)).count()
+
 
