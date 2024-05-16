@@ -289,7 +289,9 @@ NOT_PERMITTED_IMAGE_GENERATION = """Bu guruhda rasm generatsiya qilib bo'lmaydi!
 
 NOT_AVAILABLE_GROUP = """Bu guruhda rasm generatsiya qilib bo'lmaydi!"""
 IMAGE_GEN_NOT_AVAILABLE = """Rasm generatsiyasi jarayonida xatolik yuz berdi. Iltimos, keyinroq urinib ko'ring."""
-CHATGPT_SERVER_ERROR = "Chatgptda uzilish, Iltimos birozdan so'ng yana qayta urinib ko'ring"
+CHATGPT_SERVER_ERROR = """Chatgptda xatolik yuz berdi, Iltimoz birozdan so'ng qayta urinib ko'ring"""
+TOO_MANY_REQUESTS = """Juda ko'p so'rovlar, Iltimos biroz kuting...\n\nXech qanday cheklovlarsiz ishlatish uchun -
+/premium obuna olishingiz mumkin"""
 SERVER_ERROR_TRY_AGAIN = "Serverda xatolik. Iltimoz birozdan so'ng qayta urinib ko'ring"
 GPT_ERROR_TEMPLATE = "#error\nChat-id: {chatId}\nMessage: {message}\nApi-token: {apiToken}"
 TRY_AGAIN = "Iltimos qayta urinib ko'ring"

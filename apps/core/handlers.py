@@ -234,10 +234,10 @@ async def handleMessages(message: types.Message, chat: types.Chat):
         return await message.reply(e.message_text)
 
     except InvalidRequestException as e:
-        logger.error(e.messageText)
-        await sendError(text.GPT_ERROR_TEMPLATE.format(message=e.messageText,chatId=chat.id,
+        logger.error(e.exceptionText)
+        await sendError(text.GPT_ERROR_TEMPLATE.format(message=e.exceptionText,chatId=chat.id,
                                                        apiToken=e.apiKey))
-        return await message.reply(text.CHATGPT_SERVER_ERROR)
+        return await message.reply(e.messageText)
     except TelegramBadRequest as e:
         logger.error(e.message)
         return await message.reply(text.SERVER_ERROR_TRY_AGAIN)

@@ -16,7 +16,8 @@ class ForbiddenException(Exception):
 
 
 class InvalidRequestException(Exception):
-    def __init__(self, chatId: int, messageText: str, apikey: Optional[str] = ''):
+    def __init__(self, chatId: int, messageText: str, apikey: Optional[str] = '', exceptionText: str = ''):
         self.chatId = chatId
         self.messageText = messageText
+        self.exceptionText = exceptionText
         self.apiKey = apikey
