@@ -148,7 +148,7 @@ class SubscriptionManager:
         return any([
             cls.getActiveSubscription(chatId, PlanManager.getPremiumPlanId()),
             cls.getActiveSubscription(chatId, PlanManager.filterPlan(isFree=False, isGroup=True).id),
-            ChatActivity.getOrCreate(chatId).allMessages < 3
+            ChatActivity.getOrCreate(chatId).allMessages < 10
         ])
 
     @classmethod
