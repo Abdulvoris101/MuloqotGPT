@@ -50,8 +50,6 @@ Contributing
 We welcome contributions! If you have ideas for improvements, new features, or bug fixes, please open an issue or submit a pull request.
 License
 
-This project is licensed under the MIT License.
-Support
 
 For support, bug reports, or general inquiries, please open an issue or contact us at support@chatgpt-chatbot.com.
 Acknowledgments
